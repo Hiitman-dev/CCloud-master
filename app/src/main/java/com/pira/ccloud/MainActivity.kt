@@ -172,8 +172,8 @@ fun MainScreen(
                 AppNavigation(navController, onThemeSettingsChanged, onFontSettingsChanged)
 
                 // Floating circular search icon - replaces the old bottom-bar search tab.
-                // Shown on the same screens where the bottom bar would show.
-                if (currentScreen.showBottomBar && currentRoute != AppScreens.Splash.route) {
+                // Only shown on Movies & Series (per user request), not on every screen.
+                if ((currentRoute == AppScreens.Movies.route || currentRoute == AppScreens.Series.route)) {
                     com.pira.ccloud.ui.theme.GlassIconButton(
                         icon = Icons.Default.Search,
                         contentDescription = stringResource(AppScreens.Search.resourceId),

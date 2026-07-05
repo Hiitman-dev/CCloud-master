@@ -366,7 +366,7 @@ fun SettingsScreen(
                     colors = CardDefaults.cardColors(containerColor = Color.Transparent),
                     elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.padding(14.dp)) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -381,7 +381,7 @@ fun SettingsScreen(
                             )
                             Text(
                                 text = "Theme Settings",
-                                style = MaterialTheme.typography.titleLarge,
+                                style = MaterialTheme.typography.titleMedium,
                                 modifier = Modifier
                                     .padding(start = 8.dp)
                                     .weight(1f)
@@ -488,6 +488,22 @@ fun SettingsScreen(
                                         )
                                     }
                                 }
+                                
+                                Spacer(modifier = Modifier.height(20.dp))
+                                
+                                // Custom color canvas - pick any color, not just presets
+                                Text(
+                                    text = "Custom Color",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    modifier = Modifier.padding(bottom = 12.dp)
+                                )
+                                com.pira.ccloud.ui.theme.ColorPickerCanvas(
+                                    initialColor = themeSettings.primaryColor,
+                                    onColorConfirmed = { pickedColor ->
+                                        val newSettings = themeSettings.copy(primaryColor = pickedColor)
+                                        updateThemeSettings(newSettings)
+                                    }
+                                )
                             }
                         }
                     }
@@ -539,7 +555,7 @@ fun SettingsScreen(
                     colors = CardDefaults.cardColors(containerColor = Color.Transparent),
                     elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.padding(14.dp)) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -554,7 +570,7 @@ fun SettingsScreen(
                             )
                             Text(
                                 text = "Video Player Settings",
-                                style = MaterialTheme.typography.titleLarge,
+                                style = MaterialTheme.typography.titleMedium,
                                 modifier = Modifier
                                     .padding(start = 8.dp)
                                     .weight(1f)
@@ -714,7 +730,7 @@ fun SettingsScreen(
                     colors = CardDefaults.cardColors(containerColor = Color.Transparent),
                     elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.padding(14.dp)) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -729,7 +745,7 @@ fun SettingsScreen(
                             )
                             Text(
                                 text = "Font Settings",
-                                style = MaterialTheme.typography.titleLarge,
+                                style = MaterialTheme.typography.titleMedium,
                                 modifier = Modifier
                                     .padding(start = 8.dp)
                                     .weight(1f)
@@ -824,7 +840,7 @@ fun SettingsScreen(
                     colors = CardDefaults.cardColors(containerColor = Color.Transparent),
                     elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.padding(14.dp)) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -839,7 +855,7 @@ fun SettingsScreen(
                             )
                             Text(
                                 text = "Series Episodes Cache",
-                                style = MaterialTheme.typography.titleLarge,
+                                style = MaterialTheme.typography.titleMedium,
                                 modifier = Modifier
                                     .padding(start = 8.dp)
                                     .weight(1f)
@@ -907,7 +923,7 @@ fun SettingsScreen(
                     colors = CardDefaults.cardColors(containerColor = Color.Transparent),
                     elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.padding(14.dp)) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -922,7 +938,7 @@ fun SettingsScreen(
                             )
                             Text(
                                 text = "About",
-                                style = MaterialTheme.typography.titleLarge,
+                                style = MaterialTheme.typography.titleMedium,
                                 modifier = Modifier
                                     .padding(start = 8.dp)
                                     .weight(1f)
@@ -988,7 +1004,7 @@ fun SettingsScreen(
                     colors = CardDefaults.cardColors(containerColor = Color.Transparent),
                     elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.padding(14.dp)) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -1003,7 +1019,7 @@ fun SettingsScreen(
                             )
                             Text(
                                 text = "Check for Updates",
-                                style = MaterialTheme.typography.titleLarge,
+                                style = MaterialTheme.typography.titleMedium,
                                 modifier = Modifier
                                     .padding(start = 8.dp)
                                     .weight(1f)
@@ -1073,7 +1089,7 @@ fun SettingsScreen(
                     colors = CardDefaults.cardColors(containerColor = Color.Transparent),
                     elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.padding(14.dp)) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -1088,7 +1104,7 @@ fun SettingsScreen(
                             )
                             Text(
                                 text = "Reset to Defaults",
-                                style = MaterialTheme.typography.titleLarge,
+                                style = MaterialTheme.typography.titleMedium,
                                 modifier = Modifier
                                     .padding(start = 8.dp)
                                     .weight(1f)

@@ -311,3 +311,141 @@ fun CopySelectedLinksDialog(
         tonalElevation = 6.dp
     )
 }
+
+/**
+ * FEATURE: "Copy Season Links"
+ * Unlike [CopyLinksButton] (single episode), this gathers every episode's
+ * links for the whole season, grouped by quality: check a quality and it
+ * pulls that quality's URL from every episode in the season that has one.
+ */
+@Composable
+fun CopySeasonLinksButton(
+    episodes: List<com.pira.ccloud.data.model.Episode>,
+    modifier: Modifier = Modifier
+) {
+    var showDialog by remember { mutableStateOf(false) }
+    OutlinedButton(
+        onClick = { showDialog = true },
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        colors = ButtonDefaults.outlinedButtonColors(
+            contentColor = MaterialTheme.colorScheme.primary
+        )
+    ) {
+        Icon(
+            imageVector = Icons.Default.ContentCopy,
+            contentDescription = "Copy Season Links",
+            modifier = Modifier.size(18.dp)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text("Copy Season Links")
+    }
+
+    if (showDialog) {
+        CopySeasonLinksDialog(
+            episodes = episodes,
+            onDismiss = { showDialog = false }
+        )
+    }
+}
+
+@Composable
+fun CopySeasonLinksDialog(
+    episodes: List<com.pira.ccloud.data.model.Episode>,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+    // Every distinct quality label that appears across the season's episodes.
+    val allQualities = remember(episodes) {
+        episodes.flatMap { it.sources.map { source -> source.quality } }.distinct()
+    }
+    val checkedState = remember { mutableStateMapOf<String, Boolean>().apply {
+        allQualities.forEach { put(it, true) }
+    } }
+
+    GlassAlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Copy Season Links",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+            )
+        },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = "Pick which qualities to copy across all ${episodes.size} episodes",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                if (allQualities.isEmpty()) {
+                    Text(
+                        text = "No downloadable links found in this season.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+                allQualities.forEach { quality ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(
+                            checked = checkedState[quality] ?: false,
+                            onCheckedChange = { isChecked ->
+                                checkedState[quality] = isChecked
+                            },
+                            colors = CheckboxDefaults.colors(
+                                checkedColor = MaterialTheme.colorScheme.primary
+                            )
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = quality,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    val selectedQualities = allQualities.filter { checkedState[it] == true }.toSet()
+                    val selectedLinks = episodes.flatMap { episode ->
+                        episode.sources
+                            .filter { it.quality in selectedQualities }
+                            .map { it.url }
+                    }
+                    if (selectedLinks.isNotEmpty()) {
+                        DownloadUtils.copyMultipleToClipboard(context, selectedLinks.joinToString("\n"))
+                    }
+                    onDismiss()
+                },
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            ) {
+                Text("Copy")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        },
+        containerColor = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(20.dp),
+        tonalElevation = 6.dp
+    )
+}

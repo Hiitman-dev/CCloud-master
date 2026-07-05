@@ -68,7 +68,7 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.pira.ccloud.VideoPlayerActivity
 import com.pira.ccloud.components.DownloadOptionsDialog
-import com.pira.ccloud.components.CopyLinksButton
+import com.pira.ccloud.components.CopySeasonLinksButton
 import com.pira.ccloud.components.ExpandableText
 import com.pira.ccloud.data.model.FavoriteItem
 import com.pira.ccloud.data.model.Episode
@@ -812,13 +812,27 @@ fun SeriesDetailsContent(
             } else if (seasonsViewModel.seasons.isNotEmpty()) {
                 val selectedSeason = seasonsViewModel.seasons[selectedSeasonIndex]
                 Column {
-                    Text(
-                        text = selectedSeason.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp)
-                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 16.dp, top = 16.dp, end = 16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = selectedSeason.title,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        // FEATURE: Copy Season Links - gathers every episode's
+                        // links for this season, not just one episode's.
+                        if (selectedSeason.episodes.any { it.sources.isNotEmpty() }) {
+                            CopySeasonLinksButton(episodes = selectedSeason.episodes)
+                        }
+                    }
                     
                     selectedSeason.episodes.forEach { episode ->
                         val isEpisodeWatched = StorageUtils.isEpisodeWatched(context, series.id, selectedSeason.id, episode.id)
@@ -964,13 +978,6 @@ fun EpisodeItem(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // FEATURE: Copy Selected Links - shown whenever the episode has
-                // at least one downloadable quality.
-                if (episode.sources.isNotEmpty()) {
-                    CopyLinksButton(sources = episode.sources)
-                    Spacer(modifier = Modifier.width(8.dp))
-                }
-
                 // Download button
                 if (episode.sources.isNotEmpty()) {
                     IconButton(

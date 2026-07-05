@@ -33,6 +33,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
@@ -303,13 +304,38 @@ fun SearchScreen(
                                 .fillMaxWidth()
                                 .padding(top = 8.dp)
                         ) {
-                            Text(
-                                text = "Recent Searches",
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Recent Searches",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                androidx.compose.material3.TextButton(
+                                    onClick = {
+                                        recentSearches = clearRecentSearches(recentSearchesPrefs)
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = "Clear history",
+                                        modifier = Modifier.size(16.dp),
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "Clear",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            }
                             LazyRow(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 contentPadding = PaddingValues(bottom = 8.dp)
@@ -403,6 +429,11 @@ private fun addRecentSearch(
     prefs.edit().putString(RECENT_SEARCHES_KEY, jsonArray.toString()).apply()
 
     return capped
+}
+
+private fun clearRecentSearches(prefs: android.content.SharedPreferences): List<String> {
+    prefs.edit().remove(RECENT_SEARCHES_KEY).apply()
+    return emptyList()
 }
 
 @Composable

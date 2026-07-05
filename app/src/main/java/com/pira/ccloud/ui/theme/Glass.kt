@@ -45,15 +45,15 @@ import androidx.compose.ui.window.DialogProperties
 fun Modifier.glassSurface(
     shape: Shape = RoundedCornerShape(20.dp),
     tint: Color = Color.White,
-    tintAlpha: Float = 0.14f,
-    borderAlpha: Float = 0.30f
+    tintAlpha: Float = 0.55f,
+    borderAlpha: Float = 0.45f
 ): Modifier = this
     .clip(shape)
     .background(
         brush = Brush.linearGradient(
             colors = listOf(
-                tint.copy(alpha = tintAlpha * 1.7f),
-                tint.copy(alpha = tintAlpha * 0.5f)
+                tint.copy(alpha = (tintAlpha * 1.35f).coerceAtMost(0.92f)),
+                tint.copy(alpha = (tintAlpha * 0.85f).coerceAtMost(0.85f))
             )
         )
     )
@@ -62,17 +62,23 @@ fun Modifier.glassSurface(
         brush = Brush.linearGradient(
             colors = listOf(
                 tint.copy(alpha = borderAlpha),
-                tint.copy(alpha = borderAlpha * 0.15f)
+                tint.copy(alpha = borderAlpha * 0.3f)
             )
         ),
         shape = shape
     )
 
-/** Picks a light tint on dark backgrounds and a dark tint on light backgrounds. */
+/**
+ * Picks a tint that matches the theme's own surface tone (dark tint on dark
+ * theme, light tint on light theme) so that normal onSurface/onBackground
+ * text - which is already tuned for that tone - stays readable on top of it.
+ * (A tint that inverted the tone would fight with same-colored text sitting
+ * on top of it, which is what made earlier glass surfaces hard to read.)
+ */
 @Composable
 fun rememberGlassTint(): Color {
     val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
-    return if (isDark) Color.White else Color.Black
+    return if (isDark) Color.Black else Color.White
 }
 
 /** A circular, frosted-glass icon button - used for the floating search icon, filter trigger, etc. */
@@ -142,7 +148,7 @@ fun GlassAlertDialog(
         Box(
             modifier = modifier
                 .widthIn(min = 280.dp, max = 560.dp)
-                .glassSurface(shape = shape, tint = tint, tintAlpha = 0.22f, borderAlpha = 0.35f)
+                .glassSurface(shape = shape, tint = tint, tintAlpha = 0.75f, borderAlpha = 0.5f)
                 .padding(24.dp)
         ) {
             Column {
