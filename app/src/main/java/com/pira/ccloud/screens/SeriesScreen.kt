@@ -40,6 +40,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import com.pira.ccloud.ui.theme.glassSurface
+import com.pira.ccloud.ui.theme.glassBackdrop
 import com.pira.ccloud.ui.theme.rememberGlassTint
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -91,6 +92,7 @@ fun SeriesScreen(
         }
     }
     
+    Box(modifier = Modifier.fillMaxSize().glassBackdrop()) {
     Column(modifier = Modifier.fillMaxSize()) {
         // Genre filter section
         GenreFilterSection(
@@ -126,6 +128,7 @@ fun SeriesScreen(
                 )
             }
         }
+    }
     }
 }
 

@@ -85,6 +85,26 @@ fun SingleMovieScreen(
     
     LaunchedEffect(movieId) {
         movie = StorageUtils.loadMovieFromFile(context, movieId)
+        movie?.let { m ->
+            StorageUtils.saveRecentlyViewed(
+                context,
+                FavoriteItem(
+                    id = m.id,
+                    type = "movie",
+                    title = m.title,
+                    description = m.description,
+                    year = m.year,
+                    imdb = m.imdb,
+                    rating = m.rating,
+                    duration = m.duration,
+                    image = m.image,
+                    cover = m.cover,
+                    genres = m.genres,
+                    country = m.country,
+                    sources = m.sources
+                )
+            )
+        }
     }
     
     // Directly render content without Scaffold since it's already in MainScreen's Scaffold

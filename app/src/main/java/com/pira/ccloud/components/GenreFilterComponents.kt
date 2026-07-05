@@ -71,7 +71,7 @@ fun GenreFilterSection(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, end = 16.dp, top = 64.dp, bottom = 8.dp)
+            .padding(start = 16.dp, end = 16.dp, top = 88.dp, bottom = 8.dp)
             .glassSurface(shape = RoundedCornerShape(18.dp), tint = glassTint)
             .clickable { showFilterSheet = true }
             .padding(horizontal = 16.dp, vertical = 12.dp),

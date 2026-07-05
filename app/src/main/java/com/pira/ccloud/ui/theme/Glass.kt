@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -45,15 +46,27 @@ import androidx.compose.ui.window.DialogProperties
 fun Modifier.glassSurface(
     shape: Shape = RoundedCornerShape(20.dp),
     tint: Color = Color.White,
-    tintAlpha: Float = 0.55f,
-    borderAlpha: Float = 0.45f
+    tintAlpha: Float = 0.82f,
+    borderAlpha: Float = 0.55f
 ): Modifier = this
     .clip(shape)
     .background(
         brush = Brush.linearGradient(
             colors = listOf(
-                tint.copy(alpha = (tintAlpha * 1.35f).coerceAtMost(0.92f)),
-                tint.copy(alpha = (tintAlpha * 0.85f).coerceAtMost(0.85f))
+                tint.copy(alpha = (tintAlpha * 1.08f).coerceAtMost(0.96f)),
+                tint.copy(alpha = (tintAlpha * 0.90f).coerceAtMost(0.92f))
+            )
+        )
+    )
+    // Extra frosted "noise" layer - a soft diagonal sheen sitting on top of the
+    // base tint - is what reads as matte/frosted glass instead of a flat,
+    // plainly-transparent tinted panel.
+    .background(
+        brush = Brush.linearGradient(
+            colors = listOf(
+                tint.copy(alpha = 0.10f),
+                Color.Transparent,
+                tint.copy(alpha = 0.06f)
             )
         )
     )
@@ -62,7 +75,7 @@ fun Modifier.glassSurface(
         brush = Brush.linearGradient(
             colors = listOf(
                 tint.copy(alpha = borderAlpha),
-                tint.copy(alpha = borderAlpha * 0.3f)
+                tint.copy(alpha = borderAlpha * 0.35f)
             )
         ),
         shape = shape
@@ -104,6 +117,44 @@ fun GlassIconButton(
             tint = iconTint
         )
     }
+}
+
+/**
+ * Decorative, softly-blurred brand-colored shapes for screen backgrounds so
+ * the app's canvas is never a flat, empty color. Meant to sit behind content
+ * (e.g. as the first child of a Box, with real content drawn on top).
+ */
+@Composable
+fun Modifier.glassBackdrop(): Modifier {
+    val primary = MaterialTheme.colorScheme.primary
+    val tertiary = MaterialTheme.colorScheme.tertiary
+    val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+    val baseAlpha = if (isDark) 0.22f else 0.16f
+    return this
+        .background(MaterialTheme.colorScheme.background)
+        .drawBehind {
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(primary.copy(alpha = baseAlpha), Color.Transparent)
+                ),
+                radius = size.width * 0.75f,
+                center = androidx.compose.ui.geometry.Offset(size.width * 0.1f, size.height * -0.05f)
+            )
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(tertiary.copy(alpha = baseAlpha * 0.85f), Color.Transparent)
+                ),
+                radius = size.width * 0.65f,
+                center = androidx.compose.ui.geometry.Offset(size.width * 0.95f, size.height * 0.35f)
+            )
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(primary.copy(alpha = baseAlpha * 0.7f), Color.Transparent)
+                ),
+                radius = size.width * 0.55f,
+                center = androidx.compose.ui.geometry.Offset(size.width * 0.2f, size.height * 1.05f)
+            )
+        }
 }
 
 /** A generic frosted-glass surface container for cards, chips, sheets, etc. */
