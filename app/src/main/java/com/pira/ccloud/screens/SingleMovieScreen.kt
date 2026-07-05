@@ -29,7 +29,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.AlertDialog
+import com.pira.ccloud.ui.theme.GlassAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ElevatedCard
@@ -38,6 +38,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import com.pira.ccloud.ui.theme.glassSurface
+import com.pira.ccloud.ui.theme.rememberGlassTint
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -220,7 +222,7 @@ fun MovieDetailsContent(
                 
                 // Image URL dialog
                 if (showImageDialog) {
-                    AlertDialog(
+                    GlassAlertDialog(
                         onDismissRequest = { showImageDialog = false },
                         title = { Text("Image Options") },
                         text = { Text("Choose an action for this image") },
@@ -322,7 +324,7 @@ fun MovieDetailsContent(
             
             // Confirmation dialog for removing from favorites
             if (showRemoveFavoriteDialog) {
-                AlertDialog(
+                GlassAlertDialog(
                     onDismissRequest = { showRemoveFavoriteDialog = false },
                     title = { Text("Remove from Favorites") },
                     text = { Text("Are you sure you want to remove this movie from your favorites?") },
@@ -407,13 +409,15 @@ fun MovieDetailsContent(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(movie.genres) { genre ->
+                    val genreChipGlassTint = rememberGlassTint()
                     Card(
                         colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer
+                            containerColor = Color.Transparent
                         ),
                         shape = RoundedCornerShape(50.dp), // More rounded corners
                         modifier = Modifier
                             .height(32.dp) // Fixed height for consistency
+                            .glassSurface(shape = RoundedCornerShape(50.dp), tint = genreChipGlassTint)
                     ) {
                         Box(
                             contentAlignment = Alignment.Center,
@@ -424,7 +428,7 @@ fun MovieDetailsContent(
                             Text(
                                 text = genre.title,
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 fontWeight = FontWeight.Medium,
                                 maxLines = 1
                             )
@@ -473,7 +477,8 @@ fun MovieDetailsContent(
                     text = "Available Qualities",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.weight(1f)
                 )
 
                 // FEATURE: Copy Selected Links - lets the user multi-select qualities
@@ -485,39 +490,32 @@ fun MovieDetailsContent(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp)
             ) {
+                val qualityGlassTint = rememberGlassTint()
                 movie.sources.forEach { source ->
-                    ElevatedCard(
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .glassSurface(shape = RoundedCornerShape(16.dp), tint = qualityGlassTint)
                             .clickable {
                                 selectedSource = source
                                 showSourceDialog = true
-                            },
-                        colors = CardDefaults.elevatedCardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
-                        ),
-                        shape = RoundedCornerShape(16.dp)
+                            }
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = source.quality,
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            
-                            Icon(
-                                imageVector = Icons.Default.PlayArrow,
-                                contentDescription = "Play",
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
+                        Text(
+                            text = source.quality,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+
+                        Icon(
+                            imageVector = Icons.Default.PlayArrow,
+                            contentDescription = "Play",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
                     }
                 }
             }
@@ -550,7 +548,7 @@ fun SourceOptionsDialog(
         )
     }
     
-    AlertDialog(
+    GlassAlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(

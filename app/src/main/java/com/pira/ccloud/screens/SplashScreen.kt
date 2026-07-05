@@ -96,8 +96,9 @@ fun SplashScreen(
             Text(
                 text = "CCloud",
                 style = MaterialTheme.typography.headlineMedium,
+                fontFamily = com.pira.ccloud.ui.theme.SteelfishFontFamily,
                 fontWeight = FontWeight.Bold,
-                fontSize = 32.sp,
+                fontSize = 36.sp,
                 color = MaterialTheme.colorScheme.onBackground,
                 textAlign = TextAlign.Center
             )

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material3.Icon
@@ -30,16 +31,26 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import com.pira.ccloud.ui.theme.glassSurface
+import com.pira.ccloud.ui.theme.rememberGlassTint
 
 @Composable
 fun BottomNavigationBar(navController: NavController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
+    val glassTint = rememberGlassTint()
+
     NavigationBar(
-        modifier = Modifier.fillMaxWidth(),
-        containerColor = androidx.compose.material3.MaterialTheme.colorScheme.surface,
-        tonalElevation = 3.dp
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .glassSurface(
+                shape = RoundedCornerShape(28.dp),
+                tint = glassTint
+            ),
+        containerColor = Color.Transparent,
+        tonalElevation = 0.dp
     ) {
         AppScreens.screens.filter { it.showBottomBar }.forEach { screen ->
             val isSelected = currentRoute == screen.route

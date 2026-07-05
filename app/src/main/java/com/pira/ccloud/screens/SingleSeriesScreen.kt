@@ -30,7 +30,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.AlertDialog
+import com.pira.ccloud.ui.theme.GlassAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ElevatedCard
@@ -39,6 +39,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import com.pira.ccloud.ui.theme.glassSurface
+import com.pira.ccloud.ui.theme.rememberGlassTint
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -230,7 +232,7 @@ fun SourceOptionsDialog(
         )
     }
     
-    AlertDialog(
+    GlassAlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
@@ -324,7 +326,7 @@ fun DownloadMenu(
     
     // Only show the quality selection if there are multiple sources
     if (sources.size > 1) {
-        AlertDialog(
+        GlassAlertDialog(
             onDismissRequest = onDismiss,
             title = {
                 Text(
@@ -469,7 +471,7 @@ fun SeriesDetailsContent(
                     
                     // Image URL dialog
                     if (showImageDialog) {
-                        AlertDialog(
+                        GlassAlertDialog(
                             onDismissRequest = { showImageDialog = false },
                             title = { Text("Image Options") },
                             text = { Text("Choose an action for this image") },
@@ -571,7 +573,7 @@ fun SeriesDetailsContent(
                 
                 // Confirmation dialog for removing from favorites
                 if (showRemoveFavoriteDialog) {
-                    AlertDialog(
+                    GlassAlertDialog(
                         onDismissRequest = { showRemoveFavoriteDialog = false },
                         title = { Text("Remove from Favorites") },
                         text = { Text("Are you sure you want to remove this series from your favorites?") },
@@ -657,13 +659,15 @@ fun SeriesDetailsContent(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(series.genres) { genre ->
+                        val genreChipGlassTint = rememberGlassTint()
                         Card(
                             colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer
+                                containerColor = Color.Transparent
                             ),
                             shape = RoundedCornerShape(50.dp), // More rounded corners
                             modifier = Modifier
                                 .height(32.dp) // Fixed height for consistency
+                                .glassSurface(shape = RoundedCornerShape(50.dp), tint = genreChipGlassTint)
                         ) {
                             Box(
                                 contentAlignment = Alignment.Center,
@@ -674,7 +678,7 @@ fun SeriesDetailsContent(
                                 Text(
                                     text = genre.title,
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     fontWeight = FontWeight.Medium,
                                     maxLines = 1
                                 )
@@ -736,14 +740,20 @@ fun SeriesDetailsContent(
                 ) {
                     items(seasonsViewModel.seasons.size) { index ->
                         val season = seasonsViewModel.seasons[index]
+                        val seasonChipGlassTint = rememberGlassTint()
                         Card(
                             modifier = Modifier
-                                .clickable { selectedSeasonIndex = index },
+                                .clickable { selectedSeasonIndex = index }
+                                .then(
+                                    if (selectedSeasonIndex != index)
+                                        Modifier.glassSurface(shape = RoundedCornerShape(12.dp), tint = seasonChipGlassTint)
+                                    else Modifier
+                                ),
                             colors = CardDefaults.cardColors(
                                 containerColor = if (selectedSeasonIndex == index) 
                                     MaterialTheme.colorScheme.primary 
                                 else 
-                                    MaterialTheme.colorScheme.surfaceVariant
+                                    Color.Transparent
                             ),
                             shape = RoundedCornerShape(12.dp)
                         ) {
@@ -848,17 +858,18 @@ fun EpisodeItem(
     onDownloadClick: () -> Unit,
     onImageClick: (String) -> Unit
 ) {
-    ElevatedCard(
+    val episodeGlassTint = rememberGlassTint()
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = if (isWatched) 
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-            else 
-                MaterialTheme.colorScheme.surfaceVariant,
-        )
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .glassSurface(
+                shape = RoundedCornerShape(16.dp),
+                tint = if (isWatched)
+                    MaterialTheme.colorScheme.primary
+                else
+                    episodeGlassTint
+            )
     ) {
         Column(
             modifier = Modifier
@@ -953,9 +964,9 @@ fun EpisodeItem(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // FEATURE: Copy Selected Links - only relevant when the episode has
-                // more than one quality to choose from.
-                if (episode.sources.size > 1) {
+                // FEATURE: Copy Selected Links - shown whenever the episode has
+                // at least one downloadable quality.
+                if (episode.sources.isNotEmpty()) {
                     CopyLinksButton(sources = episode.sources)
                     Spacer(modifier = Modifier.width(8.dp))
                 }

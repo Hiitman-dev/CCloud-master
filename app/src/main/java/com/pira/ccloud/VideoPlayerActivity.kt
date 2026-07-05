@@ -59,7 +59,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
-import androidx.compose.material3.AlertDialog
+import com.pira.ccloud.ui.theme.GlassAlertDialog
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.runtime.Composable
@@ -383,6 +383,17 @@ fun VideoPlayerScreen(
                     try {
                         // Load the Vazirmatn font from assets
                         Typeface.createFromAsset(context.assets, "font/vazirmatn_regular.ttf")
+                    } catch (e: Exception) {
+                        null
+                    }
+                }
+                com.pira.ccloud.data.model.FontType.YEKAN_BAKH -> {
+                    try {
+                        // Load the Yekan Bakh font from res/font (not assets)
+                        androidx.core.content.res.ResourcesCompat.getFont(
+                            context,
+                            com.pira.ccloud.R.font.yekan_bakh_regular
+                        )
                     } catch (e: Exception) {
                         null
                     }
@@ -1179,7 +1190,7 @@ fun TrackSelectionDialog(
         } ?: "None"
     }
     
-    AlertDialog(
+    GlassAlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(

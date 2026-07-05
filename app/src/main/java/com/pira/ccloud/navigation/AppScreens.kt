@@ -38,7 +38,8 @@ sealed class AppScreens(
     data object Search : AppScreens(
         route = "search",
         resourceId = R.string.search,
-        icon = Icons.Default.Search
+        icon = Icons.Default.Search,
+        showBottomBar = false // Moved to a circular icon at the top of the screen instead
     )
 
     data object Settings : AppScreens(

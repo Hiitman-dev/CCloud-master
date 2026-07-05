@@ -13,7 +13,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
@@ -34,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.pira.ccloud.data.model.Source
+import com.pira.ccloud.ui.theme.GlassAlertDialog
 import com.pira.ccloud.utils.DownloadUtils
 
 @Composable
@@ -47,7 +47,7 @@ fun DownloadOptionsDialog(
     onOpenInMXPlayer: () -> Unit,
     onOpenInKMPlayer: () -> Unit
 ) {
-    AlertDialog(
+    GlassAlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
@@ -235,7 +235,7 @@ fun CopySelectedLinksDialog(
         sources.forEach { put(it.id, true) }
     } }
 
-    AlertDialog(
+    GlassAlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(

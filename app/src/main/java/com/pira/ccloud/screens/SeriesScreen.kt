@@ -39,6 +39,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import com.pira.ccloud.ui.theme.glassSurface
+import com.pira.ccloud.ui.theme.rememberGlassTint
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -192,13 +194,15 @@ fun ShimmerSeriesItem(
         end = Offset(x = translateAnim, y = translateAnim)
     )
     
+    val shimmerSeriesCardGlassTint = rememberGlassTint()
     Card(
         modifier = Modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .glassSurface(shape = RoundedCornerShape(12.dp), tint = shimmerSeriesCardGlassTint),
         shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            containerColor = Color.Transparent
         )
     ) {
         Column(
@@ -383,15 +387,17 @@ fun SeriesItem(
     series: Series,
     onClick: () -> Unit
 ) {
+    val seriesCardGlassTint = rememberGlassTint()
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .height(310.dp) // Fixed height for all cards
+            .glassSurface(shape = RoundedCornerShape(12.dp), tint = seriesCardGlassTint)
             .clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            containerColor = Color.Transparent
         )
     ) {
         Column(

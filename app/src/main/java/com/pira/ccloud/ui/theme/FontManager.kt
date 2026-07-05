@@ -14,7 +14,8 @@ import com.pira.ccloud.utils.StorageUtils
 
 object FontManager {
     private var vazirmatnFontFamily: FontFamily? = null
-    
+    private var yekanBakhFontFamily: FontFamily? = null
+
     fun loadFontFamily(context: Context, fontType: FontType): FontFamily? {
         return when (fontType) {
             FontType.DEFAULT -> null // Use system default
@@ -41,9 +42,102 @@ object FontManager {
                 }
                 vazirmatnFontFamily
             }
+            FontType.YEKAN_BAKH -> {
+                if (yekanBakhFontFamily == null) {
+                    // Full weight range so every Typography style (body, title, label...)
+                    // resolves to the matching Yekan Bakh weight automatically.
+                    yekanBakhFontFamily = FontFamily(
+                        androidx.compose.ui.text.font.Font(
+                            com.pira.ccloud.R.font.yekan_bakh_thin,
+                            FontWeight.Thin,
+                            FontStyle.Normal
+                        ),
+                        androidx.compose.ui.text.font.Font(
+                            com.pira.ccloud.R.font.yekan_bakh_light,
+                            FontWeight.Light,
+                            FontStyle.Normal
+                        ),
+                        androidx.compose.ui.text.font.Font(
+                            com.pira.ccloud.R.font.yekan_bakh_regular,
+                            FontWeight.Normal,
+                            FontStyle.Normal
+                        ),
+                        androidx.compose.ui.text.font.Font(
+                            com.pira.ccloud.R.font.yekan_bakh_semibold,
+                            FontWeight.SemiBold,
+                            FontStyle.Normal
+                        ),
+                        androidx.compose.ui.text.font.Font(
+                            com.pira.ccloud.R.font.yekan_bakh_bold,
+                            FontWeight.Bold,
+                            FontStyle.Normal
+                        ),
+                        androidx.compose.ui.text.font.Font(
+                            com.pira.ccloud.R.font.yekan_bakh_extrabold,
+                            FontWeight.ExtraBold,
+                            FontStyle.Normal
+                        ),
+                        androidx.compose.ui.text.font.Font(
+                            com.pira.ccloud.R.font.yekan_bakh_black,
+                            FontWeight.Black,
+                            FontStyle.Normal
+                        )
+                    )
+                }
+                yekanBakhFontFamily
+            }
         }
     }
 }
+
+/**
+ * Steelfish is a bold, condensed Latin display face - not suitable as the
+ * whole app's body font. It's exposed separately so specific composables
+ * (the app logo/wordmark, big screen titles, CTA buttons) can opt into it
+ * directly via `fontFamily = SteelfishFontFamily`, independent of whatever
+ * the user picked in Font Settings.
+ */
+val SteelfishFontFamily = FontFamily(
+    androidx.compose.ui.text.font.Font(
+        com.pira.ccloud.R.font.steelfish_regular,
+        FontWeight.Normal,
+        FontStyle.Normal
+    ),
+    androidx.compose.ui.text.font.Font(
+        com.pira.ccloud.R.font.steelfish_regular_italic,
+        FontWeight.Normal,
+        FontStyle.Italic
+    ),
+    androidx.compose.ui.text.font.Font(
+        com.pira.ccloud.R.font.steelfish_bold,
+        FontWeight.Bold,
+        FontStyle.Normal
+    ),
+    androidx.compose.ui.text.font.Font(
+        com.pira.ccloud.R.font.steelfish_bold_italic,
+        FontWeight.Bold,
+        FontStyle.Italic
+    ),
+    androidx.compose.ui.text.font.Font(
+        com.pira.ccloud.R.font.steelfish_extrabold,
+        FontWeight.ExtraBold,
+        FontStyle.Normal
+    ),
+    androidx.compose.ui.text.font.Font(
+        com.pira.ccloud.R.font.steelfish_extrabold_italic,
+        FontWeight.ExtraBold,
+        FontStyle.Italic
+    )
+)
+
+/** The decorative outline cut of Steelfish, for special one-off branding moments. */
+val SteelfishOutlineFontFamily = FontFamily(
+    androidx.compose.ui.text.font.Font(
+        com.pira.ccloud.R.font.steelfish_outline,
+        FontWeight.Normal,
+        FontStyle.Normal
+    )
+)
 
 @Composable
 fun rememberFontSettings(): FontSettings {

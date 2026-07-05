@@ -14,5 +14,6 @@ data class FontSettings(
 
 enum class FontType {
     DEFAULT, // System default font
-    VAZIRMATN // Custom Vazirmatn font
+    VAZIRMATN, // Custom Vazirmatn font
+    YEKAN_BAKH // Custom Yekan Bakh font (licensed by the app owner)
 }

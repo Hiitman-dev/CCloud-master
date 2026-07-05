@@ -44,6 +44,8 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import com.pira.ccloud.ui.theme.glassSurface
+import com.pira.ccloud.ui.theme.rememberGlassTint
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
@@ -118,12 +120,17 @@ fun SearchScreen(
             .padding(16.dp)
     ) {
         // Search bar
+        val searchGlassTint = rememberGlassTint()
         TextField(
             value = viewModel.searchQuery,
             onValueChange = { viewModel.updateSearchQuery(it) },
             modifier = Modifier
                 .fillMaxWidth()
                 .focusRequester(focusRequester)
+                .glassSurface(
+                    shape = RoundedCornerShape(24.dp),
+                    tint = searchGlassTint
+                )
                 .clickable { 
                     // Ensure keyboard opens when clicking on the TextField on TV
                     focusRequester.requestFocus()
@@ -179,8 +186,8 @@ fun SearchScreen(
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
                 disabledIndicatorColor = Color.Transparent,
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
             ),
             shape = RoundedCornerShape(24.dp),
             singleLine = true
@@ -479,15 +486,17 @@ fun PosterItem(
     poster: Poster,
     onClick: () -> Unit
 ) {
+    val posterCardGlassTint = rememberGlassTint()
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .height(310.dp) // Fixed height for all cards
+            .glassSurface(shape = RoundedCornerShape(12.dp), tint = posterCardGlassTint)
             .clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            containerColor = Color.Transparent
         )
     ) {
         Column(
