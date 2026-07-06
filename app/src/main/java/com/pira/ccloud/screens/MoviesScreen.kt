@@ -151,7 +151,7 @@ fun LoadingScreen() {
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(16.dp),
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Medium
         )
         
         AnimatedVisibility(
@@ -469,7 +469,7 @@ fun MovieItem(
                 Text(
                     text = movie.title,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Medium,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     color = MaterialTheme.colorScheme.onSurface

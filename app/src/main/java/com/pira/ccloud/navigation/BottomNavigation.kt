@@ -73,11 +73,12 @@ fun BottomNavigationBar(navController: NavController) {
             .glassSurface(
                 shape = RoundedCornerShape(GlassCorners.Navigation),
                 tint = glassTint,
-                // A bit stronger than the ambient default so posters/lists
-                // behind it never bleed through enough to confuse which tab
-                // is selected, while still reading as translucent glass.
-                tintAlpha = 0.5f,
-                borderAlpha = 0.32f
+                // Per spec, the bottom nav is a solid floating capsule, not a
+                // see-through glass panel: 90%-95% opaque with only soft
+                // blur/shadow for elevation, so it reads as "production
+                // surface" rather than "glass material".
+                tintAlpha = 0.94f,
+                borderAlpha = 0.22f
             )
     ) {
         Row(
@@ -159,7 +160,7 @@ fun BottomNavigationBar(navController: NavController) {
                         text = stringResource(screen.resourceId),
                         color = textColor,
                         fontSize = MaterialTheme.typography.labelMedium.fontSize,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                        fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal,
                         maxLines = 1
                     )
                 }

@@ -238,7 +238,7 @@ fun SourceOptionsDialog(
             Text(
                 text = "Episode: ${episode.title}",
                 style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Medium
             )
         },
         text = {
@@ -332,7 +332,7 @@ fun DownloadMenu(
                 Text(
                     text = "Select Quality to Download",
                     style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Medium
                 )
             },
             text = {
@@ -505,7 +505,7 @@ fun SeriesDetailsContent(
                         Text(
                             text = series.title,
                             style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         
@@ -646,7 +646,7 @@ fun SeriesDetailsContent(
                 Text(
                     text = "Genres",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp)
                 )
@@ -701,7 +701,7 @@ fun SeriesDetailsContent(
                 Text(
                     text = "Description",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.primary
                 )
             }
@@ -725,7 +725,7 @@ fun SeriesDetailsContent(
                 Text(
                     text = "Seasons",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp)
                 )
@@ -784,7 +784,7 @@ fun SeriesDetailsContent(
                 Text(
                     text = "Loading seasons...",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(16.dp)
                 )
@@ -822,7 +822,7 @@ fun SeriesDetailsContent(
                         Text(
                             text = selectedSeason.title,
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.weight(1f)
                         )
@@ -945,7 +945,7 @@ fun EpisodeItem(
                     Text(
                         text = episode.title,
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     

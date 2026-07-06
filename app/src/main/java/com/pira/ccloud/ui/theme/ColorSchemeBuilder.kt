@@ -85,35 +85,41 @@ private fun Color.shiftHue(degrees: Float, saturation: Float, lightness: Float):
 fun buildAppColorScheme(seed: Color, dark: Boolean): ColorScheme {
     val hsl = seed.toHsl()
     val hue = hsl[0]
-    val baseSat = max(hsl[1], 0.28f)
+    // Capped (not just floored) so a vivid user-picked accent still resolves
+    // to a soft, desaturated tone - the whole interface stays "mostly
+    // monochromatic" per the design system, with color used only as a quiet
+    // accent rather than a dominant hue.
+    val baseSat = hsl[1].coerceIn(0.14f, 0.30f)
     val seedColor = hslToColor(hue, baseSat, if (dark) 0.72f else 0.42f)
 
     return if (dark) {
         darkColorScheme(
             primary = seedColor,
             onPrimary = hslToColor(hue, baseSat, 0.12f),
-            primaryContainer = hslToColor(hue, baseSat * 0.75f, 0.26f),
+            primaryContainer = hslToColor(hue, baseSat * 0.75f, 0.24f),
             onPrimaryContainer = hslToColor(hue, baseSat * 0.6f, 0.90f),
             secondary = hslToColor(hue, baseSat * 0.45f, 0.78f),
             onSecondary = hslToColor(hue, baseSat * 0.4f, 0.16f),
-            secondaryContainer = hslToColor(hue, baseSat * 0.35f, 0.24f),
+            secondaryContainer = hslToColor(hue, baseSat * 0.35f, 0.22f),
             onSecondaryContainer = hslToColor(hue, baseSat * 0.3f, 0.88f),
-            tertiary = seedColor.shiftHue(40f, baseSat * 0.55f, 0.76f),
-            onTertiary = hslToColor(hue + 40f, baseSat * 0.5f, 0.16f),
-            tertiaryContainer = seedColor.shiftHue(40f, baseSat * 0.4f, 0.26f),
-            onTertiaryContainer = hslToColor(hue + 40f, baseSat * 0.4f, 0.88f),
-            background = hslToColor(hue, 0.10f, 0.08f),
-            onBackground = hslToColor(hue, 0.06f, 0.94f),
-            surface = hslToColor(hue, 0.12f, 0.11f),
-            onSurface = hslToColor(hue, 0.06f, 0.94f),
-            surfaceVariant = hslToColor(hue, 0.14f, 0.20f),
-            onSurfaceVariant = hslToColor(hue, 0.08f, 0.82f),
+            tertiary = seedColor.shiftHue(24f, baseSat * 0.5f, 0.76f),
+            onTertiary = hslToColor(hue + 24f, baseSat * 0.5f, 0.16f),
+            tertiaryContainer = seedColor.shiftHue(24f, baseSat * 0.35f, 0.24f),
+            onTertiaryContainer = hslToColor(hue + 24f, baseSat * 0.4f, 0.88f),
+            // Near-neutral warm-black background/surface - depth comes from
+            // luminance steps, not from hue or saturation.
+            background = hslToColor(hue, 0.03f, 0.07f),
+            onBackground = hslToColor(hue, 0.02f, 0.95f),
+            surface = hslToColor(hue, 0.035f, 0.105f),
+            onSurface = hslToColor(hue, 0.02f, 0.95f),
+            surfaceVariant = hslToColor(hue, 0.05f, 0.185f),
+            onSurfaceVariant = hslToColor(hue, 0.03f, 0.80f),
             surfaceTint = seedColor,
-            inverseSurface = hslToColor(hue, 0.08f, 0.92f),
-            inverseOnSurface = hslToColor(hue, 0.10f, 0.16f),
+            inverseSurface = hslToColor(hue, 0.03f, 0.92f),
+            inverseOnSurface = hslToColor(hue, 0.04f, 0.16f),
             inversePrimary = hslToColor(hue, baseSat, 0.36f),
-            outline = hslToColor(hue, 0.10f, 0.48f),
-            outlineVariant = hslToColor(hue, 0.12f, 0.30f),
+            outline = hslToColor(hue, 0.05f, 0.46f),
+            outlineVariant = hslToColor(hue, 0.05f, 0.28f),
             scrim = Color.Black
         )
     } else {
@@ -126,28 +132,27 @@ fun buildAppColorScheme(seed: Color, dark: Boolean): ColorScheme {
             onSecondary = Color.White,
             secondaryContainer = hslToColor(hue, baseSat * 0.35f, 0.90f),
             onSecondaryContainer = hslToColor(hue, baseSat * 0.4f, 0.20f),
-            tertiary = seedColor.shiftHue(40f, baseSat * 0.5f, 0.40f),
+            tertiary = seedColor.shiftHue(24f, baseSat * 0.45f, 0.40f),
             onTertiary = Color.White,
-            tertiaryContainer = seedColor.shiftHue(40f, baseSat * 0.35f, 0.90f),
-            onTertiaryContainer = hslToColor(hue + 40f, baseSat * 0.5f, 0.20f),
-            background = hslToColor(hue, 0.24f, 0.965f),
-            onBackground = hslToColor(hue, 0.18f, 0.14f),
-            surface = hslToColor(hue, 0.20f, 0.99f),
-            onSurface = hslToColor(hue, 0.18f, 0.14f),
-            surfaceVariant = hslToColor(hue, 0.28f, 0.90f),
-            onSurfaceVariant = hslToColor(hue, 0.16f, 0.32f),
+            tertiaryContainer = seedColor.shiftHue(24f, baseSat * 0.3f, 0.90f),
+            onTertiaryContainer = hslToColor(hue + 24f, baseSat * 0.5f, 0.20f),
+            // Warm White / Soft Ivory / Light Silver tonal steps - never a
+            // flat single off-white slab.
+            background = hslToColor(hue, 0.06f, 0.975f),
+            onBackground = hslToColor(hue, 0.06f, 0.14f),
+            surface = hslToColor(hue, 0.04f, 0.99f),
+            onSurface = hslToColor(hue, 0.06f, 0.14f),
+            surfaceVariant = hslToColor(hue, 0.07f, 0.905f),
+            onSurfaceVariant = hslToColor(hue, 0.05f, 0.34f),
             surfaceTint = seedColor,
-            inverseSurface = hslToColor(hue, 0.12f, 0.18f),
-            inverseOnSurface = hslToColor(hue, 0.08f, 0.96f),
+            inverseSurface = hslToColor(hue, 0.04f, 0.18f),
+            inverseOnSurface = hslToColor(hue, 0.03f, 0.96f),
             inversePrimary = hslToColor(hue, baseSat, 0.78f),
-            outline = hslToColor(hue, 0.14f, 0.55f),
-            outlineVariant = hslToColor(hue, 0.20f, 0.82f),
+            outline = hslToColor(hue, 0.05f, 0.58f),
+            outlineVariant = hslToColor(hue, 0.06f, 0.84f),
             scrim = Color.Black
         )
     }
 }
-
-/** The app's brand seed when the user hasn't picked a custom accent color. */
-val DefaultBrandSeed = Color(0xFF6650A4)
 
 private fun similar(a: Float, b: Float) = abs(a - b) < 0.01f

@@ -256,7 +256,7 @@ fun MovieDetailsContent(
                     Text(
                         text = movie.title,
                         style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     
@@ -396,7 +396,7 @@ fun MovieDetailsContent(
             Text(
                 text = "Genres",
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp)
             )
@@ -449,7 +449,7 @@ fun MovieDetailsContent(
             Text(
                 text = "Description",
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.primary
             )
         }
@@ -476,7 +476,7 @@ fun MovieDetailsContent(
                 Text(
                     text = "Available Qualities",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.weight(1f)
                 )
@@ -554,7 +554,7 @@ fun SourceOptionsDialog(
             Text(
                 text = source.quality,
                 style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Medium
             )
         },
         text = {

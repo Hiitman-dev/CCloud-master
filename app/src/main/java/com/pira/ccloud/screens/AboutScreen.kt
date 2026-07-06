@@ -103,7 +103,7 @@ fun AboutScreen(navController: NavController?) {
                 text = "CCloud",
                 style = MaterialTheme.typography.headlineMedium,
                 fontFamily = com.pira.ccloud.ui.theme.SteelfishFontFamily,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Medium
             )
             
             Spacer(modifier = Modifier.height(8.dp))
@@ -316,7 +316,7 @@ fun DonationItem(
             Text(
                 text = coinName,
                 style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Medium
             )
             
             Spacer(modifier = Modifier.height(4.dp))

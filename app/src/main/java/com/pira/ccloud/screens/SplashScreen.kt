@@ -97,7 +97,7 @@ fun SplashScreen(
                 text = "CCloud",
                 style = MaterialTheme.typography.headlineMedium,
                 fontFamily = com.pira.ccloud.ui.theme.SteelfishFontFamily,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Medium,
                 fontSize = 36.sp,
                 color = MaterialTheme.colorScheme.onBackground,
                 textAlign = TextAlign.Center
@@ -222,7 +222,7 @@ fun WelcomeSliderScreen(
                     Text(
                         text = if (currentSlide < 3) "Next" else "Get Started",
                         color = Color.Black,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Medium
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Icon(
@@ -273,7 +273,7 @@ fun SlideItem(
         Text(
             text = slide.title,
             style = MaterialTheme.typography.headlineLarge,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.Medium,
             color = Color.Yellow,
             textAlign = TextAlign.Center,
             modifier = Modifier

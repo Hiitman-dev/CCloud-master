@@ -315,7 +315,7 @@ fun SearchScreen(
                                 Text(
                                     text = "Recent Searches",
                                     style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.Bold,
+                                    fontWeight = FontWeight.Medium,
                                     color = MaterialTheme.colorScheme.primary
                                 )
                                 androidx.compose.material3.TextButton(
@@ -623,7 +623,7 @@ fun PosterItem(
                 Text(
                     text = poster.title,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Medium,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     color = MaterialTheme.colorScheme.onSurface

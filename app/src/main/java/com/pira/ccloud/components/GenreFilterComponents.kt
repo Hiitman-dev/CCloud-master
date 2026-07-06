@@ -110,7 +110,7 @@ fun GenreFilterSection(
                 Text(
                     text = "Filters",
                     style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Medium
                 )
             }
             Text(
@@ -164,7 +164,7 @@ private fun FilterSheetContent(
         Text(
             text = "Sort By",
             style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Medium
         )
         Spacer(modifier = Modifier.height(12.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -178,7 +178,7 @@ private fun FilterSheetContent(
                     selected = selectedFilterType == type,
                     onClick = { onFilterTypeSelected(type) },
                     label = { Text(label) },
-                    shape = RoundedCornerShape(14.dp),
+                    shape = RoundedCornerShape(com.pira.ccloud.ui.theme.GlassCorners.Tag),
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = MaterialTheme.colorScheme.primary,
                         selectedLabelColor = MaterialTheme.colorScheme.onPrimary
@@ -192,7 +192,7 @@ private fun FilterSheetContent(
         Text(
             text = "Genre",
             style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Medium
         )
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -218,7 +218,7 @@ private fun FilterSheetContent(
                             maxLines = 1
                         )
                     },
-                    shape = RoundedCornerShape(14.dp),
+                    shape = RoundedCornerShape(com.pira.ccloud.ui.theme.GlassCorners.Tag),
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = MaterialTheme.colorScheme.secondary,
                         selectedLabelColor = MaterialTheme.colorScheme.onSecondary

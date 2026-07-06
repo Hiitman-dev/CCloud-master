@@ -875,7 +875,7 @@ fun FavoriteItemCard(
             ) {
                 Text(
                     text = favorite.title,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Medium,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
                 
