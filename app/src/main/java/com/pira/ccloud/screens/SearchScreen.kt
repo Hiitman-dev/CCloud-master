@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -47,7 +46,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import com.pira.ccloud.ui.theme.glassSurface
-import com.pira.ccloud.ui.theme.glassBackdrop
+import com.pira.ccloud.ui.theme.subtleGlassSurface
 import com.pira.ccloud.ui.theme.rememberGlassTint
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
@@ -117,15 +116,9 @@ fun SearchScreen(
         focusRequester.requestFocus()
     }
     
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .glassBackdrop()
-    ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .statusBarsPadding()
             .padding(16.dp)
     ) {
         // Search bar
@@ -307,20 +300,10 @@ fun SearchScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     if (viewModel.searchQuery.isEmpty() && recentSearches.isNotEmpty()) {
-                        val recentDrawerTint = rememberGlassTint()
-                        androidx.compose.animation.AnimatedVisibility(
-                            visible = true,
-                            enter = androidx.compose.animation.slideInVertically(
-                                initialOffsetY = { -it / 3 },
-                                animationSpec = tween(280)
-                            ) + fadeIn(animationSpec = tween(280))
-                        ) {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(top = 8.dp)
-                                .glassSurface(shape = RoundedCornerShape(20.dp), tint = recentDrawerTint)
-                                .padding(12.dp)
                         ) {
                             Row(
                                 modifier = Modifier
@@ -379,7 +362,6 @@ fun SearchScreen(
                                 }
                             }
                         }
-                        }
                     }
 
                     Box(
@@ -414,7 +396,6 @@ fun SearchScreen(
                 }
             }
         }
-    }
     }
 }
 
@@ -542,7 +523,7 @@ fun PosterItem(
         modifier = Modifier
             .fillMaxWidth()
             .height(310.dp) // Fixed height for all cards
-            .glassSurface(shape = RoundedCornerShape(12.dp), tint = posterCardGlassTint)
+            .subtleGlassSurface(shape = RoundedCornerShape(20.dp), tint = posterCardGlassTint)
             .clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),

@@ -21,7 +21,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -33,7 +32,6 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Star
 import com.pira.ccloud.ui.theme.GlassAlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.CardDefaults
@@ -101,25 +99,6 @@ fun SingleSeriesScreen(
     LaunchedEffect(seriesId) {
         series = StorageUtils.loadSeriesFromFile(context, seriesId)
         seasonsViewModel.loadSeasons(seriesId)
-        series?.let { s ->
-            StorageUtils.saveRecentlyViewed(
-                context,
-                FavoriteItem(
-                    id = s.id,
-                    type = "series",
-                    title = s.title,
-                    description = s.description,
-                    year = s.year,
-                    imdb = s.imdb,
-                    rating = s.rating,
-                    duration = s.duration,
-                    image = s.image,
-                    cover = s.cover,
-                    genres = s.genres,
-                    country = s.country
-                )
-            )
-        }
     }
     
     // Source selection dialog
@@ -197,10 +176,6 @@ fun SingleSeriesScreen(
                         showDownloadMenu = true
                     }
                 }
-            },
-            onDownloadSource = { source ->
-                downloadSources = listOf(source)
-                showDownloadMenu = true
             },
             modifier = Modifier.fillMaxSize()
         )
@@ -421,7 +396,6 @@ fun SeriesDetailsContent(
     onBackClick: () -> Unit,
     onEpisodeClick: (Episode) -> Unit,
     onDownloadClick: (Episode) -> Unit,
-    onDownloadSource: (Source) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -804,19 +778,6 @@ fun SeriesDetailsContent(
             }
         }
         
-        // Per-season download box - a glass card summarizing every quality
-        // available across the selected season's episodes, with quick actions,
-        // instead of only being able to download one episode at a time.
-        if (seasonsViewModel.seasons.isNotEmpty() && selectedSeasonIndex < seasonsViewModel.seasons.size) {
-            item {
-                val season = seasonsViewModel.seasons[selectedSeasonIndex]
-                SeasonDownloadBox(
-                    season = season,
-                    onDownloadQuality = { source -> onDownloadSource(source) }
-                )
-            }
-        }
-        
         // Episodes of selected season
         item {
             if (seasonsViewModel.isLoading) {
@@ -900,87 +861,6 @@ fun SeriesDetailsContent(
         item {
             Spacer(modifier = Modifier.height(16.dp))
         }
-    }
-}
-
-@Composable
-fun SeasonDownloadBox(
-    season: Season,
-    onDownloadQuality: (Source) -> Unit
-) {
-    val tint = rememberGlassTint()
-    // One representative Source per quality label across the whole season -
-    // tapping it opens the download/play options for that quality using the
-    // first episode that offers it (good enough for a "grab this quality for
-    // the season" quick action; full per-episode control still lives below).
-    val qualityToSource = remember(season) {
-        val map = LinkedHashMap<String, Source>()
-        season.episodes.forEach { episode ->
-            episode.sources.forEach { source ->
-                if (!map.containsKey(source.quality)) {
-                    map[source.quality] = source
-                }
-            }
-        }
-        map
-    }
-
-    if (qualityToSource.isEmpty()) return
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .glassSurface(shape = RoundedCornerShape(18.dp), tint = tint)
-            .padding(16.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Default.Download,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "دانلود ${season.title}",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            qualityToSource.forEach { (quality, source) ->
-                Button(
-                    onClick = { onDownloadQuality(source) },
-                    shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                ) {
-                    Text(quality)
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        CopySeasonLinksButton(episodes = season.episodes)
     }
 }
 

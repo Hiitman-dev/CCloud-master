@@ -45,6 +45,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import com.pira.ccloud.ui.theme.glassSurface
+import com.pira.ccloud.ui.theme.subtleGlassSurface
 import com.pira.ccloud.ui.theme.rememberGlassTint
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -276,7 +277,7 @@ fun CountryShimmerPosterItem(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .glassSurface(shape = RoundedCornerShape(12.dp), tint = countryShimmerGlassTint),
+            .subtleGlassSurface(shape = RoundedCornerShape(20.dp), tint = countryShimmerGlassTint),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         colors = CardDefaults.cardColors(
@@ -475,7 +476,7 @@ fun CountryPosterItem(
         modifier = Modifier
             .fillMaxWidth()
             .height(310.dp) // Fixed height for all cards
-            .glassSurface(shape = RoundedCornerShape(12.dp), tint = countryPosterGlassTint)
+            .subtleGlassSurface(shape = RoundedCornerShape(20.dp), tint = countryPosterGlassTint)
             .clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),

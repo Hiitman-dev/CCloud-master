@@ -26,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
@@ -36,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.pira.ccloud.ui.theme.GlassCorners
 import com.pira.ccloud.ui.theme.glassSurface
 import com.pira.ccloud.ui.theme.rememberGlassTint
 
@@ -61,13 +63,20 @@ fun BottomNavigationBar(navController: NavController) {
             .fillMaxWidth()
             .navigationBarsPadding()
             .padding(horizontal = 20.dp, vertical = 10.dp)
+            .shadow(
+                elevation = 12.dp,
+                shape = RoundedCornerShape(GlassCorners.Navigation),
+                ambientColor = Color.Black.copy(alpha = 0.06f),
+                spotColor = Color.Black.copy(alpha = 0.06f)
+            )
             .glassSurface(
-                shape = RoundedCornerShape(32.dp),
+                shape = RoundedCornerShape(GlassCorners.Navigation),
                 tint = glassTint,
-                // Stronger than the default so posters/lists behind it never
-                // bleed through enough to interfere with reading the tab bar.
-                tintAlpha = 0.82f,
-                borderAlpha = 0.5f
+                // A bit stronger than the ambient default so posters/lists
+                // behind it never bleed through enough to confuse which tab
+                // is selected, while still reading as translucent glass.
+                tintAlpha = 0.5f,
+                borderAlpha = 0.32f
             )
     ) {
         Row(

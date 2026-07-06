@@ -40,7 +40,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import com.pira.ccloud.ui.theme.glassSurface
-import com.pira.ccloud.ui.theme.glassBackdrop
+import com.pira.ccloud.ui.theme.subtleGlassSurface
 import com.pira.ccloud.ui.theme.rememberGlassTint
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -92,7 +92,6 @@ fun SeriesScreen(
         }
     }
     
-    Box(modifier = Modifier.fillMaxSize().glassBackdrop()) {
     Column(modifier = Modifier.fillMaxSize()) {
         // Genre filter section
         GenreFilterSection(
@@ -100,7 +99,13 @@ fun SeriesScreen(
             selectedGenreId = selectedGenreId,
             selectedFilterType = selectedFilterType,
             onGenreSelected = { genreId -> viewModel.selectGenre(genreId) },
-            onFilterTypeSelected = { filterType -> viewModel.selectFilterType(filterType) }
+            onFilterTypeSelected = { filterType -> viewModel.selectFilterType(filterType) },
+            onSearchClick = {
+                navController?.navigate("search") {
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            }
         )
         
         // Remove Column wrapper to use full screen space
@@ -128,7 +133,6 @@ fun SeriesScreen(
                 )
             }
         }
-    }
     }
 }
 
@@ -201,7 +205,7 @@ fun ShimmerSeriesItem(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .glassSurface(shape = RoundedCornerShape(12.dp), tint = shimmerSeriesCardGlassTint),
+            .subtleGlassSurface(shape = RoundedCornerShape(20.dp), tint = shimmerSeriesCardGlassTint),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         colors = CardDefaults.cardColors(
@@ -395,7 +399,7 @@ fun SeriesItem(
         modifier = Modifier
             .fillMaxWidth()
             .height(310.dp) // Fixed height for all cards
-            .glassSurface(shape = RoundedCornerShape(12.dp), tint = seriesCardGlassTint)
+            .subtleGlassSurface(shape = RoundedCornerShape(20.dp), tint = seriesCardGlassTint)
             .clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),

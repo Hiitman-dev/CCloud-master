@@ -52,7 +52,8 @@ fun GenreFilterSection(
     selectedGenreId: Int,
     selectedFilterType: FilterType,
     onGenreSelected: (Int) -> Unit,
-    onFilterTypeSelected: (FilterType) -> Unit
+    onFilterTypeSelected: (FilterType) -> Unit,
+    onSearchClick: (() -> Unit)? = null
 ) {
     var showFilterSheet by remember { mutableStateOf(false) }
     val glassTint = rememberGlassTint()
@@ -71,35 +72,53 @@ fun GenreFilterSection(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, end = 16.dp, top = 88.dp, bottom = 8.dp)
-            .glassSurface(shape = RoundedCornerShape(18.dp), tint = glassTint)
-            .clickable { showFilterSheet = true }
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
+            .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Tune,
-                contentDescription = "Filters",
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.height(20.dp)
-            )
-            Text(
-                text = "Filters",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold
+        // Search icon comes first in reading order, with its own breathing
+        // room, then the filter trigger takes the remaining width - always a
+        // fixed, comfortable distance apart, never overlapping.
+        if (onSearchClick != null) {
+            com.pira.ccloud.ui.theme.GlassIconButton(
+                icon = androidx.compose.material.icons.Icons.Default.Search,
+                contentDescription = "Search",
+                onClick = onSearchClick
             )
         }
-        Text(
-            text = "$filterLabel  •  $selectedGenreTitle",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1
-        )
+
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .glassSurface(shape = RoundedCornerShape(com.pira.ccloud.ui.theme.GlassCorners.Search), tint = glassTint)
+                .clickable { showFilterSheet = true }
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Tune,
+                    contentDescription = "Filters",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.height(20.dp)
+                )
+                Text(
+                    text = "Filters",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            Text(
+                text = "$filterLabel  •  $selectedGenreTitle",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1
+            )
+        }
     }
 
     if (showFilterSheet) {

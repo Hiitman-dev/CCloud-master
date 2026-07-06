@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -171,27 +170,6 @@ fun MainScreen(
             Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
                 // Pass theme settings and font settings callback to navigation
                 AppNavigation(navController, onThemeSettingsChanged, onFontSettingsChanged)
-
-                // Floating circular search icon - replaces the old bottom-bar search tab.
-                // Only shown on Movies & Series (per user request), not on every screen.
-                if ((currentRoute == AppScreens.Movies.route || currentRoute == AppScreens.Series.route)) {
-                    com.pira.ccloud.ui.theme.GlassIconButton(
-                        icon = Icons.Default.Search,
-                        contentDescription = stringResource(AppScreens.Search.resourceId),
-                        onClick = {
-                            if (currentRoute != AppScreens.Search.route) {
-                                navController.navigate(AppScreens.Search.route) {
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            }
-                        },
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .statusBarsPadding()
-                            .padding(top = 12.dp, end = 16.dp)
-                    )
-                }
             }
         }
     }

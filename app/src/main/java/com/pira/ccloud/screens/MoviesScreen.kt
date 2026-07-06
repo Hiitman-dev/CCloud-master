@@ -29,7 +29,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.itemsIndexed
-import androidx.compose.foundation.lazy.items as lazyRowItems
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
@@ -41,7 +40,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import com.pira.ccloud.ui.theme.glassSurface
-import com.pira.ccloud.ui.theme.glassBackdrop
+import com.pira.ccloud.ui.theme.subtleGlassSurface
 import com.pira.ccloud.ui.theme.rememberGlassTint
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -94,7 +93,6 @@ fun MoviesScreen(
         }
     }
     
-    Box(modifier = Modifier.fillMaxSize().glassBackdrop()) {
     Column(modifier = Modifier.fillMaxSize()) {
         // Genre filter section
         GenreFilterSection(
@@ -102,7 +100,13 @@ fun MoviesScreen(
             selectedGenreId = selectedGenreId,
             selectedFilterType = selectedFilterType,
             onGenreSelected = { genreId -> viewModel.selectGenre(genreId) },
-            onFilterTypeSelected = { filterType -> viewModel.selectFilterType(filterType) }
+            onFilterTypeSelected = { filterType -> viewModel.selectFilterType(filterType) },
+            onSearchClick = {
+                navController?.navigate("search") {
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            }
         )
         
         when {
@@ -129,7 +133,6 @@ fun MoviesScreen(
                 )
             }
         }
-    }
     }
 }
 
@@ -202,7 +205,7 @@ fun ShimmerMovieItem(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .glassSurface(shape = RoundedCornerShape(12.dp), tint = shimmerCardGlassTint),
+            .subtleGlassSurface(shape = RoundedCornerShape(20.dp), tint = shimmerCardGlassTint),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         colors = CardDefaults.cardColors(
@@ -291,8 +294,7 @@ fun MovieGrid(
 ) {
     val moviesList = movies.toList()
     val context = LocalContext.current
-    val recentlyViewed = remember { StorageUtils.loadRecentlyViewed(context) }
-
+    
     val columns = DeviceUtils.getGridColumns(LocalContext.current.resources)
     LazyVerticalGrid(
         columns = GridCells.Fixed(columns),
@@ -301,16 +303,6 @@ fun MovieGrid(
         horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp),
         verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp)
     ) {
-        if (recentlyViewed.isNotEmpty() || moviesList.isNotEmpty()) {
-            item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
-                HomeHighlightsSection(
-                    recentlyViewed = recentlyViewed,
-                    freshMovies = moviesList.take(12),
-                    navController = navController,
-                    context = context
-                )
-            }
-        }
         itemsIndexed(moviesList) { index, movie ->
             MovieItem(
                 movie = movie,
@@ -361,134 +353,6 @@ fun MovieGrid(
 }
 
 @Composable
-fun HomeHighlightsSection(
-    recentlyViewed: List<com.pira.ccloud.data.model.FavoriteItem>,
-    freshMovies: List<Movie>,
-    navController: NavController?,
-    context: android.content.Context
-) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        if (recentlyViewed.isNotEmpty()) {
-            Text(
-                text = "ادامه تماشا",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.padding(bottom = 10.dp)
-            )
-            androidx.compose.foundation.lazy.LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(bottom = 20.dp)
-            ) {
-                lazyRowItems(recentlyViewed) { item ->
-                    HighlightPosterItem(
-                        title = item.title,
-                        image = item.image,
-                        year = item.year,
-                        onClick = {
-                            if (item.type == "movie") {
-                                navController?.navigate("single_movie/${item.id}")
-                            } else {
-                                navController?.navigate("single_series/${item.id}")
-                            }
-                        }
-                    )
-                }
-            }
-        }
-
-        if (freshMovies.isNotEmpty()) {
-            Text(
-                text = "تازه‌ترین‌ها",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.padding(bottom = 10.dp)
-            )
-            androidx.compose.foundation.lazy.LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(bottom = 12.dp)
-            ) {
-                lazyRowItems(freshMovies) { movie ->
-                    HighlightPosterItem(
-                        title = movie.title,
-                        image = movie.image,
-                        year = movie.year,
-                        badge = "جدید",
-                        onClick = {
-                            StorageUtils.saveMovieToFile(context, movie)
-                            navController?.navigate("single_movie/${movie.id}")
-                        }
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun HighlightPosterItem(
-    title: String,
-    image: String,
-    year: Int,
-    badge: String? = null,
-    onClick: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .width(130.dp)
-            .clickable { onClick() }
-    ) {
-        Box {
-            Image(
-                painter = rememberAsyncImagePainter(
-                    ImageRequest.Builder(LocalContext.current)
-                        .data(image)
-                        .crossfade(true)
-                        .build()
-                ),
-                contentDescription = title,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp)
-                    .clip(RoundedCornerShape(14.dp)),
-                contentScale = ContentScale.Crop
-            )
-            if (badge != null) {
-                Card(
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(6.dp),
-                    shape = RoundedCornerShape(50.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary)
-                ) {
-                    Text(
-                        text = badge,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
-                    )
-                }
-            }
-        }
-        Spacer(modifier = Modifier.height(6.dp))
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Medium,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        Text(
-            text = year.toString(),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-@Composable
 fun ModernCircularProgressIndicator() {
     val transition = rememberInfiniteTransition(label = "progress")
     val progress by transition.animateFloat(
@@ -535,7 +399,7 @@ fun MovieItem(
         modifier = Modifier
             .fillMaxWidth()
             .height(310.dp) // Fixed height for all cards
-            .glassSurface(shape = RoundedCornerShape(12.dp), tint = movieCardGlassTint)
+            .subtleGlassSurface(shape = RoundedCornerShape(20.dp), tint = movieCardGlassTint)
             .clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),

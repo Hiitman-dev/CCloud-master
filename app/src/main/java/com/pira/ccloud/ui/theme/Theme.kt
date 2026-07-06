@@ -112,9 +112,38 @@ fun appTypography(fontFamily: FontFamily?): androidx.compose.material3.Typograph
     )
 }
 
-private val DarkColorScheme = buildAppColorScheme(seed = DefaultBrandSeed, dark = true)
+private val DarkColorScheme = darkColorScheme(
+    primary = Purple80,
+    secondary = PurpleGrey80,
+    tertiary = Pink80,
+    background = Color(0xFF121212),
+    surface = Color(0xFF1E1E1E),
+    surfaceVariant = Color(0xFF2D2D2D),
+    onPrimary = Color.White,
+    onSecondary = Color.White,
+    onTertiary = Color.White,
+    onBackground = Color.White,
+    onSurface = Color.White,
+    onSurfaceVariant = Color(0xFFE0E0E0)
+)
 
-private val LightColorScheme = buildAppColorScheme(seed = DefaultBrandSeed, dark = false)
+private val LightColorScheme = lightColorScheme(
+    primary = Purple40,
+    secondary = PurpleGrey40,
+    tertiary = Pink40,
+    // Deliberately layered so the page background, card surfaces, and
+    // secondary surfaces each read as visibly distinct depth levels instead
+    // of blending into one flat white sheet.
+    background = Color(0xFFF2F3F7),
+    surface = Color(0xFFFAFAFC),
+    surfaceVariant = Color(0xFFE7E9F0),
+    onPrimary = Color.White,
+    onSecondary = Color.White,
+    onTertiary = Color.White,
+    onBackground = Color(0xFF1C1B1F),
+    onSurface = Color(0xFF1C1B1F),
+    onSurfaceVariant = Color(0xFF49454F)
+)
 
 @Composable
 fun CCloudTheme(
@@ -134,10 +163,38 @@ fun CCloudTheme(
     
     val colorScheme = when {
         themeSettings.primaryColor != defaultPrimaryColor -> {
-            // Custom accent color - every role (including containers/outline,
-            // which used to silently fall back to Material3's default violet
-            // palette) is now derived from the picked color, dark and light.
-            buildAppColorScheme(seed = themeSettings.primaryColor, dark = darkTheme)
+            // Custom colors - using the same color for primary and secondary since we removed secondary color setting
+            if (darkTheme) {
+                darkColorScheme(
+                    primary = themeSettings.primaryColor,
+                    secondary = themeSettings.primaryColor,
+                    tertiary = Pink80,
+                    background = Color(0xFF121212),
+                    surface = Color(0xFF1E1E1E),
+                    surfaceVariant = Color(0xFF2D2D2D),
+                    onPrimary = Color.White,
+                    onSecondary = Color.White,
+                    onTertiary = Color.White,
+                    onBackground = Color.White,
+                    onSurface = Color.White,
+                    onSurfaceVariant = Color(0xFFE0E0E0)
+                )
+            } else {
+                lightColorScheme(
+                    primary = themeSettings.primaryColor,
+                    secondary = themeSettings.primaryColor,
+                    tertiary = Pink40,
+                    background = Color(0xFFF2F3F7),
+                    surface = Color(0xFFFAFAFC),
+                    surfaceVariant = Color(0xFFE7E9F0),
+                    onPrimary = Color.White,
+                    onSecondary = Color.White,
+                    onTertiary = Color.White,
+                    onBackground = Color(0xFF1C1B1F),
+                    onSurface = Color(0xFF1C1B1F),
+                    onSurfaceVariant = Color(0xFF49454F)
+                )
+            }
         }
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current

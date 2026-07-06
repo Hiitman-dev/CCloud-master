@@ -23,7 +23,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -35,6 +34,18 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 
 /**
+ * Standard corner-radius scale, kept consistent everywhere instead of ad hoc
+ * values scattered around the app.
+ */
+object GlassCorners {
+    val Navigation = 30.dp
+    val Search = 26.dp
+    val Card = 20.dp
+    val Button = 18.dp
+    val Tag = 999.dp
+}
+
+/**
  * Liquid-glass ("glassmorphism") styling shared across the app.
  *
  * Note on limits: true backdrop blur-of-what's-behind-this-element requires
@@ -42,31 +53,28 @@ import androidx.compose.ui.window.DialogProperties
  * approximate the "glass" look everywhere with a translucent tinted surface,
  * a soft diagonal light-catch gradient, and a hairline edge highlight - the
  * same technique most glassmorphism UIs use for broad device compatibility.
+ *
+ * Two intensities are used across the app, deliberately:
+ *  - [glassSurface] (this one): for UI *chrome* - search bar, bottom nav,
+ *    modal sheets, filter chips, dialogs. These are allowed to read as
+ *    visibly translucent glass.
+ *  - [subtleGlassSurface]: for regular *content* cards (movie/series
+ *    posters). These stay close to a clean, opaque surface with only a
+ *    faint frosted hint, so poster art stays vibrant and readable instead
+ *    of every card in a grid looking like foggy glass.
  */
 fun Modifier.glassSurface(
-    shape: Shape = RoundedCornerShape(20.dp),
+    shape: Shape = RoundedCornerShape(GlassCorners.Card),
     tint: Color = Color.White,
-    tintAlpha: Float = 0.82f,
-    borderAlpha: Float = 0.55f
+    tintAlpha: Float = 0.38f,
+    borderAlpha: Float = 0.28f
 ): Modifier = this
     .clip(shape)
     .background(
         brush = Brush.linearGradient(
             colors = listOf(
-                tint.copy(alpha = (tintAlpha * 1.08f).coerceAtMost(0.96f)),
-                tint.copy(alpha = (tintAlpha * 0.90f).coerceAtMost(0.92f))
-            )
-        )
-    )
-    // Extra frosted "noise" layer - a soft diagonal sheen sitting on top of the
-    // base tint - is what reads as matte/frosted glass instead of a flat,
-    // plainly-transparent tinted panel.
-    .background(
-        brush = Brush.linearGradient(
-            colors = listOf(
-                tint.copy(alpha = 0.10f),
-                Color.Transparent,
-                tint.copy(alpha = 0.06f)
+                tint.copy(alpha = (tintAlpha * 1.3f).coerceAtMost(0.6f)),
+                tint.copy(alpha = (tintAlpha * 0.75f).coerceAtMost(0.5f))
             )
         )
     )
@@ -75,9 +83,27 @@ fun Modifier.glassSurface(
         brush = Brush.linearGradient(
             colors = listOf(
                 tint.copy(alpha = borderAlpha),
-                tint.copy(alpha = borderAlpha * 0.35f)
+                tint.copy(alpha = borderAlpha * 0.3f)
             )
         ),
+        shape = shape
+    )
+
+/**
+ * A much lighter touch than [glassSurface] - a near-opaque clean surface
+ * with only a faint frosted hint. Use this for regular content cards
+ * (movie/series posters, grid items) so the poster art stays vibrant and
+ * clear, per the "don't make every card glass" design direction.
+ */
+fun Modifier.subtleGlassSurface(
+    shape: Shape = RoundedCornerShape(GlassCorners.Card),
+    tint: Color = Color.White
+): Modifier = this
+    .clip(shape)
+    .background(tint.copy(alpha = 0.08f))
+    .border(
+        width = 1.dp,
+        color = tint.copy(alpha = 0.14f),
         shape = shape
     )
 
@@ -117,44 +143,6 @@ fun GlassIconButton(
             tint = iconTint
         )
     }
-}
-
-/**
- * Decorative, softly-blurred brand-colored shapes for screen backgrounds so
- * the app's canvas is never a flat, empty color. Meant to sit behind content
- * (e.g. as the first child of a Box, with real content drawn on top).
- */
-@Composable
-fun Modifier.glassBackdrop(): Modifier {
-    val primary = MaterialTheme.colorScheme.primary
-    val tertiary = MaterialTheme.colorScheme.tertiary
-    val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
-    val baseAlpha = if (isDark) 0.22f else 0.16f
-    return this
-        .background(MaterialTheme.colorScheme.background)
-        .drawBehind {
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colors = listOf(primary.copy(alpha = baseAlpha), Color.Transparent)
-                ),
-                radius = size.width * 0.75f,
-                center = androidx.compose.ui.geometry.Offset(size.width * 0.1f, size.height * -0.05f)
-            )
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colors = listOf(tertiary.copy(alpha = baseAlpha * 0.85f), Color.Transparent)
-                ),
-                radius = size.width * 0.65f,
-                center = androidx.compose.ui.geometry.Offset(size.width * 0.95f, size.height * 0.35f)
-            )
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colors = listOf(primary.copy(alpha = baseAlpha * 0.7f), Color.Transparent)
-                ),
-                radius = size.width * 0.55f,
-                center = androidx.compose.ui.geometry.Offset(size.width * 0.2f, size.height * 1.05f)
-            )
-        }
 }
 
 /** A generic frosted-glass surface container for cards, chips, sheets, etc. */
@@ -199,7 +187,7 @@ fun GlassAlertDialog(
         Box(
             modifier = modifier
                 .widthIn(min = 280.dp, max = 560.dp)
-                .glassSurface(shape = shape, tint = tint, tintAlpha = 0.75f, borderAlpha = 0.5f)
+                .glassSurface(shape = shape, tint = tint, tintAlpha = 0.5f, borderAlpha = 0.45f)
                 .padding(24.dp)
         ) {
             Column {
