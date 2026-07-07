@@ -40,6 +40,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import com.pira.ccloud.ui.theme.glassSurface
+import com.pira.ccloud.ui.theme.matteOverlay
 import com.pira.ccloud.ui.theme.rememberGlassTint
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -201,7 +202,10 @@ fun SingleSeriesScreen(
                     }
                 }
             },
-            modifier = Modifier.fillMaxSize()
+            // Apply matte overlay effect for the entire screen
+            modifier = Modifier
+                .fillMaxSize()
+                .matteOverlay()
         )
     } else {
         // Show loading or error state

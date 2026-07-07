@@ -63,21 +63,19 @@ fun BottomNavigationBar(navController: NavController) {
         modifier = Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(horizontal = 20.dp, vertical = 10.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
             .shadow(
-                elevation = 12.dp,
+                elevation = 16.dp,
                 shape = RoundedCornerShape(GlassCorners.Navigation),
-                ambientColor = Color.Black.copy(alpha = 0.06f),
-                spotColor = Color.Black.copy(alpha = 0.06f)
+                ambientColor = Color.Black.copy(alpha = 0.1f),
+                spotColor = Color.Black.copy(alpha = 0.1f)
             )
             .glassSurface(
                 shape = RoundedCornerShape(GlassCorners.Navigation),
                 tint = glassTint,
-                // A bit stronger than the ambient default so posters/lists
-                // behind it never bleed through enough to confuse which tab
-                // is selected, while still reading as translucent glass.
-                tintAlpha = 0.5f,
-                borderAlpha = 0.32f
+                // Stronger glass effect with higher alpha for better visibility
+                tintAlpha = 0.55f,
+                borderAlpha = 0.38f
             )
     ) {
         Row(

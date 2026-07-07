@@ -1,7 +1,10 @@
 package com.pira.ccloud.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -33,7 +36,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pira.ccloud.data.model.FilterType
@@ -70,55 +75,71 @@ fun GenreFilterSection(
         FilterType.BY_IMDB -> "By IMDB"
     }
 
-    Row(
+    // Frosted-glass sticky filter bar — higher alpha so content scrolling
+    // behind it never bleeds through and muddies the filter chips.
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(14.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Search icon comes first in reading order, with its own breathing
-        // room, then the filter trigger takes the remaining width - always a
-        // fixed, comfortable distance apart, never overlapping.
-        if (onSearchClick != null) {
-            com.pira.ccloud.ui.theme.GlassIconButton(
-                icon = androidx.compose.material.icons.Icons.Default.Search,
-                contentDescription = "Search",
-                onClick = onSearchClick
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
+                        MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
+                    )
+                )
             )
-        }
-
+            .border(
+                width = 0.5.dp,
+                color = glassTint.copy(alpha = 0.12f)
+            )
+    ) {
         Row(
             modifier = Modifier
-                .weight(1f)
-                .glassSurface(shape = RoundedCornerShape(com.pira.ccloud.ui.theme.GlassCorners.Search), tint = glassTint)
-                .clickable { showFilterSheet = true }
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Tune,
-                    contentDescription = "Filters",
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.height(20.dp)
-                )
-                Text(
-                    text = "Filters",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold
+            if (onSearchClick != null) {
+                com.pira.ccloud.ui.theme.GlassIconButton(
+                    icon = Icons.Default.Search,
+                    contentDescription = "Search",
+                    onClick = onSearchClick
                 )
             }
-            Text(
-                text = "$filterLabel  •  $selectedGenreTitle",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1
-            )
+
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .glassSurface(shape = RoundedCornerShape(com.pira.ccloud.ui.theme.GlassCorners.Search), tint = glassTint)
+                    .clickable { showFilterSheet = true }
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Tune,
+                        contentDescription = "Filters",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.height(20.dp)
+                    )
+                    Text(
+                        text = "Filters",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Text(
+                    text = "$filterLabel  •  $selectedGenreTitle",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1
+                )
+            }
         }
     }
 
@@ -150,13 +171,26 @@ private fun FilterSheetContent(
     onFilterTypeSelected: (FilterType) -> Unit
 ) {
     val glassTint = rememberGlassTint()
+    val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
 
+    // Frosted-glass bottom sheet — heavy tint + gradient so the sheet
+    // visually separates from content scrolling beneath it.
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .glassSurface(
-                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-                tint = glassTint
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.surface.copy(alpha = 0.94f),
+                        MaterialTheme.colorScheme.surface.copy(alpha = 0.97f)
+                    )
+                ),
+                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+            )
+            .border(
+                width = 1.dp,
+                color = glassTint.copy(alpha = 0.2f),
+                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
             )
             .navigationBarsPadding()
             .padding(20.dp)

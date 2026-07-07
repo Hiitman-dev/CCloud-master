@@ -39,6 +39,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import com.pira.ccloud.ui.theme.glassSurface
+import com.pira.ccloud.ui.theme.matteOverlay
 import com.pira.ccloud.ui.theme.rememberGlassTint
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -121,8 +122,10 @@ fun SingleMovieScreen(
                 // Launch video player activity
                 VideoPlayerActivity.start(context, source.url)
             },
-            // Remove any padding from parent Scaffold to use full screen
-            modifier = Modifier.fillMaxSize()
+            // Apply matte overlay effect for the entire screen
+            modifier = Modifier
+                .fillMaxSize()
+                .matteOverlay()
         )
     } else {
         // Show loading or error state

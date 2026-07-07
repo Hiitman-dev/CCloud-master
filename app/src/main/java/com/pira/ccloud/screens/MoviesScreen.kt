@@ -114,42 +114,49 @@ fun MoviesScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         HomeAmbientBackground(modifier = Modifier.fillMaxSize())
 
-        Column(modifier = Modifier.fillMaxSize()) {
-        // Genre filter section
-        GenreFilterSection(
-            genres = genres,
-            selectedGenreId = selectedGenreId,
-            selectedFilterType = selectedFilterType,
-            onGenreSelected = { genreId -> viewModel.selectGenre(genreId) },
-            onFilterTypeSelected = { filterType -> viewModel.selectFilterType(filterType) }
-        )
-        
-        when {
-            isLoading && movies.isEmpty() -> {
-                // Show modern loading animation when initial movies are loading
-                LoadingScreen()
+        // Sticky filter bar at top — z-indexed above scrollable grid
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Scrollable content starts below the filter bar
+            Column(modifier = Modifier.fillMaxSize()) {
+                Spacer(modifier = Modifier.height(68.dp)) // Reserve space for sticky filter
+                when {
+                    isLoading && movies.isEmpty() -> {
+                        LoadingScreen()
+                    }
+                    errorMessage != null && movies.isEmpty() -> {
+                        ErrorScreen(
+                            errorMessage = errorMessage,
+                            onRetry = { viewModel.retry() }
+                        )
+                    }
+                    else -> {
+                        MovieGrid(
+                            movies = movies,
+                            isLoading = isLoading,
+                            isLoadingMore = isLoadingMore,
+                            errorMessage = errorMessage,
+                            onRetry = { viewModel.retry() },
+                            onRefresh = { viewModel.refresh() },
+                            onLoadMore = { viewModel.loadMoreMovies() },
+                            navController = navController,
+                            recentlyViewed = recentlyViewed,
+                            todaysUpdates = seriesViewModelForHome.series.take(10)
+                        )
+                    }
+                }
             }
-            errorMessage != null && movies.isEmpty() -> {
-                ErrorScreen(
-                    errorMessage = errorMessage,
-                    onRetry = { viewModel.retry() }
+
+            // Sticky frosted-glass filter bar pinned to top
+            Box(modifier = Modifier.fillMaxWidth()) {
+                GenreFilterSection(
+                    genres = genres,
+                    selectedGenreId = selectedGenreId,
+                    selectedFilterType = selectedFilterType,
+                    onGenreSelected = { genreId -> viewModel.selectGenre(genreId) },
+                    onFilterTypeSelected = { filterType -> viewModel.selectFilterType(filterType) },
+                    onSearchClick = { navController?.navigate("search") }
                 )
             }
-            else -> {
-                MovieGrid(
-                    movies = movies,
-                    isLoading = isLoading,
-                    isLoadingMore = isLoadingMore,
-                    errorMessage = errorMessage,
-                    onRetry = { viewModel.retry() },
-                    onRefresh = { viewModel.refresh() },
-                    onLoadMore = { viewModel.loadMoreMovies() },
-                    navController = navController,
-                    recentlyViewed = recentlyViewed,
-                    todaysUpdates = seriesViewModelForHome.series.take(10)
-                )
-            }
-        }
         }
     }
 }
