@@ -131,18 +131,25 @@ private val LightColorScheme = lightColorScheme(
     primary = Purple40,
     secondary = PurpleGrey40,
     tertiary = Pink40,
-    // Deliberately layered so the page background, card surfaces, and
-    // secondary surfaces each read as visibly distinct depth levels instead
-    // of blending into one flat white sheet.
-    background = Color(0xFFF2F3F7),
-    surface = Color(0xFFFAFAFC),
-    surfaceVariant = Color(0xFFE7E9F0),
+    background = Color(0xFFFFFBFE),
+    surface = Color(0xFFFFFBFE),
+    surfaceVariant = Color(0xFFE7E0EC),
     onPrimary = Color.White,
     onSecondary = Color.White,
     onTertiary = Color.White,
     onBackground = Color(0xFF1C1B1F),
     onSurface = Color(0xFF1C1B1F),
     onSurfaceVariant = Color(0xFF49454F)
+
+    /* Other default colors to override
+    background = Color(0xFFFFFBFE),
+    surface = Color(0xFFFFFBFE),
+    onPrimary = Color.White,
+    onSecondary = Color.White,
+    onTertiary = Color.White,
+    onBackground = Color(0xFF1C1B1F),
+    onSurface = Color(0xFF1C1B1F),
+    */
 )
 
 @Composable
@@ -184,9 +191,9 @@ fun CCloudTheme(
                     primary = themeSettings.primaryColor,
                     secondary = themeSettings.primaryColor,
                     tertiary = Pink40,
-                    background = Color(0xFFF2F3F7),
-                    surface = Color(0xFFFAFAFC),
-                    surfaceVariant = Color(0xFFE7E9F0),
+                    background = Color(0xFFFFFBFE),
+                    surface = Color(0xFFFFFBFE),
+                    surfaceVariant = Color(0xFFE7E0EC),
                     onPrimary = Color.White,
                     onSecondary = Color.White,
                     onTertiary = Color.White,

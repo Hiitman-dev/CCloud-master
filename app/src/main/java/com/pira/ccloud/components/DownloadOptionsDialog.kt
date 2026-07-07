@@ -2,39 +2,17 @@ package com.pira.ccloud.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.pira.ccloud.data.model.Source
-import com.pira.ccloud.ui.theme.GlassAlertDialog
-import com.pira.ccloud.utils.DownloadUtils
 
 @Composable
 fun DownloadOptionsDialog(
@@ -47,7 +25,7 @@ fun DownloadOptionsDialog(
     onOpenInMXPlayer: () -> Unit,
     onOpenInKMPlayer: () -> Unit
 ) {
-    GlassAlertDialog(
+    AlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
@@ -180,268 +158,6 @@ fun DownloadOptionsDialog(
                 ) {
                     Text("Cancel")
                 }
-            }
-        },
-        containerColor = MaterialTheme.colorScheme.surface,
-        shape = RoundedCornerShape(20.dp),
-        tonalElevation = 6.dp
-    )
-}
-/**
- * FEATURE: "Copy Selected Links"
- * A stylized M3 button that, when tapped, opens a multi-select dialog listing every
- * available quality for the current media/episode so the user can copy several
- * direct URLs at once (newline separated) to the system clipboard.
- */
-@Composable
-fun CopyLinksButton(
-    sources: List<Source>,
-    modifier: Modifier = Modifier
-) {
-    var showDialog by remember { mutableStateOf(false) }
-    OutlinedButton(
-        onClick = { showDialog = true },
-        modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        colors = ButtonDefaults.outlinedButtonColors(
-            contentColor = MaterialTheme.colorScheme.primary
-        )
-    ) {
-        Icon(
-            imageVector = Icons.Default.ContentCopy,
-            contentDescription = "Copy Links",
-            modifier = Modifier.size(18.dp)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text("Copy Links")
-    }
-
-    if (showDialog) {
-        CopySelectedLinksDialog(
-            sources = sources,
-            onDismiss = { showDialog = false }
-        )
-    }
-}
-
-@Composable
-fun CopySelectedLinksDialog(
-    sources: List<Source>,
-    onDismiss: () -> Unit
-) {
-    val context = LocalContext.current
-    // Default every quality to selected for convenience.
-    val checkedState = remember { mutableStateMapOf<Int, Boolean>().apply {
-        sources.forEach { put(it.id, true) }
-    } }
-
-    GlassAlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = "Copy Selected Links",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
-            )
-        },
-        text = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(
-                    text = "Choose which qualities to copy",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                sources.forEach { source ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Checkbox(
-                            checked = checkedState[source.id] ?: false,
-                            onCheckedChange = { isChecked ->
-                                checkedState[source.id] = isChecked
-                            },
-                            colors = CheckboxDefaults.colors(
-                                checkedColor = MaterialTheme.colorScheme.primary
-                            )
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = source.quality,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    val selectedLinks = sources
-                        .filter { checkedState[it.id] == true }
-                        .map { it.url }
-                    if (selectedLinks.isNotEmpty()) {
-                        DownloadUtils.copyMultipleToClipboard(context, selectedLinks.joinToString("\n"))
-                    }
-                    onDismiss()
-                },
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            ) {
-                Text("Copy")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        },
-        containerColor = MaterialTheme.colorScheme.surface,
-        shape = RoundedCornerShape(20.dp),
-        tonalElevation = 6.dp
-    )
-}
-
-/**
- * FEATURE: "Copy Season Links"
- * Unlike [CopyLinksButton] (single episode), this gathers every episode's
- * links for the whole season, grouped by quality: check a quality and it
- * pulls that quality's URL from every episode in the season that has one.
- */
-@Composable
-fun CopySeasonLinksButton(
-    episodes: List<com.pira.ccloud.data.model.Episode>,
-    modifier: Modifier = Modifier
-) {
-    var showDialog by remember { mutableStateOf(false) }
-    OutlinedButton(
-        onClick = { showDialog = true },
-        modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        colors = ButtonDefaults.outlinedButtonColors(
-            contentColor = MaterialTheme.colorScheme.primary
-        )
-    ) {
-        Icon(
-            imageVector = Icons.Default.ContentCopy,
-            contentDescription = "Copy Season Links",
-            modifier = Modifier.size(18.dp)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text("Copy Season Links")
-    }
-
-    if (showDialog) {
-        CopySeasonLinksDialog(
-            episodes = episodes,
-            onDismiss = { showDialog = false }
-        )
-    }
-}
-
-@Composable
-fun CopySeasonLinksDialog(
-    episodes: List<com.pira.ccloud.data.model.Episode>,
-    onDismiss: () -> Unit
-) {
-    val context = LocalContext.current
-    // Every distinct quality label that appears across the season's episodes.
-    val allQualities = remember(episodes) {
-        episodes.flatMap { it.sources.map { source -> source.quality } }.distinct()
-    }
-    val checkedState = remember { mutableStateMapOf<String, Boolean>().apply {
-        allQualities.forEach { put(it, true) }
-    } }
-
-    GlassAlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = "Copy Season Links",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
-            )
-        },
-        text = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(
-                    text = "Pick which qualities to copy across all ${episodes.size} episodes",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                if (allQualities.isEmpty()) {
-                    Text(
-                        text = "No downloadable links found in this season.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-                allQualities.forEach { quality ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Checkbox(
-                            checked = checkedState[quality] ?: false,
-                            onCheckedChange = { isChecked ->
-                                checkedState[quality] = isChecked
-                            },
-                            colors = CheckboxDefaults.colors(
-                                checkedColor = MaterialTheme.colorScheme.primary
-                            )
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = quality,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    val selectedQualities = allQualities.filter { checkedState[it] == true }.toSet()
-                    val selectedLinks = episodes.flatMap { episode ->
-                        episode.sources
-                            .filter { it.quality in selectedQualities }
-                            .map { it.url }
-                    }
-                    if (selectedLinks.isNotEmpty()) {
-                        DownloadUtils.copyMultipleToClipboard(context, selectedLinks.joinToString("\n"))
-                    }
-                    onDismiss()
-                },
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            ) {
-                Text("Copy")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
             }
         },
         containerColor = MaterialTheme.colorScheme.surface,

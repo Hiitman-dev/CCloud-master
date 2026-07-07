@@ -27,8 +27,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import com.pira.ccloud.ui.theme.glassSurface
-import com.pira.ccloud.ui.theme.rememberGlassTint
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -85,20 +83,18 @@ fun ExpandableText(
         }
         
         if (showReadMore || expanded) {
-            val readMoreGlassTint = rememberGlassTint()
             // Glass-like button for Show More/Show Less
             Card(
                 modifier = Modifier
                     .padding(top = 8.dp)
-                    .glassSurface(shape = RoundedCornerShape(16.dp), tint = readMoreGlassTint)
                     .clickable { expanded = !expanded }
                     .clip(RoundedCornerShape(16.dp))
                     .zIndex(1f),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color.Transparent
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
                 ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
                 Box(
                     contentAlignment = Alignment.Center,

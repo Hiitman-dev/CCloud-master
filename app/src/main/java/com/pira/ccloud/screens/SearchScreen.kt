@@ -33,23 +33,15 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import com.pira.ccloud.ui.theme.glassSurface
-import com.pira.ccloud.ui.theme.subtleGlassSurface
-import com.pira.ccloud.ui.theme.rememberGlassTint
-import androidx.compose.material3.SuggestionChip
-import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -93,23 +85,6 @@ fun SearchScreen(
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
     val focusRequester = remember { FocusRequester() }
-
-    // FEATURE: Recent Searches History - lightweight persistence via SharedPreferences.
-    // Stored as an ordered JSON array, capped at 5 unique, most-recent-first entries.
-    val recentSearchesPrefs = remember {
-        context.getSharedPreferences("ccloud_recent_searches", Context.MODE_PRIVATE)
-    }
-    var recentSearches by remember {
-        mutableStateOf(loadRecentSearches(recentSearchesPrefs))
-    }
-
-    fun performSearch(query: String) {
-        if (query.isNotEmpty()) {
-            recentSearches = addRecentSearch(recentSearchesPrefs, recentSearches, query)
-            viewModel.updateSearchQuery(query)
-            viewModel.triggerSearch()
-        }
-    }
     
     // Request focus when the screen is first displayed to ensure keyboard opens on TV
     LaunchedEffect(Unit) {
@@ -122,17 +97,12 @@ fun SearchScreen(
             .padding(16.dp)
     ) {
         // Search bar
-        val searchGlassTint = rememberGlassTint()
         TextField(
             value = viewModel.searchQuery,
             onValueChange = { viewModel.updateSearchQuery(it) },
             modifier = Modifier
                 .fillMaxWidth()
                 .focusRequester(focusRequester)
-                .glassSurface(
-                    shape = RoundedCornerShape(24.dp),
-                    tint = searchGlassTint
-                )
                 .clickable { 
                     // Ensure keyboard opens when clicking on the TextField on TV
                     focusRequester.requestFocus()
@@ -147,7 +117,7 @@ fun SearchScreen(
                 IconButton(onClick = { 
                     // Trigger search when clicking search icon
                     if (viewModel.searchQuery.isNotEmpty()) {
-                        performSearch(viewModel.searchQuery)
+                        viewModel.triggerSearch()
                         focusManager.clearFocus()
                     }
                 }) {
@@ -179,7 +149,7 @@ fun SearchScreen(
                 onSearch = {
                     // Trigger search when pressing Enter
                     if (viewModel.searchQuery.isNotEmpty()) {
-                        performSearch(viewModel.searchQuery)
+                        viewModel.triggerSearch()
                     }
                     focusManager.clearFocus()
                 }
@@ -188,8 +158,8 @@ fun SearchScreen(
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
                 disabledIndicatorColor = Color.Transparent,
-                focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent,
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
             ),
             shape = RoundedCornerShape(24.dp),
             singleLine = true
@@ -294,147 +264,37 @@ fun SearchScreen(
                 }
             }
             else -> {
-                // Initial / empty state - show recent search chips (if any) and instructions
-                Column(
+                // Initial state - show search instructions
+                Box(
                     modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    contentAlignment = Alignment.Center
                 ) {
-                    if (viewModel.searchQuery.isEmpty() && recentSearches.isNotEmpty()) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 8.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(bottom = 8.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "Recent Searches",
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                                androidx.compose.material3.TextButton(
-                                    onClick = {
-                                        recentSearches = clearRecentSearches(recentSearchesPrefs)
-                                    }
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Delete,
-                                        contentDescription = "Clear history",
-                                        modifier = Modifier.size(16.dp),
-                                        tint = MaterialTheme.colorScheme.error
-                                    )
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text(
-                                        text = "Clear",
-                                        style = MaterialTheme.typography.labelMedium,
-                                        color = MaterialTheme.colorScheme.error
-                                    )
-                                }
-                            }
-                            LazyRow(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                contentPadding = PaddingValues(bottom = 8.dp)
-                            ) {
-                                items(recentSearches) { recentQuery ->
-                                    SuggestionChip(
-                                        onClick = { performSearch(recentQuery) },
-                                        label = { Text(recentQuery) },
-                                        icon = {
-                                            Icon(
-                                                imageVector = Icons.Default.History,
-                                                contentDescription = "Recent search",
-                                                modifier = Modifier.size(16.dp)
-                                            )
-                                        },
-                                        shape = RoundedCornerShape(12.dp),
-                                        colors = SuggestionChipDefaults.suggestionChipColors(
-                                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                            labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            iconContentColor = MaterialTheme.colorScheme.primary
-                                        )
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                        contentAlignment = Alignment.Center
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Search,
-                                contentDescription = "Search",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(48.dp)
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = "Search for movies and series",
-                                style = MaterialTheme.typography.headlineSmall,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "Enter a keyword to start searching",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Search",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Search for movies and series",
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Enter a keyword to start searching",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             }
         }
     }
-}
-
-// --- Recent Searches History helpers (SharedPreferences-backed) ---
-
-private const val RECENT_SEARCHES_KEY = "recent_queries"
-private const val MAX_RECENT_SEARCHES = 5
-
-private fun loadRecentSearches(prefs: android.content.SharedPreferences): List<String> {
-    val raw = prefs.getString(RECENT_SEARCHES_KEY, null) ?: return emptyList()
-    return try {
-        val array = org.json.JSONArray(raw)
-        (0 until array.length()).map { array.getString(it) }
-    } catch (e: Exception) {
-        emptyList()
-    }
-}
-
-private fun addRecentSearch(
-    prefs: android.content.SharedPreferences,
-    current: List<String>,
-    query: String
-): List<String> {
-    val trimmedQuery = query.trim()
-    if (trimmedQuery.isEmpty()) return current
-
-    val updated = listOf(trimmedQuery) + current.filterNot { it.equals(trimmedQuery, ignoreCase = true) }
-    val capped = updated.take(MAX_RECENT_SEARCHES)
-
-    val jsonArray = org.json.JSONArray()
-    capped.forEach { jsonArray.put(it) }
-    prefs.edit().putString(RECENT_SEARCHES_KEY, jsonArray.toString()).apply()
-
-    return capped
-}
-
-private fun clearRecentSearches(prefs: android.content.SharedPreferences): List<String> {
-    prefs.edit().remove(RECENT_SEARCHES_KEY).apply()
-    return emptyList()
 }
 
 @Composable
@@ -518,17 +378,15 @@ fun PosterItem(
     poster: Poster,
     onClick: () -> Unit
 ) {
-    val posterCardGlassTint = rememberGlassTint()
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .height(310.dp) // Fixed height for all cards
-            .subtleGlassSurface(shape = RoundedCornerShape(20.dp), tint = posterCardGlassTint)
             .clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.Transparent
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
         )
     ) {
         Column(

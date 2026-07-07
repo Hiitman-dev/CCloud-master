@@ -16,8 +16,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
@@ -167,7 +165,7 @@ fun MainScreen(
             }
         } else {
             // Mobile/tablet layout with bottom navigation
-            Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
+            Box(modifier = Modifier.padding(innerPadding)) {
                 // Pass theme settings and font settings callback to navigation
                 AppNavigation(navController, onThemeSettingsChanged, onFontSettingsChanged)
             }

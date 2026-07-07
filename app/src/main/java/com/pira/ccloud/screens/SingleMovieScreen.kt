@@ -29,17 +29,14 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Star
-import com.pira.ccloud.ui.theme.GlassAlertDialog
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import com.pira.ccloud.ui.theme.glassSurface
-import com.pira.ccloud.ui.theme.rememberGlassTint
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -66,7 +63,6 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.pira.ccloud.VideoPlayerActivity
 import com.pira.ccloud.components.DownloadOptionsDialog
-import com.pira.ccloud.components.CopyLinksButton
 import com.pira.ccloud.components.ExpandableText
 import com.pira.ccloud.data.model.FavoriteItem
 import com.pira.ccloud.data.model.Movie
@@ -222,7 +218,7 @@ fun MovieDetailsContent(
                 
                 // Image URL dialog
                 if (showImageDialog) {
-                    GlassAlertDialog(
+                    AlertDialog(
                         onDismissRequest = { showImageDialog = false },
                         title = { Text("Image Options") },
                         text = { Text("Choose an action for this image") },
@@ -324,7 +320,7 @@ fun MovieDetailsContent(
             
             // Confirmation dialog for removing from favorites
             if (showRemoveFavoriteDialog) {
-                GlassAlertDialog(
+                AlertDialog(
                     onDismissRequest = { showRemoveFavoriteDialog = false },
                     title = { Text("Remove from Favorites") },
                     text = { Text("Are you sure you want to remove this movie from your favorites?") },
@@ -409,15 +405,13 @@ fun MovieDetailsContent(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(movie.genres) { genre ->
-                    val genreChipGlassTint = rememberGlassTint()
                     Card(
                         colors = CardDefaults.cardColors(
-                            containerColor = Color.Transparent
+                            containerColor = MaterialTheme.colorScheme.primaryContainer
                         ),
                         shape = RoundedCornerShape(50.dp), // More rounded corners
                         modifier = Modifier
                             .height(32.dp) // Fixed height for consistency
-                            .glassSurface(shape = RoundedCornerShape(50.dp), tint = genreChipGlassTint)
                     ) {
                         Box(
                             contentAlignment = Alignment.Center,
@@ -428,7 +422,7 @@ fun MovieDetailsContent(
                             Text(
                                 text = genre.title,
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
                                 fontWeight = FontWeight.Medium,
                                 maxLines = 1
                             )
@@ -466,56 +460,51 @@ fun MovieDetailsContent(
         
         // Sources/Quality options
         if (movie.sources.isNotEmpty()) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 16.dp, top = 16.dp, end = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Available Qualities",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.weight(1f)
-                )
-
-                // FEATURE: Copy Selected Links - lets the user multi-select qualities
-                // and copy all their direct URLs to the clipboard at once.
-                CopyLinksButton(sources = movie.sources)
-            }
+            Text(
+                text = "Available Qualities",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp)
+            )
             
             Column(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp)
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp)
             ) {
-                val qualityGlassTint = rememberGlassTint()
                 movie.sources.forEach { source ->
-                    Row(
+                    Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .glassSurface(shape = RoundedCornerShape(16.dp), tint = qualityGlassTint)
                             .clickable {
                                 selectedSource = source
                                 showSourceDialog = true
-                            }
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                            },
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        ),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text(
-                            text = source.quality,
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-
-                        Icon(
-                            imageVector = Icons.Default.PlayArrow,
-                            contentDescription = "Play",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = source.quality,
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            
+                            Icon(
+                                imageVector = Icons.Default.PlayArrow,
+                                contentDescription = "Play",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
                 }
             }
@@ -548,7 +537,7 @@ fun SourceOptionsDialog(
         )
     }
     
-    GlassAlertDialog(
+    AlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(

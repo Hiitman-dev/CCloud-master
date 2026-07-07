@@ -28,9 +28,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.ui.graphics.Color
-import com.pira.ccloud.ui.theme.glassSurface
-import com.pira.ccloud.ui.theme.rememberGlassTint
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -102,7 +99,6 @@ fun AboutScreen(navController: NavController?) {
             Text(
                 text = "CCloud",
                 style = MaterialTheme.typography.headlineMedium,
-                fontFamily = com.pira.ccloud.ui.theme.SteelfishFontFamily,
                 fontWeight = FontWeight.Bold
             )
             
@@ -127,13 +123,9 @@ fun AboutScreen(navController: NavController?) {
             Spacer(modifier = Modifier.height(24.dp))
             
             // Links Card
-            val linksCardGlassTint = rememberGlassTint()
             Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .glassSurface(tint = linksCardGlassTint),
-                colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
@@ -182,13 +174,9 @@ fun AboutScreen(navController: NavController?) {
             Spacer(modifier = Modifier.height(24.dp))
             
             // Donation Card
-            val donationCardGlassTint = rememberGlassTint()
             Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .glassSurface(tint = donationCardGlassTint),
-                colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(

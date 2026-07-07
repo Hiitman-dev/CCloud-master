@@ -25,15 +25,6 @@ object DownloadUtils {
         android.widget.Toast.makeText(context, "Link copied to clipboard", android.widget.Toast.LENGTH_SHORT).show()
     }
 
-    // Copies multiple links (already joined with newlines) to the clipboard.
-    // Used by the "Copy Selected Links" multi-quality picker.
-    fun copyMultipleToClipboard(context: Context, joinedLinks: String) {
-        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-        val clip = android.content.ClipData.newPlainText("Video URLs", joinedLinks)
-        clipboard.setPrimaryClip(clip)
-        android.widget.Toast.makeText(context, "Selected links copied!", android.widget.Toast.LENGTH_SHORT).show()
-    }
-
     fun openWithADM(context: Context, url: String) {
         try {
             // Try multiple common ADM package names and intent actions

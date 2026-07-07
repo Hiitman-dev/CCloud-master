@@ -39,14 +39,12 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.TextFields
-import com.pira.ccloud.ui.theme.GlassAlertDialog
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import com.pira.ccloud.ui.theme.glassSurface
-import com.pira.ccloud.ui.theme.rememberGlassTint
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -343,11 +341,9 @@ fun SettingsScreen(
                 enter = fadeIn(animationSpec = tween(400)) + slideInVertically(animationSpec = tween(400, delayMillis = 100)),
                 exit = fadeOut(animationSpec = tween(400)) + slideOutVertically(animationSpec = tween(400))
             ) {
-                val themeCardGlassTint = rememberGlassTint()
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .glassSurface(shape = RoundedCornerShape(20.dp), tint = themeCardGlassTint)
                         .clickable { isExpanded = !isExpanded }
                         .focusable()
                         .focusRequester(themeCardFocusRequester)
@@ -363,10 +359,9 @@ fun SettingsScreen(
                                 else -> false // Let default handling occur
                             }
                         },
-                    colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
-                    Column(modifier = Modifier.padding(14.dp)) {
+                    Column(modifier = Modifier.padding(16.dp)) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -381,7 +376,7 @@ fun SettingsScreen(
                             )
                             Text(
                                 text = "Theme Settings",
-                                style = MaterialTheme.typography.titleMedium,
+                                style = MaterialTheme.typography.titleLarge,
                                 modifier = Modifier
                                     .padding(start = 8.dp)
                                     .weight(1f)
@@ -488,22 +483,6 @@ fun SettingsScreen(
                                         )
                                     }
                                 }
-                                
-                                Spacer(modifier = Modifier.height(20.dp))
-                                
-                                // Custom color canvas - pick any color, not just presets
-                                Text(
-                                    text = "Custom Color",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    modifier = Modifier.padding(bottom = 12.dp)
-                                )
-                                com.pira.ccloud.ui.theme.ColorPickerCanvas(
-                                    initialColor = themeSettings.primaryColor,
-                                    onColorConfirmed = { pickedColor ->
-                                        val newSettings = themeSettings.copy(primaryColor = pickedColor)
-                                        updateThemeSettings(newSettings)
-                                    }
-                                )
                             }
                         }
                     }
@@ -531,11 +510,9 @@ fun SettingsScreen(
                 enter = fadeIn(animationSpec = tween(600)) + slideInVertically(animationSpec = tween(600, delayMillis = 300)),
                 exit = fadeOut(animationSpec = tween(600)) + slideOutVertically(animationSpec = tween(600))
             ) {
-                val videoCardGlassTint = rememberGlassTint()
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .glassSurface(shape = RoundedCornerShape(20.dp), tint = videoCardGlassTint)
                         .clickable { isExpanded = !isExpanded }
                         .focusable()
                         .focusRequester(videoCardFocusRequester)
@@ -552,10 +529,9 @@ fun SettingsScreen(
                                 else -> false // Let default handling occur
                             }
                         },
-                    colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
-                    Column(modifier = Modifier.padding(14.dp)) {
+                    Column(modifier = Modifier.padding(16.dp)) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -570,7 +546,7 @@ fun SettingsScreen(
                             )
                             Text(
                                 text = "Video Player Settings",
-                                style = MaterialTheme.typography.titleMedium,
+                                style = MaterialTheme.typography.titleLarge,
                                 modifier = Modifier
                                     .padding(start = 8.dp)
                                     .weight(1f)
@@ -710,11 +686,9 @@ fun SettingsScreen(
                 enter = fadeIn(animationSpec = tween(800)) + slideInVertically(animationSpec = tween(800, delayMillis = 600)),
                 exit = fadeOut(animationSpec = tween(800)) + slideOutVertically(animationSpec = tween(800))
             ) {
-                val genericExpandGlassTint = rememberGlassTint()
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .glassSurface(shape = RoundedCornerShape(20.dp), tint = genericExpandGlassTint)
                         .clickable { isExpanded = !isExpanded }
                         .focusable()
                         .focusRequester(remember { FocusRequester() })
@@ -727,10 +701,9 @@ fun SettingsScreen(
                                 else -> false // Let default handling occur
                             }
                         },
-                    colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
-                    Column(modifier = Modifier.padding(14.dp)) {
+                    Column(modifier = Modifier.padding(16.dp)) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -745,7 +718,7 @@ fun SettingsScreen(
                             )
                             Text(
                                 text = "Font Settings",
-                                style = MaterialTheme.typography.titleMedium,
+                                style = MaterialTheme.typography.titleLarge,
                                 modifier = Modifier
                                     .padding(start = 8.dp)
                                     .weight(1f)
@@ -784,16 +757,6 @@ fun SettingsScreen(
                                         updateFontSettings(newSettings)
                                     }
                                 )
-
-                                FontOption(
-                                    fontType = FontType.YEKAN_BAKH,
-                                    label = "Yekan Bakh",
-                                    isSelected = fontSettings.fontType == FontType.YEKAN_BAKH,
-                                    onSelect = { fontType ->
-                                        val newSettings = fontSettings.copy(fontType = fontType)
-                                        updateFontSettings(newSettings)
-                                    }
-                                )
                             }
                         }
                     }
@@ -820,11 +783,9 @@ fun SettingsScreen(
                 enter = fadeIn(animationSpec = tween(900)) + slideInVertically(animationSpec = tween(900, delayMillis = 600)),
                 exit = fadeOut(animationSpec = tween(900)) + slideOutVertically(animationSpec = tween(900))
             ) {
-                val clearWatchedGlassTint = rememberGlassTint()
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .glassSurface(shape = RoundedCornerShape(20.dp), tint = clearWatchedGlassTint)
                         .clickable { showClearWatchedEpisodesDialog = true }
                         .focusable()
                         .focusRequester(remember { FocusRequester() })
@@ -837,10 +798,9 @@ fun SettingsScreen(
                                 else -> false // Let default handling occur
                             }
                         },
-                    colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
-                    Column(modifier = Modifier.padding(14.dp)) {
+                    Column(modifier = Modifier.padding(16.dp)) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -855,7 +815,7 @@ fun SettingsScreen(
                             )
                             Text(
                                 text = "Series Episodes Cache",
-                                style = MaterialTheme.typography.titleMedium,
+                                style = MaterialTheme.typography.titleLarge,
                                 modifier = Modifier
                                     .padding(start = 8.dp)
                                     .weight(1f)
@@ -899,11 +859,9 @@ fun SettingsScreen(
                 enter = fadeIn(animationSpec = tween(1100)) + slideInVertically(animationSpec = tween(1100, delayMillis = 800)),
                 exit = fadeOut(animationSpec = tween(1100)) + slideOutVertically(animationSpec = tween(1100))
             ) {
-                val aboutCardGlassTint = rememberGlassTint()
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .glassSurface(shape = RoundedCornerShape(20.dp), tint = aboutCardGlassTint)
                         .clickable { navController?.navigate("about") }
                         .focusable()
                         .focusRequester(aboutCardFocusRequester)
@@ -920,10 +878,9 @@ fun SettingsScreen(
                                 else -> false // Let default handling occur
                             }
                         },
-                    colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
-                    Column(modifier = Modifier.padding(14.dp)) {
+                    Column(modifier = Modifier.padding(16.dp)) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -938,7 +895,7 @@ fun SettingsScreen(
                             )
                             Text(
                                 text = "About",
-                                style = MaterialTheme.typography.titleMedium,
+                                style = MaterialTheme.typography.titleLarge,
                                 modifier = Modifier
                                     .padding(start = 8.dp)
                                     .weight(1f)
@@ -974,11 +931,9 @@ fun SettingsScreen(
                 enter = fadeIn(animationSpec = tween(1200)) + slideInVertically(animationSpec = tween(1200, delayMillis = 900)),
                 exit = fadeOut(animationSpec = tween(1200)) + slideOutVertically(animationSpec = tween(1200))
             ) {
-                val updateCardGlassTint = rememberGlassTint()
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .glassSurface(shape = RoundedCornerShape(20.dp), tint = updateCardGlassTint)
                         .clickable { 
                             if (!isCheckingUpdate) {
                                 checkForUpdates()
@@ -1001,10 +956,9 @@ fun SettingsScreen(
                                 else -> false // Let default handling occur
                             }
                         },
-                    colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
-                    Column(modifier = Modifier.padding(14.dp)) {
+                    Column(modifier = Modifier.padding(16.dp)) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -1019,7 +973,7 @@ fun SettingsScreen(
                             )
                             Text(
                                 text = "Check for Updates",
-                                style = MaterialTheme.typography.titleMedium,
+                                style = MaterialTheme.typography.titleLarge,
                                 modifier = Modifier
                                     .padding(start = 8.dp)
                                     .weight(1f)
@@ -1066,11 +1020,9 @@ fun SettingsScreen(
                 enter = fadeIn(animationSpec = tween(1400)) + slideInVertically(animationSpec = tween(1400, delayMillis = 1100)),
                 exit = fadeOut(animationSpec = tween(1400)) + slideOutVertically(animationSpec = tween(1400))
             ) {
-                val resetCardGlassTint = rememberGlassTint()
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .glassSurface(shape = RoundedCornerShape(20.dp), tint = resetCardGlassTint)
                         .clickable { showResetDialog = true }
                         .focusable()
                         .focusRequester(resetCardFocusRequester)
@@ -1086,10 +1038,9 @@ fun SettingsScreen(
                                 else -> false // Let default handling occur
                             }
                         },
-                    colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
-                    Column(modifier = Modifier.padding(14.dp)) {
+                    Column(modifier = Modifier.padding(16.dp)) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -1104,7 +1055,7 @@ fun SettingsScreen(
                             )
                             Text(
                                 text = "Reset to Defaults",
-                                style = MaterialTheme.typography.titleMedium,
+                                style = MaterialTheme.typography.titleLarge,
                                 modifier = Modifier
                                     .padding(start = 8.dp)
                                     .weight(1f)
@@ -1128,7 +1079,7 @@ fun SettingsScreen(
     
     // Reset confirmation dialog
     if (showResetDialog) {
-        GlassAlertDialog(
+        AlertDialog(
             onDismissRequest = { showResetDialog = false },
             title = {
                 Text(text = "Reset Settings")
@@ -1158,7 +1109,7 @@ fun SettingsScreen(
     
     // Clear watched episodes confirmation dialog
     if (showClearWatchedEpisodesDialog) {
-        GlassAlertDialog(
+        AlertDialog(
             onDismissRequest = { showClearWatchedEpisodesDialog = false },
             title = {
                 Text(text = "Clear Watched Episodes")
@@ -1188,7 +1139,7 @@ fun SettingsScreen(
     
     // Update available dialog
     if (showUpdateDialog) {
-        GlassAlertDialog(
+        AlertDialog(
             onDismissRequest = { showUpdateDialog = false },
             title = {
                 Text(text = "Update Available")
