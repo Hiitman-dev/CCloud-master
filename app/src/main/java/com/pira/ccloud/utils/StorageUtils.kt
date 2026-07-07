@@ -18,6 +18,38 @@ import java.util.Date
 object StorageUtils {
     private const val TAG = "StorageUtils"
     
+    // Recently Viewed - separate from Favorites; records whatever the user opens
+    // (movie or series detail screen), regardless of whether they favorite it.
+    // Used to power the "Continue Watching" row on the home screen.
+    fun saveRecentlyViewed(context: Context, item: FavoriteItem) {
+        try {
+            val recent = loadRecentlyViewed(context).toMutableList()
+            recent.removeAll { it.id == item.id && it.type == item.type }
+            recent.add(0, item)
+            val capped = recent.take(15)
+            val jsonString = Json.encodeToString(capped)
+            val file = File(context.filesDir, "recently_viewed.json")
+            file.writeText(jsonString)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error saving recently viewed", e)
+        }
+    }
+
+    fun loadRecentlyViewed(context: Context): List<FavoriteItem> {
+        return try {
+            val file = File(context.filesDir, "recently_viewed.json")
+            if (file.exists()) {
+                val jsonString = file.readText()
+                Json.decodeFromString<List<FavoriteItem>>(jsonString)
+            } else {
+                emptyList()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error loading recently viewed", e)
+            emptyList()
+        }
+    }
+
     // Favorites functions - using a single JSON file for all favorites
     fun saveFavorite(context: Context, favorite: FavoriteItem) {
         try {

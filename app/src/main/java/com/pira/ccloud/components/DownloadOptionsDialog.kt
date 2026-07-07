@@ -1,55 +1,41 @@
 package com.pira.ccloud.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-<<<<<<< HEAD
-=======
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
->>>>>>> 2541a1adf58b55ec85598c2da3096e5129b30f0b
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.Button
-<<<<<<< HEAD
-import androidx.compose.material3.MaterialTheme
-=======
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
->>>>>>> 2541a1adf58b55ec85598c2da3096e5129b30f0b
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.pira.ccloud.data.model.Source
-<<<<<<< HEAD
-=======
 import com.pira.ccloud.ui.theme.GlassAlertDialog
-import com.pira.ccloud.ui.theme.GlassCorners
 import com.pira.ccloud.utils.DownloadUtils
->>>>>>> 2541a1adf58b55ec85598c2da3096e5129b30f0b
 
-/**
- * The download & play options panel, per spec: a bottom sheet, not a
- * centered dialog. `ModalBottomSheet` already gives us the Material Overlay
- * behavior the spec asks for - the page behind it is dimmed and scroll is
- * frozen - so the sheet itself becomes the single primary layer, with no
- * glass card nested inside another container.
- */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DownloadOptionsDialog(
     source: Source,
@@ -61,155 +47,145 @@ fun DownloadOptionsDialog(
     onOpenInMXPlayer: () -> Unit,
     onOpenInKMPlayer: () -> Unit
 ) {
-<<<<<<< HEAD
-    AlertDialog(
-=======
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
-    ModalBottomSheet(
->>>>>>> 2541a1adf58b55ec85598c2da3096e5129b30f0b
+    GlassAlertDialog(
         onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.surface,
-        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-        dragHandle = null
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .padding(bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            // Grab handle
-            Box(
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(vertical = 12.dp)
-                    .size(width = 36.dp, height = 4.dp)
-                    .background(
-                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
-                        RoundedCornerShape(GlassCorners.Tag)
-                    )
-            )
-
+        title = {
             Text(
                 text = "Download & Play Options",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
             )
+        },
+        text = {
             Text(
                 text = "Choose how to handle this video",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "Download Options",
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Button(
-                onClick = { onCopyLink(); onDismiss() },
+        },
+        confirmButton = {
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(GlassCorners.Button),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("Copy Link")
+                // Download options
+                Text(
+                    text = "Download Options",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                
+                Button(
+                    onClick = {
+                        onCopyLink()
+                        onDismiss()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                ) {
+                    Text("Copy Link")
+                }
+                
+                Button(
+                    onClick = {
+                        onDownloadWithBrowser()
+                        onDismiss()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                ) {
+                    Text("Download with Browser")
+                }
+                
+                Button(
+                    onClick = {
+                        onDownloadWithADM()
+                        onDismiss()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                ) {
+                    Text("Download with ADM")
+                }
+                
+                // Play options
+                Text(
+                    text = "Play Options",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                
+                Button(
+                    onClick = {
+                        onOpenInVLC()
+                        onDismiss()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                ) {
+                    Text("Open in VLC Player")
+                }
+                
+                Button(
+                    onClick = {
+                        onOpenInMXPlayer()
+                        onDismiss()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                ) {
+                    Text("Open in MX Player")
+                }
+                
+                Button(
+                    onClick = {
+                        onOpenInKMPlayer()
+                        onDismiss()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                ) {
+                    Text("Open in KM Player")
+                }
+                
+                TextButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Cancel")
+                }
             }
-<<<<<<< HEAD
         },
         containerColor = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(20.dp),
         tonalElevation = 6.dp
     )
-}
-=======
-
-            Button(
-                onClick = { onDownloadWithBrowser(); onDismiss() },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(GlassCorners.Button),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            ) {
-                Text("Download with Browser")
-            }
-
-            Button(
-                onClick = { onDownloadWithADM(); onDismiss() },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(GlassCorners.Button),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            ) {
-                Text("Download with ADM")
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "Play Options",
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Button(
-                onClick = { onOpenInVLC(); onDismiss() },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(GlassCorners.Button),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-            ) {
-                Text("Open in VLC Player")
-            }
-
-            Button(
-                onClick = { onOpenInMXPlayer(); onDismiss() },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(GlassCorners.Button),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-            ) {
-                Text("Open in MX Player")
-            }
-
-            Button(
-                onClick = { onOpenInKMPlayer(); onDismiss() },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(GlassCorners.Button),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-            ) {
-                Text("Open in KM Player")
-            }
-
-            TextButton(
-                onClick = onDismiss,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Cancel")
-            }
-        }
-    }
 }
 /**
  * FEATURE: "Copy Selected Links"
@@ -226,7 +202,7 @@ fun CopyLinksButton(
     OutlinedButton(
         onClick = { showDialog = true },
         modifier = modifier,
-        shape = RoundedCornerShape(GlassCorners.Button),
+        shape = RoundedCornerShape(16.dp),
         colors = ButtonDefaults.outlinedButtonColors(
             contentColor = MaterialTheme.colorScheme.primary
         )
@@ -265,7 +241,7 @@ fun CopySelectedLinksDialog(
             Text(
                 text = "Copy Selected Links",
                 style = MaterialTheme.typography.headlineSmall,
-                fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
+                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
             )
         },
         text = {
@@ -316,7 +292,7 @@ fun CopySelectedLinksDialog(
                     }
                     onDismiss()
                 },
-                shape = RoundedCornerShape(GlassCorners.Button),
+                shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -331,7 +307,7 @@ fun CopySelectedLinksDialog(
             }
         },
         containerColor = MaterialTheme.colorScheme.surface,
-        shape = RoundedCornerShape(GlassCorners.Card),
+        shape = RoundedCornerShape(20.dp),
         tonalElevation = 6.dp
     )
 }
@@ -351,7 +327,7 @@ fun CopySeasonLinksButton(
     OutlinedButton(
         onClick = { showDialog = true },
         modifier = modifier,
-        shape = RoundedCornerShape(GlassCorners.Button),
+        shape = RoundedCornerShape(16.dp),
         colors = ButtonDefaults.outlinedButtonColors(
             contentColor = MaterialTheme.colorScheme.primary
         )
@@ -393,7 +369,7 @@ fun CopySeasonLinksDialog(
             Text(
                 text = "Copy Season Links",
                 style = MaterialTheme.typography.headlineSmall,
-                fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
+                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
             )
         },
         text = {
@@ -454,7 +430,7 @@ fun CopySeasonLinksDialog(
                     }
                     onDismiss()
                 },
-                shape = RoundedCornerShape(GlassCorners.Button),
+                shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -469,8 +445,7 @@ fun CopySeasonLinksDialog(
             }
         },
         containerColor = MaterialTheme.colorScheme.surface,
-        shape = RoundedCornerShape(GlassCorners.Card),
+        shape = RoundedCornerShape(20.dp),
         tonalElevation = 6.dp
     )
 }
->>>>>>> 2541a1adf58b55ec85598c2da3096e5129b30f0b

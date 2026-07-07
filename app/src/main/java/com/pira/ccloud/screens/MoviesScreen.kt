@@ -39,6 +39,9 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import com.pira.ccloud.ui.theme.glassSurface
+import com.pira.ccloud.ui.theme.subtleGlassSurface
+import com.pira.ccloud.ui.theme.rememberGlassTint
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -62,18 +65,23 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.pira.ccloud.components.GenreFilterSection
+import com.pira.ccloud.components.HomeAmbientBackground
+import com.pira.ccloud.components.HomeHeaderSections
 import com.pira.ccloud.data.model.Genre
 import com.pira.ccloud.data.model.Movie
 import com.pira.ccloud.ui.movies.MoviesViewModel
+import com.pira.ccloud.ui.series.SeriesViewModel
 import com.pira.ccloud.utils.DeviceUtils
 import com.pira.ccloud.utils.StorageUtils
 
 @Composable
 fun MoviesScreen(
     viewModel: MoviesViewModel = viewModel(),
+    seriesViewModelForHome: SeriesViewModel = viewModel(),
     navController: NavController? = null
 ) {
     val movies = viewModel.movies
@@ -83,14 +91,30 @@ fun MoviesScreen(
     val genres = viewModel.genres
     val selectedGenreId = viewModel.selectedGenreId
     val selectedFilterType = viewModel.selectedFilterType
-    
+    val context = LocalContext.current
+
+    var recentlyViewed by remember {
+        mutableStateOf(StorageUtils.loadRecentlyViewed(context))
+    }
+    // Re-read "Continue Watching" whenever we come back to this screen route
+    // (e.g. after opening a movie/series and pressing back).
+    val currentBackStackEntry = navController?.currentBackStackEntryAsState()?.value
+    LaunchedEffect(currentBackStackEntry) {
+        if (currentBackStackEntry?.destination?.route == "movies") {
+            recentlyViewed = StorageUtils.loadRecentlyViewed(context)
+        }
+    }
+
     LaunchedEffect(Unit) {
         if (movies.isEmpty()) {
             viewModel.loadMovies()
         }
     }
     
-    Column(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        HomeAmbientBackground(modifier = Modifier.fillMaxSize())
+
+        Column(modifier = Modifier.fillMaxSize()) {
         // Genre filter section
         GenreFilterSection(
             genres = genres,
@@ -120,9 +144,12 @@ fun MoviesScreen(
                     onRetry = { viewModel.retry() },
                     onRefresh = { viewModel.refresh() },
                     onLoadMore = { viewModel.loadMoreMovies() },
-                    navController = navController
+                    navController = navController,
+                    recentlyViewed = recentlyViewed,
+                    todaysUpdates = seriesViewModelForHome.series.take(10)
                 )
             }
+        }
         }
     }
 }
@@ -142,7 +169,7 @@ fun LoadingScreen() {
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(16.dp),
-            fontWeight = FontWeight.Medium
+            fontWeight = FontWeight.Bold
         )
         
         AnimatedVisibility(
@@ -192,13 +219,15 @@ fun ShimmerMovieItem(
         end = Offset(x = translateAnim, y = translateAnim)
     )
     
+    val shimmerCardGlassTint = rememberGlassTint()
     Card(
         modifier = Modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .subtleGlassSurface(shape = RoundedCornerShape(20.dp), tint = shimmerCardGlassTint),
         shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            containerColor = Color.Transparent
         )
     ) {
         Column(
@@ -279,7 +308,9 @@ fun MovieGrid(
     onRetry: () -> Unit,
     onRefresh: () -> Unit,
     onLoadMore: () -> Unit,
-    navController: NavController? = null
+    navController: NavController? = null,
+    recentlyViewed: List<com.pira.ccloud.data.model.FavoriteItem> = emptyList(),
+    todaysUpdates: List<com.pira.ccloud.data.model.Series> = emptyList()
 ) {
     val moviesList = movies.toList()
     val context = LocalContext.current
@@ -292,6 +323,19 @@ fun MovieGrid(
         horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp),
         verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp)
     ) {
+        // Home screen header: Continue Watching + New & Hot, spanning the
+        // full grid width, above the regular "All Movies" grid.
+        if (recentlyViewed.isNotEmpty() || moviesList.isNotEmpty()) {
+            item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+                HomeHeaderSections(
+                    recentlyViewed = recentlyViewed,
+                    newAndHot = moviesList.take(10),
+                    todaysUpdates = todaysUpdates,
+                    navController = navController
+                )
+            }
+        }
+
         itemsIndexed(moviesList) { index, movie ->
             MovieItem(
                 movie = movie,
@@ -383,15 +427,17 @@ fun MovieItem(
     movie: Movie,
     onClick: () -> Unit
 ) {
+    val movieCardGlassTint = rememberGlassTint()
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .height(310.dp) // Fixed height for all cards
+            .subtleGlassSurface(shape = RoundedCornerShape(20.dp), tint = movieCardGlassTint)
             .clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            containerColor = Color.Transparent
         )
     ) {
         Column(
@@ -456,7 +502,7 @@ fun MovieItem(
                 Text(
                     text = movie.title,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Medium,
+                    fontWeight = FontWeight.Bold,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     color = MaterialTheme.colorScheme.onSurface

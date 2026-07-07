@@ -44,6 +44,9 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import com.pira.ccloud.ui.theme.glassSurface
+import com.pira.ccloud.ui.theme.subtleGlassSurface
+import com.pira.ccloud.ui.theme.rememberGlassTint
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -220,7 +223,7 @@ fun CountryLoadingScreen() {
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(16.dp),
-            fontWeight = FontWeight.Medium
+            fontWeight = FontWeight.Bold
         )
         
         AnimatedVisibility(
@@ -270,13 +273,15 @@ fun CountryShimmerPosterItem(
         end = Offset(x = translateAnim, y = translateAnim)
     )
     
+    val countryShimmerGlassTint = rememberGlassTint()
     Card(
         modifier = Modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .subtleGlassSurface(shape = RoundedCornerShape(20.dp), tint = countryShimmerGlassTint),
         shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            containerColor = Color.Transparent
         )
     ) {
         Column(
@@ -466,15 +471,17 @@ fun CountryPosterItem(
     poster: Poster,
     onClick: () -> Unit
 ) {
+    val countryPosterGlassTint = rememberGlassTint()
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .height(310.dp) // Fixed height for all cards
+            .subtleGlassSurface(shape = RoundedCornerShape(20.dp), tint = countryPosterGlassTint)
             .clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            containerColor = Color.Transparent
         )
     ) {
         Column(
@@ -569,7 +576,7 @@ fun CountryPosterItem(
                 Text(
                     text = poster.title,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Medium,
+                    fontWeight = FontWeight.Bold,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     color = MaterialTheme.colorScheme.onSurface

@@ -15,22 +15,20 @@ enum class ThemeMode {
     LIGHT, DARK, SYSTEM
 }
 
-// Default colors - a soft, desaturated blue rather than a vivid brand hue,
-// matching the "mostly monochromatic, subtle blue accent" design system.
-val defaultPrimaryColor = DefaultBrandSeed
+// Default colors
+val defaultPrimaryColor = Color(0xFF6650a4) // Purple40
+// Removed defaultSecondaryColor as it's no longer used
 
-// Predefined color options - every option is deliberately muted/desaturated
-// so no matter which accent someone picks, the interface stays calm rather
-// than turning into a saturated, neon-bright theme.
+// Predefined color options
 val colorOptions = listOf(
-    Color(0xFF6E8CA8), // Subtle Blue (default)
-    Color(0xFF7FB3B0), // Soft Cyan
-    Color(0xFF5C7285), // Muted Slate Blue
-    Color(0xFF8A8677), // Warm Taupe
-    Color(0xFF7D8471), // Sage
-    Color(0xFF9A8B7A), // Soft Clay
-    Color(0xFF6F7A8C), // Cool Slate
-    Color(0xFF8E8B99)  // Muted Lavender
+    Color(0xFF6650a4), // Purple
+    Color(0xFF006A6A), // Teal
+    Color(0xFFBA1A1A), // Red
+    Color(0xFF7D5260), // Pink
+    Color(0xFF625B71), // PurpleGrey
+    Color(0xFF006D32), // Green
+    Color(0xFF3B5BA9), // Blue
+    Color(0xFFFFB700)  // Yellow
 )
 
 @Composable

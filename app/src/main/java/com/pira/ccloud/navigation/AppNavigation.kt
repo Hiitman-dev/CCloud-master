@@ -81,7 +81,21 @@ fun AppNavigation(
         composable(route = AppScreens.Series.route) {
             SeriesScreen(viewModel = seriesViewModel, navController = navController)
         }
-        composable(route = AppScreens.Search.route) {
+        composable(
+            route = AppScreens.Search.route,
+            enterTransition = {
+                androidx.compose.animation.slideInVertically(
+                    initialOffsetY = { fullHeight -> fullHeight / 6 },
+                    animationSpec = androidx.compose.animation.core.tween(280)
+                ) + androidx.compose.animation.fadeIn(animationSpec = androidx.compose.animation.core.tween(280))
+            },
+            exitTransition = {
+                androidx.compose.animation.slideOutVertically(
+                    targetOffsetY = { fullHeight -> fullHeight / 6 },
+                    animationSpec = androidx.compose.animation.core.tween(220)
+                ) + androidx.compose.animation.fadeOut(animationSpec = androidx.compose.animation.core.tween(220))
+            }
+        ) {
             SearchScreen(viewModel = searchViewModel, navController = navController)
         }
         composable(route = AppScreens.Settings.route) {

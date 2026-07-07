@@ -34,7 +34,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.AlertDialog
+import com.pira.ccloud.ui.theme.GlassAlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -43,6 +43,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import com.pira.ccloud.ui.theme.glassSurface
+import com.pira.ccloud.ui.theme.rememberGlassTint
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -106,7 +108,7 @@ fun FavoritesScreen(navController: NavController) {
     
     // Confirmation dialog for deleting all favorites
     if (showDeleteAllDialog) {
-        AlertDialog(
+        GlassAlertDialog(
             onDismissRequest = { showDeleteAllDialog = false },
             title = { Text("Delete All Favorites") },
             text = { Text("Are you sure you want to delete all favorites? This action cannot be undone.") },
@@ -137,7 +139,7 @@ fun FavoritesScreen(navController: NavController) {
     if (showCreateGroupDialog) {
         var groupName by remember { mutableStateOf("") }
         
-        AlertDialog(
+        GlassAlertDialog(
             onDismissRequest = { showCreateGroupDialog = false },
             title = { Text("Create New Playlist") },
             text = {
@@ -243,7 +245,7 @@ fun FavoritesScreen(navController: NavController) {
     var newGroupName by remember { mutableStateOf("") }
     
     if (showRenameGroupDialog && groupToRename != null) {
-        AlertDialog(
+        GlassAlertDialog(
             onDismissRequest = { showRenameGroupDialog = false },
             title = { Text("Rename Playlist") },
             text = {
@@ -350,7 +352,7 @@ fun FavoritesScreen(navController: NavController) {
     var groupToDelete by remember { mutableStateOf<FavoriteGroup?>(null) }
     
     if (showDeleteGroupDialog && groupToDelete != null) {
-        AlertDialog(
+        GlassAlertDialog(
             onDismissRequest = { showDeleteGroupDialog = false },
             title = { Text("Delete Playlist") },
             text = { 
@@ -407,7 +409,7 @@ fun FavoritesScreen(navController: NavController) {
             selectedGroups = currentGroups.map { it.id }
         }
         
-        AlertDialog(
+        GlassAlertDialog(
             onDismissRequest = { showMoveToGroupDialog = false },
             title = { Text("Select Playlists") },
             text = {
@@ -548,16 +550,19 @@ fun FavoritesScreen(navController: NavController) {
             enter = fadeIn(animationSpec = tween(400)) + slideInVertically(animationSpec = tween(400, delayMillis = 100)),
             exit = fadeOut(animationSpec = tween(400)) + slideOutVertically(animationSpec = tween(400))
         ) {
+            val groupCardGlassTint = rememberGlassTint()
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
+                    .glassSurface(shape = RoundedCornerShape(20.dp), tint = groupCardGlassTint)
                     .focusable()
                     .focusRequester(groupCardFocusRequester)
                     .focusProperties {
                         down = favoritesCardFocusRequester
                     },
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(
@@ -590,9 +595,15 @@ fun FavoritesScreen(navController: NavController) {
                             Box {
                                 var showGroupMenu by remember { mutableStateOf(false) }
                                 
+                                val groupChipGlassTint = rememberGlassTint()
                                 Card(
                                     modifier = Modifier
                                         .padding(vertical = 4.dp)
+                                        .then(
+                                            if (selectedGroup?.id != group.id)
+                                                Modifier.glassSurface(shape = RoundedCornerShape(16.dp), tint = groupChipGlassTint)
+                                            else Modifier
+                                        )
                                         .clickable {
                                             selectedGroup = group
                                             // Load favorites for this group
@@ -619,11 +630,11 @@ fun FavoritesScreen(navController: NavController) {
                                             }
                                         },
                                     shape = RoundedCornerShape(16.dp),
-                                    elevation = CardDefaults.cardElevation(defaultElevation = if (selectedGroup?.id == group.id) 4.dp else 0.dp),
+                                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
                                     colors = if (selectedGroup?.id == group.id) {
                                         CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
                                     } else {
-                                        CardDefaults.cardColors()
+                                        CardDefaults.cardColors(containerColor = Color.Transparent)
                                     }
                                 ) {
                                     Row(
@@ -713,7 +724,7 @@ fun FavoritesScreen(navController: NavController) {
                 
                 // Confirmation dialog for removing from favorites
                 if (showRemoveFavoriteDialog && favoriteToRemove != null) {
-                    AlertDialog(
+                    GlassAlertDialog(
                         onDismissRequest = { showRemoveFavoriteDialog = false },
                         title = { Text("Remove from Favorites") },
                         text = { Text("Are you sure you want to remove \"${favoriteToRemove!!.title}\" from your favorites?") },
@@ -813,9 +824,11 @@ fun FavoriteItemCard(
     var showMenu by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
     
+    val favoriteCardGlassTint = rememberGlassTint()
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .glassSurface(shape = RoundedCornerShape(16.dp), tint = favoriteCardGlassTint)
             .clickable { onClick() }
             .focusable()
             .focusRequester(focusRequester)
@@ -828,8 +841,9 @@ fun FavoriteItemCard(
                     else -> false // Let default handling occur
                 }
             },
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        shape = RoundedCornerShape(12.dp)
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        shape = RoundedCornerShape(16.dp)
     ) {
         Row(
             modifier = Modifier
@@ -861,7 +875,7 @@ fun FavoriteItemCard(
             ) {
                 Text(
                     text = favorite.title,
-                    fontWeight = FontWeight.Medium,
+                    fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
                 

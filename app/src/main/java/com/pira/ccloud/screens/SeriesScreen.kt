@@ -39,6 +39,9 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import com.pira.ccloud.ui.theme.glassSurface
+import com.pira.ccloud.ui.theme.subtleGlassSurface
+import com.pira.ccloud.ui.theme.rememberGlassTint
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -142,7 +145,7 @@ fun LoadingScreenSeries() {
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(16.dp),
-            fontWeight = FontWeight.Medium
+            fontWeight = FontWeight.Bold
         )
         
         AnimatedVisibility(
@@ -192,13 +195,15 @@ fun ShimmerSeriesItem(
         end = Offset(x = translateAnim, y = translateAnim)
     )
     
+    val shimmerSeriesCardGlassTint = rememberGlassTint()
     Card(
         modifier = Modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .subtleGlassSurface(shape = RoundedCornerShape(20.dp), tint = shimmerSeriesCardGlassTint),
         shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            containerColor = Color.Transparent
         )
     ) {
         Column(
@@ -383,15 +388,17 @@ fun SeriesItem(
     series: Series,
     onClick: () -> Unit
 ) {
+    val seriesCardGlassTint = rememberGlassTint()
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .height(310.dp) // Fixed height for all cards
+            .subtleGlassSurface(shape = RoundedCornerShape(20.dp), tint = seriesCardGlassTint)
             .clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            containerColor = Color.Transparent
         )
     ) {
         Column(
@@ -456,7 +463,7 @@ fun SeriesItem(
                 Text(
                     text = series.title,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Medium,
+                    fontWeight = FontWeight.Bold,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     color = MaterialTheme.colorScheme.onSurface

@@ -114,7 +114,7 @@ fun SidebarNavigation(navController: NavController) {
                                     text = stringResource(screen.resourceId),
                                     color = textColor,
                                     fontSize = androidx.compose.material3.MaterialTheme.typography.labelMedium.fontSize, // Increased font size
-                                    fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                                     maxLines = 1
                                 )
                             }

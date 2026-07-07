@@ -39,6 +39,8 @@ sealed class AppScreens(
         route = "search",
         resourceId = R.string.search,
         icon = Icons.Default.Search
+        // Back in the bottom nav as its own tab - matches the reference
+        // mockups (5-tab bar: Home, Search, My List, Downloads/Series, Profile).
     )
 
     data object Settings : AppScreens(
