@@ -66,15 +66,19 @@ object GlassCorners {
 fun Modifier.glassSurface(
     shape: Shape = RoundedCornerShape(GlassCorners.Card),
     tint: Color = Color.White,
-    tintAlpha: Float = 0.38f,
-    borderAlpha: Float = 0.28f
+    // Spec range: glass opacity 18%-28%, border ~rgba(255,255,255,0.22).
+    // Kept deliberately restrained - glass is a material for chrome, not a
+    // decorative identity, so it should never read as a bright, glowing
+    // "bubble" surface.
+    tintAlpha: Float = 0.22f,
+    borderAlpha: Float = 0.22f
 ): Modifier = this
     .clip(shape)
     .background(
         brush = Brush.linearGradient(
             colors = listOf(
-                tint.copy(alpha = (tintAlpha * 1.3f).coerceAtMost(0.6f)),
-                tint.copy(alpha = (tintAlpha * 0.75f).coerceAtMost(0.5f))
+                tint.copy(alpha = (tintAlpha * 1.15f).coerceAtMost(1f)),
+                tint.copy(alpha = (tintAlpha * 0.82f).coerceAtMost(1f))
             )
         )
     )
@@ -83,7 +87,7 @@ fun Modifier.glassSurface(
         brush = Brush.linearGradient(
             colors = listOf(
                 tint.copy(alpha = borderAlpha),
-                tint.copy(alpha = borderAlpha * 0.3f)
+                tint.copy(alpha = borderAlpha * 0.5f)
             )
         ),
         shape = shape

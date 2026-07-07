@@ -59,10 +59,34 @@ fun GenreFilterSection(
                 .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+<<<<<<< HEAD
             // Filter type selector on the left
             FilterTypeSelector(
                 selectedFilterType = selectedFilterType,
                 onFilterTypeSelected = onFilterTypeSelected
+=======
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Tune,
+                    contentDescription = "Filters",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.height(20.dp)
+                )
+                Text(
+                    text = "Filters",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+            Text(
+                text = "$filterLabel  •  $selectedGenreTitle",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1
+>>>>>>> 2541a1adf58b55ec85598c2da3096e5129b30f0b
             )
             
             // Genre selector on the right
@@ -93,6 +117,7 @@ fun FilterTypeSelector(
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
+<<<<<<< HEAD
         Box(
             modifier = Modifier
                 .padding(horizontal = 16.dp)
@@ -144,6 +169,71 @@ fun FilterTypeSelector(
                         onFilterTypeSelected(FilterType.BY_IMDB)
                         expanded = false
                     }
+=======
+        Text(
+            text = "Sort By",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Medium
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterType.entries.forEach { type ->
+                val label = when (type) {
+                    FilterType.DEFAULT -> "Default"
+                    FilterType.BY_YEAR -> "By Year"
+                    FilterType.BY_IMDB -> "By IMDB"
+                }
+                FilterChip(
+                    selected = selectedFilterType == type,
+                    onClick = { onFilterTypeSelected(type) },
+                    label = { Text(label) },
+                    shape = RoundedCornerShape(com.pira.ccloud.ui.theme.GlassCorners.Tag),
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primary,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text(
+            text = "Genre",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Medium
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+
+        val allGenreOption = Genre(id = 0, title = "All Genres")
+        val genreOptions = listOf(allGenreOption) + genres
+
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(minSize = 110.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(220.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(bottom = 8.dp)
+        ) {
+            items(genreOptions) { genre ->
+                FilterChip(
+                    selected = selectedGenreId == genre.id,
+                    onClick = { onGenreSelected(genre.id) },
+                    label = {
+                        Text(
+                            text = genre.title,
+                            maxLines = 1
+                        )
+                    },
+                    shape = RoundedCornerShape(com.pira.ccloud.ui.theme.GlassCorners.Tag),
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.secondary,
+                        selectedLabelColor = MaterialTheme.colorScheme.onSecondary
+                    ),
+                    modifier = Modifier.width(140.dp)
+>>>>>>> 2541a1adf58b55ec85598c2da3096e5129b30f0b
                 )
             }
         }

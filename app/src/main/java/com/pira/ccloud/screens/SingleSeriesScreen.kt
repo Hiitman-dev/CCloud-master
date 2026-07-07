@@ -234,7 +234,7 @@ fun SourceOptionsDialog(
             Text(
                 text = "Episode: ${episode.title}",
                 style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Medium
             )
         },
         text = {
@@ -328,7 +328,7 @@ fun DownloadMenu(
                 Text(
                     text = "Select Quality to Download",
                     style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Medium
                 )
             },
             text = {
@@ -501,7 +501,7 @@ fun SeriesDetailsContent(
                         Text(
                             text = series.title,
                             style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         
@@ -642,7 +642,7 @@ fun SeriesDetailsContent(
                 Text(
                     text = "Genres",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp)
                 )
@@ -695,7 +695,7 @@ fun SeriesDetailsContent(
                 Text(
                     text = "Description",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.primary
                 )
             }
@@ -719,7 +719,7 @@ fun SeriesDetailsContent(
                 Text(
                     text = "Seasons",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp)
                 )
@@ -772,7 +772,7 @@ fun SeriesDetailsContent(
                 Text(
                     text = "Loading seasons...",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(16.dp)
                 )
@@ -800,6 +800,7 @@ fun SeriesDetailsContent(
             } else if (seasonsViewModel.seasons.isNotEmpty()) {
                 val selectedSeason = seasonsViewModel.seasons[selectedSeasonIndex]
                 Column {
+<<<<<<< HEAD
                     Text(
                         text = selectedSeason.title,
                         style = MaterialTheme.typography.titleMedium,
@@ -807,6 +808,29 @@ fun SeriesDetailsContent(
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp)
                     )
+=======
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 16.dp, top = 16.dp, end = 16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = selectedSeason.title,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        // FEATURE: Copy Season Links - gathers every episode's
+                        // links for this season, not just one episode's.
+                        if (selectedSeason.episodes.any { it.sources.isNotEmpty() }) {
+                            CopySeasonLinksButton(episodes = selectedSeason.episodes)
+                        }
+                    }
+>>>>>>> 2541a1adf58b55ec85598c2da3096e5129b30f0b
                     
                     selectedSeason.episodes.forEach { episode ->
                         val isEpisodeWatched = StorageUtils.isEpisodeWatched(context, series.id, selectedSeason.id, episode.id)
@@ -919,7 +943,7 @@ fun EpisodeItem(
                     Text(
                         text = episode.title,
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     

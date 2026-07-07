@@ -269,8 +269,81 @@ fun SearchScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
+<<<<<<< HEAD
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally
+=======
+                    if (viewModel.searchQuery.isEmpty() && recentSearches.isNotEmpty()) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Recent Searches",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Medium,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                androidx.compose.material3.TextButton(
+                                    onClick = {
+                                        recentSearches = clearRecentSearches(recentSearchesPrefs)
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = "Clear history",
+                                        modifier = Modifier.size(16.dp),
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "Clear",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            }
+                            LazyRow(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                contentPadding = PaddingValues(bottom = 8.dp)
+                            ) {
+                                items(recentSearches) { recentQuery ->
+                                    SuggestionChip(
+                                        onClick = { performSearch(recentQuery) },
+                                        label = { Text(recentQuery) },
+                                        icon = {
+                                            Icon(
+                                                imageVector = Icons.Default.History,
+                                                contentDescription = "Recent search",
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        },
+                                        shape = RoundedCornerShape(12.dp),
+                                        colors = SuggestionChipDefaults.suggestionChipColors(
+                                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                            labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            iconContentColor = MaterialTheme.colorScheme.primary
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        contentAlignment = Alignment.Center
+>>>>>>> 2541a1adf58b55ec85598c2da3096e5129b30f0b
                     ) {
                         Icon(
                             imageVector = Icons.Default.Search,
@@ -481,7 +554,7 @@ fun PosterItem(
                 Text(
                     text = poster.title,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Medium,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     color = MaterialTheme.colorScheme.onSurface

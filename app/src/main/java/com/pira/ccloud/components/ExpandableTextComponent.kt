@@ -106,7 +106,7 @@ fun ExpandableText(
                         text = if (expanded) "Show Less" else "Show More",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Medium
                     )
                 }
             }

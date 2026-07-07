@@ -252,7 +252,7 @@ fun MovieDetailsContent(
                     Text(
                         text = movie.title,
                         style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     
@@ -392,7 +392,7 @@ fun MovieDetailsContent(
             Text(
                 text = "Genres",
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp)
             )
@@ -443,7 +443,7 @@ fun MovieDetailsContent(
             Text(
                 text = "Description",
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.primary
             )
         }
@@ -460,6 +460,7 @@ fun MovieDetailsContent(
         
         // Sources/Quality options
         if (movie.sources.isNotEmpty()) {
+<<<<<<< HEAD
             Text(
                 text = "Available Qualities",
                 style = MaterialTheme.typography.titleMedium,
@@ -467,6 +468,27 @@ fun MovieDetailsContent(
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp)
             )
+=======
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, top = 16.dp, end = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Available Qualities",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.weight(1f)
+                )
+
+                // FEATURE: Copy Selected Links - lets the user multi-select qualities
+                // and copy all their direct URLs to the clipboard at once.
+                CopyLinksButton(sources = movie.sources)
+            }
+>>>>>>> 2541a1adf58b55ec85598c2da3096e5129b30f0b
             
             Column(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -543,7 +565,7 @@ fun SourceOptionsDialog(
             Text(
                 text = source.quality,
                 style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Medium
             )
         },
         text = {

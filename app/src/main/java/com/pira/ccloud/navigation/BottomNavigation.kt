@@ -36,10 +36,36 @@ fun BottomNavigationBar(navController: NavController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
+<<<<<<< HEAD
     NavigationBar(
         modifier = Modifier.fillMaxWidth(),
         containerColor = androidx.compose.material3.MaterialTheme.colorScheme.surface,
         tonalElevation = 3.dp
+=======
+    val glassTint = rememberGlassTint()
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .navigationBarsPadding()
+            .padding(horizontal = 20.dp, vertical = 10.dp)
+            .shadow(
+                elevation = 12.dp,
+                shape = RoundedCornerShape(GlassCorners.Navigation),
+                ambientColor = Color.Black.copy(alpha = 0.06f),
+                spotColor = Color.Black.copy(alpha = 0.06f)
+            )
+            .glassSurface(
+                shape = RoundedCornerShape(GlassCorners.Navigation),
+                tint = glassTint,
+                // Per spec, the bottom nav is a solid floating capsule, not a
+                // see-through glass panel: 90%-95% opaque with only soft
+                // blur/shadow for elevation, so it reads as "production
+                // surface" rather than "glass material".
+                tintAlpha = 0.94f,
+                borderAlpha = 0.22f
+            )
+>>>>>>> 2541a1adf58b55ec85598c2da3096e5129b30f0b
     ) {
         AppScreens.screens.filter { it.showBottomBar }.forEach { screen ->
             val isSelected = currentRoute == screen.route
@@ -99,6 +125,7 @@ fun BottomNavigationBar(navController: NavController) {
                             maxLines = 1
                         )
                     }
+<<<<<<< HEAD
                 },
                 label = null, // We're using custom label in icon
                 selected = isSelected,
@@ -126,6 +153,17 @@ fun BottomNavigationBar(navController: NavController) {
                     indicatorColor = Color.Transparent
                 )
             )
+=======
+                    Text(
+                        text = stringResource(screen.resourceId),
+                        color = textColor,
+                        fontSize = MaterialTheme.typography.labelMedium.fontSize,
+                        fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal,
+                        maxLines = 1
+                    )
+                }
+            }
+>>>>>>> 2541a1adf58b55ec85598c2da3096e5129b30f0b
         }
     }
 }
