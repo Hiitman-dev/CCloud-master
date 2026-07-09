@@ -92,6 +92,7 @@ fun SeriesScreen(
         }
     }
     
+<<<<<<< HEAD
     Column(modifier = Modifier.fillMaxSize()) {
         // Genre filter section
         GenreFilterSection(
@@ -131,7 +132,47 @@ fun SeriesScreen(
                     onLoadMore = { viewModel.loadMoreSeries() },
                     navController = navController
                 )
+=======
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Scrollable content starts below the filter bar
+        Column(modifier = Modifier.fillMaxSize()) {
+            Spacer(modifier = Modifier.height(68.dp)) // Reserve space for sticky filter
+            when {
+                isLoading && series.isEmpty() -> {
+                    LoadingScreenSeries()
+                }
+                errorMessage != null && series.isEmpty() -> {
+                    ErrorScreenSeries(
+                        errorMessage = errorMessage,
+                        onRetry = { viewModel.retry() }
+                    )
+                }
+                else -> {
+                    SeriesGrid(
+                        series = series,
+                        isLoading = isLoading,
+                        isLoadingMore = isLoadingMore,
+                        errorMessage = errorMessage,
+                        onRetry = { viewModel.retry() },
+                        onRefresh = { viewModel.refresh() },
+                        onLoadMore = { viewModel.loadMoreSeries() },
+                        navController = navController
+                    )
+                }
+>>>>>>> 16bb46ea3318e8f7e2ba73e2f974008e3b01c44d
             }
+        }
+
+        // Sticky frosted-glass filter bar pinned to top
+        Box(modifier = Modifier.fillMaxWidth()) {
+            GenreFilterSection(
+                genres = genres,
+                selectedGenreId = selectedGenreId,
+                selectedFilterType = selectedFilterType,
+                onGenreSelected = { genreId -> viewModel.selectGenre(genreId) },
+                onFilterTypeSelected = { filterType -> viewModel.selectFilterType(filterType) },
+                onSearchClick = { navController?.navigate("search") }
+            )
         }
     }
 }

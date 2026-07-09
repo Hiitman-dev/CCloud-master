@@ -59,22 +59,38 @@ fun BottomNavigationBar(navController: NavController) {
         modifier = Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
+<<<<<<< HEAD
             .padding(horizontal = 20.dp, vertical = 8.dp)
+=======
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+>>>>>>> 16bb46ea3318e8f7e2ba73e2f974008e3b01c44d
             .shadow(
-                elevation = 12.dp,
+                elevation = 16.dp,
                 shape = RoundedCornerShape(GlassCorners.Navigation),
+<<<<<<< HEAD
                 ambientColor = Color.Black.copy(alpha = 0.06f),
                 spotColor = Color.Black.copy(alpha = 0.04f)
+=======
+                ambientColor = Color.Black.copy(alpha = 0.1f),
+                spotColor = Color.Black.copy(alpha = 0.1f)
+>>>>>>> 16bb46ea3318e8f7e2ba73e2f974008e3b01c44d
             )
             .glassSurface(
                 shape = RoundedCornerShape(GlassCorners.Navigation),
                 tint = glassTint,
+<<<<<<< HEAD
                 tintAlpha = 0.42f,
                 borderAlpha = 0.28f
             ),
         shape = RoundedCornerShape(GlassCorners.Navigation),
         color = Color.Transparent,
         tonalElevation = 0.dp
+=======
+                // Stronger glass effect with higher alpha for better visibility
+                tintAlpha = 0.55f,
+                borderAlpha = 0.38f
+            )
+>>>>>>> 16bb46ea3318e8f7e2ba73e2f974008e3b01c44d
     ) {
         Row(
             modifier = Modifier
