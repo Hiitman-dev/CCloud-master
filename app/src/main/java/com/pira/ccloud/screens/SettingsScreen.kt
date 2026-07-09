@@ -3,7 +3,6 @@ package com.pira.ccloud.screens
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
-import android.view.KeyEvent
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -11,7 +10,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
@@ -25,9 +23,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
@@ -39,18 +38,21 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.TextFields
+import com.pira.ccloud.ui.theme.GlassCorners
 import com.pira.ccloud.ui.theme.GlassAlertDialog
+import com.pira.ccloud.ui.theme.glassSurface
+import com.pira.ccloud.ui.theme.rememberGlassTint
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import com.pira.ccloud.ui.theme.glassSurface
-import com.pira.ccloud.ui.theme.rememberGlassTint
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,6 +64,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
@@ -69,28 +72,20 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.pira.ccloud.BuildConfig
 import com.pira.ccloud.R
-import com.pira.ccloud.data.model.SubtitleSettings
-import com.pira.ccloud.data.model.VideoPlayerSettings
 import com.pira.ccloud.data.model.FontSettings
 import com.pira.ccloud.data.model.FontType
+import com.pira.ccloud.data.model.SubtitleSettings
+import com.pira.ccloud.data.model.VideoPlayerSettings
 import com.pira.ccloud.data.model.WatchedEpisode
+import com.pira.ccloud.ui.theme.ThemeManager
 import com.pira.ccloud.ui.theme.ThemeMode
 import com.pira.ccloud.ui.theme.ThemeSettings
-import com.pira.ccloud.ui.theme.ThemeManager
 import com.pira.ccloud.ui.theme.colorOptions
 import com.pira.ccloud.ui.theme.defaultPrimaryColor
 import com.pira.ccloud.utils.StorageUtils
-import androidx.compose.foundation.layout.Arrangement.SpaceBetween
-import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Slider
-import androidx.compose.ui.graphics.toArgb
-import androidx.navigation.NavController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -110,10 +105,10 @@ data class GitHubRelease(
 @Composable
 fun SettingsScreen(
     onThemeSettingsChanged: (ThemeSettings) -> Unit = {},
-    onFontSettingsChanged: (FontSettings) -> Unit = {}, // Add this parameter
+    onFontSettingsChanged: (FontSettings) -> Unit = {},
     navController: NavController? = null
 ) {
-    val themeManager = ThemeManager(androidx.compose.ui.platform.LocalContext.current)
+    val themeManager = ThemeManager(LocalContext.current)
     var themeSettings by remember { mutableStateOf(themeManager.loadThemeSettings()) }
     val context = LocalContext.current
     var subtitleSettings by remember { mutableStateOf(StorageUtils.loadSubtitleSettings(context)) }
@@ -125,90 +120,74 @@ fun SettingsScreen(
     var latestVersionUrl by remember { mutableStateOf("") }
     var isCheckingUpdate by remember { mutableStateOf(false) }
     var watchedEpisodesCacheSize by remember { mutableStateOf(0L) }
-    
-    // Focus requesters for handling TV remote navigation
+
+    // Focus requesters for TV remote navigation
     val focusRequester = remember { FocusRequester() }
     val themeCardFocusRequester = remember { FocusRequester() }
     val videoCardFocusRequester = remember { FocusRequester() }
+    val fontCardFocusRequester = remember { FocusRequester() }
+    val cacheCardFocusRequester = remember { FocusRequester() }
     val aboutCardFocusRequester = remember { FocusRequester() }
     val updateCardFocusRequester = remember { FocusRequester() }
     val resetCardFocusRequester = remember { FocusRequester() }
-    
-    // Configure JSON to ignore unknown keys
+
     val json = Json { ignoreUnknownKeys = true }
-    
+
     // Load watched episodes cache size when screen is shown
-    androidx.compose.runtime.LaunchedEffect(Unit) {
+    LaunchedEffect(Unit) {
         watchedEpisodesCacheSize = try {
             val file = java.io.File(context.filesDir, "watched_episodes.json")
-            if (file.exists()) {
-                file.length()
-            } else {
-                0L
-            }
+            if (file.exists()) file.length() else 0L
         } catch (e: Exception) {
             Log.e("SettingsScreen", "Error calculating cache size", e)
             0L
         }
     }
-    
+
     // Update parent when settings change
     fun updateThemeSettings(newSettings: ThemeSettings) {
         themeSettings = newSettings
         onThemeSettingsChanged(newSettings)
         themeManager.saveThemeSettings(newSettings)
     }
-    
-    // Update subtitle settings
+
     fun updateSubtitleSettings(newSettings: SubtitleSettings) {
         subtitleSettings = newSettings
         StorageUtils.saveSubtitleSettings(context, newSettings)
     }
-    
-    // Update video player settings
+
     fun updateVideoPlayerSettings(newSettings: VideoPlayerSettings) {
         videoPlayerSettings = newSettings
         StorageUtils.saveVideoPlayerSettings(context, newSettings)
     }
-    
-    // Update font settings
+
     fun updateFontSettings(newSettings: FontSettings) {
         fontSettings = newSettings
         StorageUtils.saveFontSettings(context, newSettings)
-        onFontSettingsChanged(newSettings) // Add this line to notify parent
+        onFontSettingsChanged(newSettings)
     }
-    
-    // Reset all settings to defaults
+
     fun resetToDefaults() {
         val defaultSettings = ThemeSettings()
         updateThemeSettings(defaultSettings)
-        // Reset subtitle settings to default as well
         val defaultSubtitleSettings = SubtitleSettings.getDefaultSettings(context)
         updateSubtitleSettings(defaultSubtitleSettings)
-        // Reset video player settings to default as well
         val defaultVideoPlayerSettings = VideoPlayerSettings.DEFAULT
         updateVideoPlayerSettings(defaultVideoPlayerSettings)
-        // Reset font settings to default as well
         val defaultFontSettings = FontSettings.DEFAULT
         updateFontSettings(defaultFontSettings)
     }
-    
-    // Calculate watched episodes cache size
+
     fun calculateWatchedEpisodesCacheSize(): Long {
         return try {
             val file = java.io.File(context.filesDir, "watched_episodes.json")
-            if (file.exists()) {
-                file.length()
-            } else {
-                0L
-            }
+            if (file.exists()) file.length() else 0L
         } catch (e: Exception) {
             Log.e("SettingsScreen", "Error calculating cache size", e)
             0L
         }
     }
-    
-    // Clear all watched episodes
+
     fun clearWatchedEpisodes() {
         try {
             StorageUtils.clearAllWatchedEpisodes(context)
@@ -219,35 +198,26 @@ fun SettingsScreen(
             Toast.makeText(context, "Error clearing cache", Toast.LENGTH_SHORT).show()
         }
     }
-    
-    // Compare version strings
+
     fun isVersionNewer(currentVersion: String, latestVersion: String): Boolean {
         try {
-            // Remove 'v' prefix if present
             val current = currentVersion.removePrefix("v")
             val latest = latestVersion.removePrefix("v")
-            
-            // Split version numbers
             val currentParts = current.split(".").map { it.toIntOrNull() ?: 0 }
             val latestParts = latest.split(".").map { it.toIntOrNull() ?: 0 }
-            
-            // Compare each part
             for (i in 0 until maxOf(currentParts.size, latestParts.size)) {
                 val currentPart = if (i < currentParts.size) currentParts[i] else 0
                 val latestPart = if (i < latestParts.size) latestParts[i] else 0
-                
                 if (latestPart > currentPart) return true
                 if (latestPart < currentPart) return false
             }
-            
-            return false // Versions are equal
+            return false
         } catch (e: Exception) {
             Log.e("SettingsScreen", "Error comparing versions", e)
             return false
         }
     }
-    
-    // Check for updates
+
     fun checkForUpdates() {
         isCheckingUpdate = true
         CoroutineScope(Dispatchers.IO).launch {
@@ -256,13 +226,11 @@ fun SettingsScreen(
                 val connection = url.openConnection()
                 connection.setRequestProperty("User-Agent", "CCloud-App")
                 val response = connection.getInputStream().bufferedReader().use { it.readText() }
-                
                 val releases = json.decodeFromString<List<GitHubRelease>>(response)
                 if (releases.isNotEmpty()) {
                     val latestRelease = releases.first()
                     val latestVersion = latestRelease.tag_name
                     val currentVersion = "v${BuildConfig.VERSION_NAME}"
-                    
                     withContext(Dispatchers.Main) {
                         isCheckingUpdate = false
                         if (isVersionNewer(currentVersion, latestVersion)) {
@@ -287,14 +255,17 @@ fun SettingsScreen(
             }
         }
     }
-    
+
+    // ─── Main Content ─────────────────────────────────────────────
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(24.dp)
             .focusRequester(focusRequester)
             .focusable(),
     ) {
+        // Header
         item {
             AnimatedVisibility(
                 visible = true,
@@ -304,7 +275,7 @@ fun SettingsScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 16.dp),
+                        .padding(bottom = 24.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
@@ -312,8 +283,6 @@ fun SettingsScreen(
                         style = MaterialTheme.typography.headlineMedium,
                         modifier = Modifier.weight(1f)
                     )
-                    
-                    // Add like icon button that navigates to favorites
                     navController?.let {
                         IconButton(
                             onClick = { navController.navigate("favorites") },
@@ -332,35 +301,29 @@ fun SettingsScreen(
                 }
             }
         }
-        
-        // Theme Settings Card
+
+        // ─── Theme Settings Card ──────────────────────────────────
         item {
             var isExpanded by remember { mutableStateOf(false) }
-            val focusRequester = remember { FocusRequester() }
-            
+            val glassTint = rememberGlassTint()
+
             AnimatedVisibility(
                 visible = true,
                 enter = fadeIn(animationSpec = tween(400)) + slideInVertically(animationSpec = tween(400, delayMillis = 100)),
                 exit = fadeOut(animationSpec = tween(400)) + slideOutVertically(animationSpec = tween(400))
             ) {
-                val themeCardGlassTint = rememberGlassTint()
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .glassSurface(shape = RoundedCornerShape(20.dp), tint = themeCardGlassTint)
+                        .glassSurface(shape = RoundedCornerShape(GlassCorners.Card), tint = glassTint)
                         .clickable { isExpanded = !isExpanded }
                         .focusable()
                         .focusRequester(themeCardFocusRequester)
-                        .focusProperties {
-                            down = videoCardFocusRequester
-                        }
+                        .focusProperties { down = videoCardFocusRequester }
                         .onKeyEvent { keyEvent ->
                             when (keyEvent.key) {
-                                Key.Enter, Key.Spacebar -> {
-                                    isExpanded = !isExpanded
-                                    true // Handled
-                                }
-                                else -> false // Let default handling occur
+                                Key.Enter, Key.Spacebar -> { isExpanded = !isExpanded; true }
+                                else -> false
                             }
                         },
                     colors = CardDefaults.cardColors(containerColor = Color.Transparent),
@@ -392,7 +355,7 @@ fun SettingsScreen(
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        
+
                         AnimatedVisibility(visible = isExpanded) {
                             Column(modifier = Modifier.fillMaxWidth()) {
                                 // Theme Mode Section
@@ -401,47 +364,34 @@ fun SettingsScreen(
                                     style = MaterialTheme.typography.titleMedium,
                                     modifier = Modifier.padding(bottom = 8.dp)
                                 )
-                                
                                 ThemeModeOption(
                                     mode = ThemeMode.LIGHT,
                                     label = "Light",
                                     isSelected = themeSettings.themeMode == ThemeMode.LIGHT,
-                                    onSelect = { mode ->
-                                        val newSettings = themeSettings.copy(themeMode = mode)
-                                        updateThemeSettings(newSettings)
-                                    }
+                                    onSelect = { mode -> updateThemeSettings(themeSettings.copy(themeMode = mode)) }
                                 )
-                                
                                 ThemeModeOption(
                                     mode = ThemeMode.DARK,
                                     label = "Dark",
                                     isSelected = themeSettings.themeMode == ThemeMode.DARK,
-                                    onSelect = { mode ->
-                                        val newSettings = themeSettings.copy(themeMode = mode)
-                                        updateThemeSettings(newSettings)
-                                    }
+                                    onSelect = { mode -> updateThemeSettings(themeSettings.copy(themeMode = mode)) }
                                 )
-                                
                                 ThemeModeOption(
                                     mode = ThemeMode.SYSTEM,
                                     label = "System Default",
                                     isSelected = themeSettings.themeMode == ThemeMode.SYSTEM,
-                                    onSelect = { mode ->
-                                        val newSettings = themeSettings.copy(themeMode = mode)
-                                        updateThemeSettings(newSettings)
-                                    }
+                                    onSelect = { mode -> updateThemeSettings(themeSettings.copy(themeMode = mode)) }
                                 )
-                                
+
                                 Spacer(modifier = Modifier.height(16.dp))
-                                
+
                                 // Primary Color Section
                                 Text(
                                     text = "Primary Color",
                                     style = MaterialTheme.typography.titleMedium,
                                     modifier = Modifier.padding(bottom = 12.dp)
                                 )
-                                
-                                // Display color options in rows of 4
+
                                 for (rowColors in colorOptions.chunked(4)) {
                                     Row(
                                         modifier = Modifier
@@ -455,43 +405,39 @@ fun SettingsScreen(
                                                     color = color,
                                                     isSelected = themeSettings.primaryColor == color,
                                                     onSelect = { selectedColor ->
-                                                        val newSettings = themeSettings.copy(primaryColor = selectedColor)
-                                                        updateThemeSettings(newSettings)
+                                                        updateThemeSettings(themeSettings.copy(primaryColor = selectedColor))
                                                     }
                                                 )
                                             }
                                         }
-                                        // Fill remaining spaces if less than 4 items
                                         repeat(4 - rowColors.size) {
                                             Spacer(modifier = Modifier.weight(1f))
                                         }
                                     }
                                 }
-                                
-                                // Add default color option
+
+                                // Default color option
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(vertical = 4.dp),
                                     horizontalArrangement = Arrangement.Start
                                 ) {
-                                    val defaultColor = defaultPrimaryColor
                                     Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
                                         ColorOption(
-                                            color = defaultColor,
-                                            isSelected = themeSettings.primaryColor == defaultColor,
+                                            color = defaultPrimaryColor,
+                                            isSelected = themeSettings.primaryColor == defaultPrimaryColor,
                                             onSelect = { selectedColor ->
-                                                val newSettings = themeSettings.copy(primaryColor = selectedColor)
-                                                updateThemeSettings(newSettings)
+                                                updateThemeSettings(themeSettings.copy(primaryColor = selectedColor))
                                             },
                                             label = "Default"
                                         )
                                     }
                                 }
-                                
+
                                 Spacer(modifier = Modifier.height(20.dp))
-                                
-                                // Custom color canvas - pick any color, not just presets
+
+                                // Custom color canvas
                                 Text(
                                     text = "Custom Color",
                                     style = MaterialTheme.typography.titleMedium,
@@ -500,8 +446,7 @@ fun SettingsScreen(
                                 com.pira.ccloud.ui.theme.ColorPickerCanvas(
                                     initialColor = themeSettings.primaryColor,
                                     onColorConfirmed = { pickedColor ->
-                                        val newSettings = themeSettings.copy(primaryColor = pickedColor)
-                                        updateThemeSettings(newSettings)
+                                        updateThemeSettings(themeSettings.copy(primaryColor = pickedColor))
                                     }
                                 )
                             }
@@ -510,7 +455,7 @@ fun SettingsScreen(
                 }
             }
         }
-        
+
         item {
             AnimatedVisibility(
                 visible = true,
@@ -520,36 +465,32 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
-        
-        // Video Player Settings Card
+
+        // ─── Video Player Settings Card ───────────────────────────
         item {
             var isExpanded by remember { mutableStateOf(false) }
-            val focusRequester = remember { FocusRequester() }
-            
+            val glassTint = rememberGlassTint()
+
             AnimatedVisibility(
                 visible = true,
                 enter = fadeIn(animationSpec = tween(600)) + slideInVertically(animationSpec = tween(600, delayMillis = 300)),
                 exit = fadeOut(animationSpec = tween(600)) + slideOutVertically(animationSpec = tween(600))
             ) {
-                val videoCardGlassTint = rememberGlassTint()
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .glassSurface(shape = RoundedCornerShape(20.dp), tint = videoCardGlassTint)
+                        .glassSurface(shape = RoundedCornerShape(GlassCorners.Card), tint = glassTint)
                         .clickable { isExpanded = !isExpanded }
                         .focusable()
                         .focusRequester(videoCardFocusRequester)
                         .focusProperties {
                             up = themeCardFocusRequester
-                            down = aboutCardFocusRequester
+                            down = fontCardFocusRequester
                         }
                         .onKeyEvent { keyEvent ->
                             when (keyEvent.key) {
-                                Key.Enter, Key.Spacebar -> {
-                                    isExpanded = !isExpanded
-                                    true // Handled
-                                }
-                                else -> false // Let default handling occur
+                                Key.Enter, Key.Spacebar -> { isExpanded = !isExpanded; true }
+                                else -> false
                             }
                         },
                     colors = CardDefaults.cardColors(containerColor = Color.Transparent),
@@ -581,7 +522,7 @@ fun SettingsScreen(
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        
+
                         AnimatedVisibility(visible = isExpanded) {
                             Column(modifier = Modifier.fillMaxWidth()) {
                                 Text(
@@ -589,14 +530,13 @@ fun SettingsScreen(
                                     style = MaterialTheme.typography.bodyLarge,
                                     modifier = Modifier.padding(bottom = 8.dp)
                                 )
-                                
                                 Slider(
                                     value = videoPlayerSettings.seekTimeSeconds.toFloat(),
                                     onValueChange = { seconds ->
                                         updateVideoPlayerSettings(videoPlayerSettings.copy(seekTimeSeconds = seconds.toInt()))
                                     },
                                     valueRange = 5f..30f,
-                                    steps = 24, // Allow values from 5 to 30 in 1-second increments,
+                                    steps = 24,
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .focusable()
@@ -605,28 +545,27 @@ fun SettingsScreen(
                                                 Key.DirectionLeft -> {
                                                     val newValue = (videoPlayerSettings.seekTimeSeconds - 1).coerceIn(5, 30).toFloat()
                                                     updateVideoPlayerSettings(videoPlayerSettings.copy(seekTimeSeconds = newValue.toInt()))
-                                                    true // Handled
+                                                    true
                                                 }
                                                 Key.DirectionRight -> {
                                                     val newValue = (videoPlayerSettings.seekTimeSeconds + 1).coerceIn(5, 30).toFloat()
                                                     updateVideoPlayerSettings(videoPlayerSettings.copy(seekTimeSeconds = newValue.toInt()))
-                                                    true // Handled
+                                                    true
                                                 }
-                                                else -> false // Let default handling occur
+                                                else -> false
                                             }
                                         }
                                 )
-                                
+
                                 Spacer(modifier = Modifier.height(16.dp))
-                                
+
                                 // Subtitle Settings Section
                                 Text(
                                     text = "Subtitle Settings",
                                     style = MaterialTheme.typography.titleMedium,
                                     modifier = Modifier.padding(bottom = 12.dp)
                                 )
-                                
-                                // Text color setting
+
                                 SubtitleColorSetting(
                                     title = "Text Color",
                                     currentColor = Color(subtitleSettings.textColor),
@@ -635,10 +574,9 @@ fun SettingsScreen(
                                     },
                                     defaultColor = Color.Yellow
                                 )
-                                
+
                                 Spacer(modifier = Modifier.height(12.dp))
-                                
-                                // Border color setting (Background)
+
                                 SubtitleColorSetting(
                                     title = "Background Color",
                                     currentColor = Color(subtitleSettings.borderColor),
@@ -648,16 +586,15 @@ fun SettingsScreen(
                                     noColorOption = true,
                                     glassBackgroundOption = true
                                 )
-                                
+
                                 Spacer(modifier = Modifier.height(12.dp))
-                                
-                                // Text size setting
+
                                 Text(
                                     text = "Text Size: ${subtitleSettings.textSize.toInt()}sp",
                                     style = MaterialTheme.typography.bodyLarge,
                                     modifier = Modifier.padding(bottom = 8.dp)
                                 )
-                                
+
                                 Slider(
                                     value = subtitleSettings.textSize,
                                     onValueChange = { size ->
@@ -672,14 +609,14 @@ fun SettingsScreen(
                                                 Key.DirectionLeft -> {
                                                     val newValue = (subtitleSettings.textSize - 1).coerceIn(10f, 50f)
                                                     updateSubtitleSettings(subtitleSettings.copy(textSize = newValue))
-                                                    true // Handled
+                                                    true
                                                 }
                                                 Key.DirectionRight -> {
                                                     val newValue = (subtitleSettings.textSize + 1).coerceIn(10f, 50f)
                                                     updateSubtitleSettings(subtitleSettings.copy(textSize = newValue))
-                                                    true // Handled
+                                                    true
                                                 }
-                                                else -> false // Let default handling occur
+                                                else -> false
                                             }
                                         }
                                 )
@@ -689,7 +626,7 @@ fun SettingsScreen(
                 }
             }
         }
-        
+
         item {
             AnimatedVisibility(
                 visible = true,
@@ -699,32 +636,32 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
-        
-        // Font Settings Card
+
+        // ─── Font Settings Card ───────────────────────────────────
         item {
             var isExpanded by remember { mutableStateOf(false) }
-            val focusRequester = remember { FocusRequester() }
-            
+            val glassTint = rememberGlassTint()
+
             AnimatedVisibility(
                 visible = true,
                 enter = fadeIn(animationSpec = tween(800)) + slideInVertically(animationSpec = tween(800, delayMillis = 600)),
                 exit = fadeOut(animationSpec = tween(800)) + slideOutVertically(animationSpec = tween(800))
             ) {
-                val genericExpandGlassTint = rememberGlassTint()
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .glassSurface(shape = RoundedCornerShape(20.dp), tint = genericExpandGlassTint)
+                        .glassSurface(shape = RoundedCornerShape(GlassCorners.Card), tint = glassTint)
                         .clickable { isExpanded = !isExpanded }
                         .focusable()
-                        .focusRequester(remember { FocusRequester() })
+                        .focusRequester(fontCardFocusRequester)
+                        .focusProperties {
+                            up = videoCardFocusRequester
+                            down = cacheCardFocusRequester
+                        }
                         .onKeyEvent { keyEvent ->
                             when (keyEvent.key) {
-                                Key.Enter, Key.Spacebar -> {
-                                    isExpanded = !isExpanded
-                                    true // Handled
-                                }
-                                else -> false // Let default handling occur
+                                Key.Enter, Key.Spacebar -> { isExpanded = !isExpanded; true }
+                                else -> false
                             }
                         },
                     colors = CardDefaults.cardColors(containerColor = Color.Transparent),
@@ -756,7 +693,7 @@ fun SettingsScreen(
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        
+
                         AnimatedVisibility(visible = isExpanded) {
                             Column(modifier = Modifier.fillMaxWidth()) {
                                 Text(
@@ -764,35 +701,23 @@ fun SettingsScreen(
                                     style = MaterialTheme.typography.titleMedium,
                                     modifier = Modifier.padding(bottom = 12.dp)
                                 )
-                                
                                 FontOption(
                                     fontType = FontType.DEFAULT,
                                     label = "System Default",
                                     isSelected = fontSettings.fontType == FontType.DEFAULT,
-                                    onSelect = { fontType ->
-                                        val newSettings = fontSettings.copy(fontType = fontType)
-                                        updateFontSettings(newSettings)
-                                    }
+                                    onSelect = { fontType -> updateFontSettings(fontSettings.copy(fontType = fontType)) }
                                 )
-                                
                                 FontOption(
                                     fontType = FontType.VAZIRMATN,
                                     label = "Vazirmatn",
                                     isSelected = fontSettings.fontType == FontType.VAZIRMATN,
-                                    onSelect = { fontType ->
-                                        val newSettings = fontSettings.copy(fontType = fontType)
-                                        updateFontSettings(newSettings)
-                                    }
+                                    onSelect = { fontType -> updateFontSettings(fontSettings.copy(fontType = fontType)) }
                                 )
-
                                 FontOption(
                                     fontType = FontType.YEKAN_BAKH,
                                     label = "Yekan Bakh",
                                     isSelected = fontSettings.fontType == FontType.YEKAN_BAKH,
-                                    onSelect = { fontType ->
-                                        val newSettings = fontSettings.copy(fontType = fontType)
-                                        updateFontSettings(newSettings)
-                                    }
+                                    onSelect = { fontType -> updateFontSettings(fontSettings.copy(fontType = fontType)) }
                                 )
                             }
                         }
@@ -800,7 +725,7 @@ fun SettingsScreen(
                 }
             }
         }
-        
+
         item {
             AnimatedVisibility(
                 visible = true,
@@ -810,31 +735,34 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
-        
-        // Episode Marks Cache Card
+
+        // ─── Episodes Cache Card ──────────────────────────────────
         item {
-            val focusRequester = remember { FocusRequester() }
-            
+            val glassTint = rememberGlassTint()
+
             AnimatedVisibility(
                 visible = true,
-                enter = fadeIn(animationSpec = tween(900)) + slideInVertically(animationSpec = tween(900, delayMillis = 600)),
-                exit = fadeOut(animationSpec = tween(900)) + slideOutVertically(animationSpec = tween(900))
+                enter = fadeIn(animationSpec = tween(950)) + slideInVertically(animationSpec = tween(950, delayMillis = 650)),
+                exit = fadeOut(animationSpec = tween(950)) + slideOutVertically(animationSpec = tween(950))
             ) {
-                val clearWatchedGlassTint = rememberGlassTint()
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .glassSurface(shape = RoundedCornerShape(20.dp), tint = clearWatchedGlassTint)
+                        .glassSurface(shape = RoundedCornerShape(GlassCorners.Card), tint = glassTint)
                         .clickable { showClearWatchedEpisodesDialog = true }
                         .focusable()
-                        .focusRequester(remember { FocusRequester() })
+                        .focusRequester(cacheCardFocusRequester)
+                        .focusProperties {
+                            up = fontCardFocusRequester
+                            down = aboutCardFocusRequester
+                        }
                         .onKeyEvent { keyEvent ->
                             when (keyEvent.key) {
                                 Key.Enter, Key.Spacebar -> {
                                     showClearWatchedEpisodesDialog = true
-                                    true // Handled
+                                    true
                                 }
-                                else -> false // Let default handling occur
+                                else -> false
                             }
                         },
                     colors = CardDefaults.cardColors(containerColor = Color.Transparent),
@@ -861,15 +789,15 @@ fun SettingsScreen(
                                     .weight(1f)
                             )
                         }
-                        
+
                         Text(
                             text = "Cache size: ${if (watchedEpisodesCacheSize > 0) "${watchedEpisodesCacheSize} bytes" else "Empty"}",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        
+
                         Spacer(modifier = Modifier.height(4.dp))
-                        
+
                         Text(
                             text = "Tap to clear all watched episode marks",
                             style = MaterialTheme.typography.bodySmall,
@@ -879,7 +807,7 @@ fun SettingsScreen(
                 }
             }
         }
-        
+
         item {
             AnimatedVisibility(
                 visible = true,
@@ -889,35 +817,34 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
-        
-        // About Card
+
+        // ─── About Card ───────────────────────────────────────────
         item {
-            val focusRequester = remember { FocusRequester() }
-            
+            val glassTint = rememberGlassTint()
+
             AnimatedVisibility(
                 visible = true,
                 enter = fadeIn(animationSpec = tween(1100)) + slideInVertically(animationSpec = tween(1100, delayMillis = 800)),
                 exit = fadeOut(animationSpec = tween(1100)) + slideOutVertically(animationSpec = tween(1100))
             ) {
-                val aboutCardGlassTint = rememberGlassTint()
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .glassSurface(shape = RoundedCornerShape(20.dp), tint = aboutCardGlassTint)
+                        .glassSurface(shape = RoundedCornerShape(GlassCorners.Card), tint = glassTint)
                         .clickable { navController?.navigate("about") }
                         .focusable()
                         .focusRequester(aboutCardFocusRequester)
                         .focusProperties {
-                            up = videoCardFocusRequester
+                            up = cacheCardFocusRequester
                             down = updateCardFocusRequester
                         }
                         .onKeyEvent { keyEvent ->
                             when (keyEvent.key) {
                                 Key.Enter, Key.Spacebar -> {
                                     navController?.navigate("about")
-                                    true // Handled
+                                    true
                                 }
-                                else -> false // Let default handling occur
+                                else -> false
                             }
                         },
                     colors = CardDefaults.cardColors(containerColor = Color.Transparent),
@@ -944,7 +871,7 @@ fun SettingsScreen(
                                     .weight(1f)
                             )
                         }
-                        
+
                         Text(
                             text = "Learn more about CCloud and its developer",
                             style = MaterialTheme.typography.bodyMedium,
@@ -954,7 +881,7 @@ fun SettingsScreen(
                 }
             }
         }
-        
+
         item {
             AnimatedVisibility(
                 visible = true,
@@ -964,22 +891,21 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
-        
-        // Check for Updates Card
+
+        // ─── Check for Updates Card ───────────────────────────────
         item {
-            val focusRequester = remember { FocusRequester() }
-            
+            val glassTint = rememberGlassTint()
+
             AnimatedVisibility(
                 visible = true,
-                enter = fadeIn(animationSpec = tween(1200)) + slideInVertically(animationSpec = tween(1200, delayMillis = 900)),
-                exit = fadeOut(animationSpec = tween(1200)) + slideOutVertically(animationSpec = tween(1200))
+                enter = fadeIn(animationSpec = tween(1250)) + slideInVertically(animationSpec = tween(1250, delayMillis = 950)),
+                exit = fadeOut(animationSpec = tween(1250)) + slideOutVertically(animationSpec = tween(1250))
             ) {
-                val updateCardGlassTint = rememberGlassTint()
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .glassSurface(shape = RoundedCornerShape(20.dp), tint = updateCardGlassTint)
-                        .clickable { 
+                        .glassSurface(shape = RoundedCornerShape(GlassCorners.Card), tint = glassTint)
+                        .clickable {
                             if (!isCheckingUpdate) {
                                 checkForUpdates()
                             }
@@ -996,9 +922,9 @@ fun SettingsScreen(
                                     if (!isCheckingUpdate) {
                                         checkForUpdates()
                                     }
-                                    true // Handled
+                                    true
                                 }
-                                else -> false // Let default handling occur
+                                else -> false
                             }
                         },
                     colors = CardDefaults.cardColors(containerColor = Color.Transparent),
@@ -1025,7 +951,6 @@ fun SettingsScreen(
                                     .weight(1f)
                             )
                             if (isCheckingUpdate) {
-                                // Show loading indicator
                                 Icon(
                                     imageVector = Icons.Default.Refresh,
                                     contentDescription = "Checking",
@@ -1036,7 +961,7 @@ fun SettingsScreen(
                                 )
                             }
                         }
-                        
+
                         Text(
                             text = "Check for the latest version of the app",
                             style = MaterialTheme.typography.bodyMedium,
@@ -1046,7 +971,7 @@ fun SettingsScreen(
                 }
             }
         }
-        
+
         item {
             AnimatedVisibility(
                 visible = true,
@@ -1056,34 +981,31 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
-        
-        // Reset to Defaults Card
+
+        // ─── Reset to Defaults Card ───────────────────────────────
         item {
-            val focusRequester = remember { FocusRequester() }
-            
+            val glassTint = rememberGlassTint()
+
             AnimatedVisibility(
                 visible = true,
-                enter = fadeIn(animationSpec = tween(1400)) + slideInVertically(animationSpec = tween(1400, delayMillis = 1100)),
-                exit = fadeOut(animationSpec = tween(1400)) + slideOutVertically(animationSpec = tween(1400))
+                enter = fadeIn(animationSpec = tween(1350)) + slideInVertically(animationSpec = tween(1350, delayMillis = 1050)),
+                exit = fadeOut(animationSpec = tween(1350)) + slideOutVertically(animationSpec = tween(1350))
             ) {
-                val resetCardGlassTint = rememberGlassTint()
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .glassSurface(shape = RoundedCornerShape(20.dp), tint = resetCardGlassTint)
+                        .glassSurface(shape = RoundedCornerShape(GlassCorners.Card), tint = glassTint)
                         .clickable { showResetDialog = true }
                         .focusable()
                         .focusRequester(resetCardFocusRequester)
-                        .focusProperties {
-                            up = updateCardFocusRequester
-                        }
+                        .focusProperties { up = updateCardFocusRequester }
                         .onKeyEvent { keyEvent ->
                             when (keyEvent.key) {
                                 Key.Enter, Key.Spacebar -> {
                                     showResetDialog = true
-                                    true // Handled
+                                    true
                                 }
-                                else -> false // Let default handling occur
+                                else -> false
                             }
                         },
                     colors = CardDefaults.cardColors(containerColor = Color.Transparent),
@@ -1110,7 +1032,7 @@ fun SettingsScreen(
                                     .weight(1f)
                             )
                         }
-                        
+
                         Text(
                             text = "Tap to reset all settings to default values",
                             style = MaterialTheme.typography.bodyMedium,
@@ -1120,103 +1042,82 @@ fun SettingsScreen(
                 }
             }
         }
-        
-        item {
-            Spacer(modifier = Modifier.height(24.dp))
-        }
+
+        item { Spacer(modifier = Modifier.height(24.dp)) }
     }
-    
-    // Reset confirmation dialog
+
+    // ─── Dialogs ──────────────────────────────────────────────────
+
     if (showResetDialog) {
         GlassAlertDialog(
             onDismissRequest = { showResetDialog = false },
-            title = {
-                Text(text = "Reset Settings")
-            },
-            text = {
-                Text("Are you sure you want to reset all settings to their default values?")
-            },
+            title = { Text(text = "Reset Settings") },
+            text = { Text("Are you sure you want to reset all settings to their default values?") },
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        resetToDefaults()
-                        showResetDialog = false
-                    }
-                ) {
+                TextButton(onClick = {
+                    resetToDefaults()
+                    showResetDialog = false
+                }) {
                     Text("Reset")
                 }
             },
             dismissButton = {
-                TextButton(
-                    onClick = { showResetDialog = false }
-                ) {
+                TextButton(onClick = { showResetDialog = false }) {
                     Text("Cancel")
                 }
             }
         )
     }
-    
-    // Clear watched episodes confirmation dialog
+
     if (showClearWatchedEpisodesDialog) {
         GlassAlertDialog(
             onDismissRequest = { showClearWatchedEpisodesDialog = false },
-            title = {
-                Text(text = "Clear Watched Episodes")
-            },
+            title = { Text(text = "Clear Watched Episodes") },
             text = {
                 Text("Are you sure you want to clear all watched episode marks? This action cannot be undone.")
             },
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        clearWatchedEpisodes()
-                        showClearWatchedEpisodesDialog = false
-                    }
-                ) {
+                TextButton(onClick = {
+                    clearWatchedEpisodes()
+                    showClearWatchedEpisodesDialog = false
+                }) {
                     Text("Clear All")
                 }
             },
             dismissButton = {
-                TextButton(
-                    onClick = { showClearWatchedEpisodesDialog = false }
-                ) {
+                TextButton(onClick = { showClearWatchedEpisodesDialog = false }) {
                     Text("Cancel")
                 }
             }
         )
     }
-    
-    // Update available dialog
+
     if (showUpdateDialog) {
         GlassAlertDialog(
             onDismissRequest = { showUpdateDialog = false },
-            title = {
-                Text(text = "Update Available")
-            },
+            title = { Text(text = "Update Available") },
             text = {
                 Text("A new version of the app is available. Would you like to download it now?")
             },
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(latestVersionUrl))
-                        context.startActivity(intent)
-                        showUpdateDialog = false
-                    }
-                ) {
+                TextButton(onClick = {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(latestVersionUrl))
+                    context.startActivity(intent)
+                    showUpdateDialog = false
+                }) {
                     Text("Download")
                 }
             },
             dismissButton = {
-                TextButton(
-                    onClick = { showUpdateDialog = false }
-                ) {
+                TextButton(onClick = { showUpdateDialog = false }) {
                     Text("Later")
                 }
             }
         )
     }
 }
+
+// ─── Helper Composables ─────────────────────────────────────────
 
 @Composable
 fun ThemeModeOption(
@@ -1226,7 +1127,7 @@ fun ThemeModeOption(
     onSelect: (ThemeMode) -> Unit
 ) {
     val focusRequester = remember { FocusRequester() }
-    
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -1237,9 +1138,9 @@ fun ThemeModeOption(
                 when (keyEvent.key) {
                     Key.Enter, Key.Spacebar -> {
                         onSelect(mode)
-                        true // Handled
+                        true
                     }
-                    else -> false // Let default handling occur
+                    else -> false
                 }
             }
             .padding(vertical = 8.dp),
@@ -1265,7 +1166,7 @@ fun ColorOption(
     label: String? = null
 ) {
     val focusRequester = remember { FocusRequester() }
-    
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -1281,17 +1182,13 @@ fun ColorOption(
                     when (keyEvent.key) {
                         Key.Enter, Key.Spacebar -> {
                             onSelect(color)
-                            true // Handled
+                            true
                         }
-                        else -> false // Let default handling occur
+                        else -> false
                     }
                 }
                 .then(
-                    if (isSelected) {
-                        Modifier.padding(4.dp)
-                    } else {
-                        Modifier
-                    }
+                    if (isSelected) Modifier.padding(4.dp) else Modifier
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -1304,7 +1201,7 @@ fun ColorOption(
                 )
             }
         }
-        
+
         if (label != null) {
             Text(
                 text = label,
@@ -1330,14 +1227,12 @@ fun SubtitleColorSetting(
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.padding(bottom = 8.dp)
         )
-        
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // Color options
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                // No color option (transparent)
                 if (noColorOption) {
                     ColorOptionButton(
                         color = Color.Transparent,
@@ -1347,8 +1242,6 @@ fun SubtitleColorSetting(
                         label = "Empty"
                     )
                 }
-                
-                // Glass background option (semi-transparent)
                 if (glassBackgroundOption) {
                     ColorOptionButton(
                         color = Color.Black.copy(alpha = 0.5f),
@@ -1357,8 +1250,6 @@ fun SubtitleColorSetting(
                         label = "Glass"
                     )
                 }
-                
-                // Default color option
                 if (defaultColor != null) {
                     ColorOptionButton(
                         color = defaultColor,
@@ -1366,8 +1257,6 @@ fun SubtitleColorSetting(
                         onClick = { onColorSelected(defaultColor) }
                     )
                 }
-                
-                // Standard color options
                 listOf(Color.White, Color.Black, Color.Red, Color.Blue, Color.Green).forEach { color ->
                     ColorOptionButton(
                         color = color,
@@ -1376,19 +1265,14 @@ fun SubtitleColorSetting(
                     )
                 }
             }
-            
+
             // Current color preview
             Box(
                 modifier = Modifier
                     .size(32.dp)
                     .clip(RoundedCornerShape(4.dp))
-                    .background(currentColor)
-                    .then(
-                        if (currentColor == Color.Transparent) {
-                            Modifier.background(Color.Gray.copy(alpha = 0.3f))
-                        } else {
-                            Modifier
-                        }
+                    .background(
+                        if (currentColor == Color.Transparent) Color.Gray.copy(alpha = 0.3f) else currentColor
                     )
             )
         }
@@ -1404,7 +1288,7 @@ fun ColorOptionButton(
     label: String? = null
 ) {
     val focusRequester = remember { FocusRequester() }
-    
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -1436,9 +1320,9 @@ fun ColorOptionButton(
                     when (keyEvent.key) {
                         Key.Enter, Key.Spacebar -> {
                             onClick()
-                            true // Handled
+                            true
                         }
-                        else -> false // Let default handling occur
+                        else -> false
                     }
                 },
             contentAlignment = Alignment.Center
@@ -1459,7 +1343,7 @@ fun ColorOptionButton(
                 )
             }
         }
-        
+
         if (label != null) {
             Text(
                 text = label,
@@ -1478,7 +1362,7 @@ fun FontOption(
     onSelect: (FontType) -> Unit
 ) {
     val focusRequester = remember { FocusRequester() }
-    
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -1489,9 +1373,9 @@ fun FontOption(
                 when (keyEvent.key) {
                     Key.Enter, Key.Spacebar -> {
                         onSelect(fontType)
-                        true // Handled
+                        true
                     }
-                    else -> false // Let default handling occur
+                    else -> false
                 }
             }
             .padding(vertical = 8.dp),

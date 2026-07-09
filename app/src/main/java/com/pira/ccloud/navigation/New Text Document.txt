@@ -1,0 +1,227 @@
+package com.pira.ccloud.navigation
+
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Movie
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Tv
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.compose.currentBackStackEntryAsState
+import com.pira.ccloud.R
+import com.pira.ccloud.ui.theme.GlassCorners
+import com.pira.ccloud.ui.theme.glassSurface
+import com.pira.ccloud.ui.theme.rememberGlassTint
+
+@Composable
+fun LiquidGlassNavigation(
+    navController: NavController,
+    modifier: Modifier = Modifier
+) {
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+    
+    val glassTint = rememberGlassTint()
+    val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+    
+    val items = listOf(
+        BottomNavItem("movies", Icons.Default.Movie, R.string.movies),
+        BottomNavItem("series", Icons.Default.Tv, R.string.series),
+        BottomNavItem("favorites", Icons.Default.Favorite, R.string.favorites),
+        BottomNavItem("settings", Icons.Default.Settings, R.string.settings)
+    )
+    
+    val selectedIndex = remember(currentRoute) {
+        items.indexOfFirst { it.route == currentRoute }.coerceAtLeast(0)
+    }
+    
+    val pillOffset by animateDpAsState(
+        targetValue = selectedIndex * (200.dp / items.size) + 8.dp,
+        animationSpec = tween(durationMillis = 400, easing = LinearEasing),
+        label = "pillOffset"
+    )
+    
+    val pillScale by animateFloatAsState(
+        targetValue = if (selectedIndex >= 0) 1f else 0f,
+        animationSpec = tween(durationMillis = 300, easing = LinearEasing),
+        label = "pillScale"
+    )
+    
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .navigationBarsPadding()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .shadow(
+                elevation = 20.dp,
+                shape = RoundedCornerShape(GlassCorners.Navigation),
+                ambientColor = Color.Black.copy(alpha = 0.15f),
+                spotColor = Color.Black.copy(alpha = 0.15f)
+            )
+            .glassSurface(
+                shape = RoundedCornerShape(GlassCorners.Navigation),
+                tint = if (isDark) Color.Black else Color.White,
+                tintAlpha = if (isDark) 0.6f else 0.7f,
+                borderAlpha = if (isDark) 0.15f else 0.2f
+            )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            items.forEachIndexed { index, item ->
+                val isSelected = currentRoute == item.route
+                
+                val iconScale by animateFloatAsState(
+                    targetValue = if (isSelected) 1.1f else 1f,
+                    animationSpec = tween(durationMillis = 200, easing = LinearEasing),
+                    label = "iconScale_$index"
+                )
+                
+                val iconColor by animateColorAsState(
+                    targetValue = if (isSelected)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                    animationSpec = tween(durationMillis = 200),
+                    label = "iconColor_$index"
+                )
+                
+                val textColor by animateColorAsState(
+                    targetValue = if (isSelected)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                    animationSpec = tween(durationMillis = 200),
+                    label = "textColor_$index"
+                )
+                
+                val bgAlpha by animateFloatAsState(
+                    targetValue = if (isSelected) 0.12f else 0f,
+                    animationSpec = tween(durationMillis = 300, easing = LinearEasing),
+                    label = "bgAlpha_$index"
+                )
+                
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) {
+                            if (currentRoute != item.route) {
+                                navController.navigate(item.route) {
+                                    launchSingleTop = true
+                                    restoreState = true
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                }
+                            }
+                        }
+                        .padding(vertical = 6.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .scale(iconScale)
+                            .background(
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = bgAlpha),
+                                shape = CircleShape
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = item.icon,
+                            contentDescription = stringResource(item.label),
+                            tint = iconColor,
+                            modifier = Modifier
+                                .size(24.dp)
+                                .graphicsLayer {
+                                    scaleX = iconScale
+                                    scaleY = iconScale
+                                }
+                        )
+                    }
+                    
+                    if (isSelected) {
+                        Text(
+                            text = stringResource(item.label),
+                            color = textColor,
+                            fontSize = MaterialTheme.typography.labelSmall.fontSize,
+                            fontWeight = FontWeight.Medium,
+                            maxLines = 1,
+                            modifier = Modifier.graphicsLayer { alpha = 1f }
+                        )
+                    }
+                }
+            }
+        }
+        
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .offset(x = pillOffset, y = (-4).dp)
+                .width(32.dp)
+                .height(3.dp)
+                .scale(scaleX = pillScale, scaleY = pillScale)
+                .clip(RoundedCornerShape(2.dp))
+                .background(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primary,
+                            MaterialTheme.colorScheme.secondary
+                        )
+                    )
+                )
+        )
+    }
+}
+
+data class BottomNavItem(
+    val route: String,
+    val icon: ImageVector,
+    val label: Int
+)

@@ -33,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.pira.ccloud.data.model.Source
+import com.pira.ccloud.ui.theme.GlassCorners
 import com.pira.ccloud.ui.theme.GlassAlertDialog
 import com.pira.ccloud.utils.DownloadUtils
 
@@ -53,7 +54,7 @@ fun DownloadOptionsDialog(
             Text(
                 text = "Download & Play Options",
                 style = MaterialTheme.typography.headlineSmall,
-                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
             )
         },
         text = {
@@ -68,180 +69,113 @@ fun DownloadOptionsDialog(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Download options
                 Text(
                     text = "Download Options",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.fillMaxWidth()
                 )
-                
                 Button(
-                    onClick = {
-                        onCopyLink()
-                        onDismiss()
-                    },
+                    onClick = { onCopyLink(); onDismiss() },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    shape = RoundedCornerShape(GlassCorners.Button),
+                    colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
                         contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     )
-                ) {
-                    Text("Copy Link")
-                }
-                
+                ) { Text("Copy Link") }
                 Button(
-                    onClick = {
-                        onDownloadWithBrowser()
-                        onDismiss()
-                    },
+                    onClick = { onDownloadWithBrowser(); onDismiss() },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    shape = RoundedCornerShape(GlassCorners.Button),
+                    colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
                         contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     )
-                ) {
-                    Text("Download with Browser")
-                }
-                
+                ) { Text("Download with Browser") }
                 Button(
-                    onClick = {
-                        onDownloadWithADM()
-                        onDismiss()
-                    },
+                    onClick = { onDownloadWithADM(); onDismiss() },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    shape = RoundedCornerShape(GlassCorners.Button),
+                    colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
                         contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     )
-                ) {
-                    Text("Download with ADM")
-                }
-                
-                // Play options
+                ) { Text("Download with ADM") }
+
                 Text(
                     text = "Play Options",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.fillMaxWidth()
                 )
-                
                 Button(
-                    onClick = {
-                        onOpenInVLC()
-                        onDismiss()
-                    },
+                    onClick = { onOpenInVLC(); onDismiss() },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    shape = RoundedCornerShape(GlassCorners.Button),
+                    colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.secondaryContainer,
                         contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                     )
-                ) {
-                    Text("Open in VLC Player")
-                }
-                
+                ) { Text("Open in VLC Player") }
                 Button(
-                    onClick = {
-                        onOpenInMXPlayer()
-                        onDismiss()
-                    },
+                    onClick = { onOpenInMXPlayer(); onDismiss() },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    shape = RoundedCornerShape(GlassCorners.Button),
+                    colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.secondaryContainer,
                         contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                     )
-                ) {
-                    Text("Open in MX Player")
-                }
-                
+                ) { Text("Open in MX Player") }
                 Button(
-                    onClick = {
-                        onOpenInKMPlayer()
-                        onDismiss()
-                    },
+                    onClick = { onOpenInKMPlayer(); onDismiss() },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    shape = RoundedCornerShape(GlassCorners.Button),
+                    colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.secondaryContainer,
                         contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                     )
-                ) {
-                    Text("Open in KM Player")
-                }
-                
-                TextButton(
-                    onClick = onDismiss,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Cancel")
-                }
+                ) { Text("Open in KM Player") }
+                TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) { Text("Cancel") }
             }
         },
         containerColor = MaterialTheme.colorScheme.surface,
-        shape = RoundedCornerShape(20.dp),
-        tonalElevation = 6.dp
+        shape = RoundedCornerShape(GlassCorners.Dialog),
+        tonalElevation = 0.dp
     )
 }
-/**
- * FEATURE: "Copy Selected Links"
- * A stylized M3 button that, when tapped, opens a multi-select dialog listing every
- * available quality for the current media/episode so the user can copy several
- * direct URLs at once (newline separated) to the system clipboard.
- */
+
 @Composable
-fun CopyLinksButton(
-    sources: List<Source>,
-    modifier: Modifier = Modifier
-) {
+fun CopyLinksButton(sources: List<Source>, modifier: Modifier = Modifier) {
     var showDialog by remember { mutableStateOf(false) }
     OutlinedButton(
         onClick = { showDialog = true },
         modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        colors = ButtonDefaults.outlinedButtonColors(
-            contentColor = MaterialTheme.colorScheme.primary
-        )
+        shape = RoundedCornerShape(GlassCorners.Button),
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)
     ) {
-        Icon(
-            imageVector = Icons.Default.ContentCopy,
-            contentDescription = "Copy Links",
-            modifier = Modifier.size(18.dp)
-        )
+        Icon(Icons.Default.ContentCopy, contentDescription = "Copy Links", modifier = Modifier.size(18.dp))
         Spacer(modifier = Modifier.width(8.dp))
         Text("Copy Links")
     }
-
-    if (showDialog) {
-        CopySelectedLinksDialog(
-            sources = sources,
-            onDismiss = { showDialog = false }
-        )
-    }
+    if (showDialog) CopySelectedLinksDialog(sources, { showDialog = false })
 }
 
 @Composable
-fun CopySelectedLinksDialog(
-    sources: List<Source>,
-    onDismiss: () -> Unit
-) {
+fun CopySelectedLinksDialog(sources: List<Source>, onDismiss: () -> Unit) {
     val context = LocalContext.current
-    // Default every quality to selected for convenience.
-    val checkedState = remember { mutableStateMapOf<Int, Boolean>().apply {
-        sources.forEach { put(it.id, true) }
-    } }
-
+    val checkedState = remember {
+        mutableStateMapOf<Int, Boolean>().apply {
+            sources.forEach { put(it.id, true) }
+        }
+    }
     GlassAlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
                 text = "Copy Selected Links",
                 style = MaterialTheme.typography.headlineSmall,
-                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
             )
         },
         text = {
@@ -251,32 +185,17 @@ fun CopySelectedLinksDialog(
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Text(
-                    text = "Choose which qualities to copy",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Text("Choose which qualities to copy", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(modifier = Modifier.height(4.dp))
                 sources.forEach { source ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(
                             checked = checkedState[source.id] ?: false,
-                            onCheckedChange = { isChecked ->
-                                checkedState[source.id] = isChecked
-                            },
-                            colors = CheckboxDefaults.colors(
-                                checkedColor = MaterialTheme.colorScheme.primary
-                            )
+                            onCheckedChange = { checkedState[source.id] = it },
+                            colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.primary)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = source.quality,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+                        Text(source.quality, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
                     }
                 }
             }
@@ -284,92 +203,55 @@ fun CopySelectedLinksDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    val selectedLinks = sources
-                        .filter { checkedState[it.id] == true }
-                        .map { it.url }
-                    if (selectedLinks.isNotEmpty()) {
-                        DownloadUtils.copyMultipleToClipboard(context, selectedLinks.joinToString("\n"))
-                    }
+                    val selectedLinks = sources.filter { checkedState[it.id] == true }.map { it.url }
+                    if (selectedLinks.isNotEmpty()) DownloadUtils.copyMultipleToClipboard(context, selectedLinks.joinToString("\n"))
                     onDismiss()
                 },
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            ) {
-                Text("Copy")
-            }
+                shape = RoundedCornerShape(GlassCorners.Button),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.onPrimaryContainer)
+            ) { Text("Copy") }
         },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
         containerColor = MaterialTheme.colorScheme.surface,
-        shape = RoundedCornerShape(20.dp),
-        tonalElevation = 6.dp
+        shape = RoundedCornerShape(GlassCorners.Dialog),
+        tonalElevation = 0.dp
     )
 }
 
-/**
- * FEATURE: "Copy Season Links"
- * Unlike [CopyLinksButton] (single episode), this gathers every episode's
- * links for the whole season, grouped by quality: check a quality and it
- * pulls that quality's URL from every episode in the season that has one.
- */
 @Composable
-fun CopySeasonLinksButton(
-    episodes: List<com.pira.ccloud.data.model.Episode>,
-    modifier: Modifier = Modifier
-) {
+fun CopySeasonLinksButton(episodes: List<com.pira.ccloud.data.model.Episode>, modifier: Modifier = Modifier) {
     var showDialog by remember { mutableStateOf(false) }
     OutlinedButton(
         onClick = { showDialog = true },
         modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        colors = ButtonDefaults.outlinedButtonColors(
-            contentColor = MaterialTheme.colorScheme.primary
-        )
+        shape = RoundedCornerShape(GlassCorners.Button),
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)
     ) {
-        Icon(
-            imageVector = Icons.Default.ContentCopy,
-            contentDescription = "Copy Season Links",
-            modifier = Modifier.size(18.dp)
-        )
+        Icon(Icons.Default.ContentCopy, contentDescription = "Copy Season Links", modifier = Modifier.size(18.dp))
         Spacer(modifier = Modifier.width(8.dp))
         Text("Copy Season Links")
     }
-
-    if (showDialog) {
-        CopySeasonLinksDialog(
-            episodes = episodes,
-            onDismiss = { showDialog = false }
-        )
-    }
+    if (showDialog) CopySeasonLinksDialog(episodes, { showDialog = false })
 }
 
 @Composable
-fun CopySeasonLinksDialog(
-    episodes: List<com.pira.ccloud.data.model.Episode>,
-    onDismiss: () -> Unit
-) {
+fun CopySeasonLinksDialog(episodes: List<com.pira.ccloud.data.model.Episode>, onDismiss: () -> Unit) {
     val context = LocalContext.current
-    // Every distinct quality label that appears across the season's episodes.
     val allQualities = remember(episodes) {
         episodes.flatMap { it.sources.map { source -> source.quality } }.distinct()
     }
-    val checkedState = remember { mutableStateMapOf<String, Boolean>().apply {
-        allQualities.forEach { put(it, true) }
-    } }
-
+    val checkedState = remember {
+        mutableStateMapOf<String, Boolean>().apply {
+            allQualities.forEach { put(it, true) }
+        }
+    }
     GlassAlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
                 text = "Copy Season Links",
                 style = MaterialTheme.typography.headlineSmall,
-                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
             )
         },
         text = {
@@ -379,39 +261,18 @@ fun CopySeasonLinksDialog(
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Text(
-                    text = "Pick which qualities to copy across all ${episodes.size} episodes",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Text("Pick which qualities to copy across all ${episodes.size} episodes", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(modifier = Modifier.height(4.dp))
-                if (allQualities.isEmpty()) {
-                    Text(
-                        text = "No downloadable links found in this season.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
+                if (allQualities.isEmpty()) Text("No downloadable links found in this season.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
                 allQualities.forEach { quality ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(
                             checked = checkedState[quality] ?: false,
-                            onCheckedChange = { isChecked ->
-                                checkedState[quality] = isChecked
-                            },
-                            colors = CheckboxDefaults.colors(
-                                checkedColor = MaterialTheme.colorScheme.primary
-                            )
+                            onCheckedChange = { checkedState[quality] = it },
+                            colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.primary)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = quality,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+                        Text(quality, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
                     }
                 }
             }
@@ -421,31 +282,18 @@ fun CopySeasonLinksDialog(
                 onClick = {
                     val selectedQualities = allQualities.filter { checkedState[it] == true }.toSet()
                     val selectedLinks = episodes.flatMap { episode ->
-                        episode.sources
-                            .filter { it.quality in selectedQualities }
-                            .map { it.url }
+                        episode.sources.filter { it.quality in selectedQualities }.map { it.url }
                     }
-                    if (selectedLinks.isNotEmpty()) {
-                        DownloadUtils.copyMultipleToClipboard(context, selectedLinks.joinToString("\n"))
-                    }
+                    if (selectedLinks.isNotEmpty()) DownloadUtils.copyMultipleToClipboard(context, selectedLinks.joinToString("\n"))
                     onDismiss()
                 },
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            ) {
-                Text("Copy")
-            }
+                shape = RoundedCornerShape(GlassCorners.Button),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.onPrimaryContainer)
+            ) { Text("Copy") }
         },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
         containerColor = MaterialTheme.colorScheme.surface,
-        shape = RoundedCornerShape(20.dp),
-        tonalElevation = 6.dp
+        shape = RoundedCornerShape(GlassCorners.Dialog),
+        tonalElevation = 0.dp
     )
 }

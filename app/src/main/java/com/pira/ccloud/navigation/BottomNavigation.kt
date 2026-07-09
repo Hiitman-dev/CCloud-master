@@ -48,6 +48,7 @@ import com.pira.ccloud.ui.theme.GlassCorners
 import com.pira.ccloud.ui.theme.liquidGlass
 
 /**
+<<<<<<< HEAD
  * Floating pill-shaped Liquid Glass bottom navigation bar.
  *
  * Design:
@@ -59,23 +60,69 @@ import com.pira.ccloud.ui.theme.liquidGlass
  *  - Selected icon gets a small pill/bubble highlight background
  *  - Unselected icons are lower-contrast
  *  - Spring-based animations on selection changes
+=======
+ * Telegram-inspired floating pill navigation bar.
+ *
+ * Semi-opaque glass surface, rounded capsule (32px), soft ambient shadow,
+ * thin 1px border. Height ~80dp. No heavy blur or liquid effects.
+>>>>>>> 03d9d8ea365ac7c4ed6ac59077927b3f93b49314
  */
 @Composable
 fun BottomNavigationBar(navController: NavController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+<<<<<<< HEAD
     val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+=======
+    val glassTint = rememberGlassTint()
+>>>>>>> 03d9d8ea365ac7c4ed6ac59077927b3f93b49314
 
-    Box(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
+<<<<<<< HEAD
             .padding(horizontal = 20.dp, vertical = 12.dp)
+=======
+<<<<<<< HEAD
+            .padding(horizontal = 20.dp, vertical = 8.dp)
+=======
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+>>>>>>> 16bb46ea3318e8f7e2ba73e2f974008e3b01c44d
+            .shadow(
+                elevation = 16.dp,
+                shape = RoundedCornerShape(GlassCorners.Navigation),
+<<<<<<< HEAD
+                ambientColor = Color.Black.copy(alpha = 0.06f),
+                spotColor = Color.Black.copy(alpha = 0.04f)
+=======
+                ambientColor = Color.Black.copy(alpha = 0.1f),
+                spotColor = Color.Black.copy(alpha = 0.1f)
+>>>>>>> 16bb46ea3318e8f7e2ba73e2f974008e3b01c44d
+            )
+            .glassSurface(
+                shape = RoundedCornerShape(GlassCorners.Navigation),
+                tint = glassTint,
+<<<<<<< HEAD
+                tintAlpha = 0.42f,
+                borderAlpha = 0.28f
+            ),
+        shape = RoundedCornerShape(GlassCorners.Navigation),
+        color = Color.Transparent,
+        tonalElevation = 0.dp
+=======
+                // Stronger glass effect with higher alpha for better visibility
+                tintAlpha = 0.55f,
+                borderAlpha = 0.38f
+            )
+>>>>>>> 16bb46ea3318e8f7e2ba73e2f974008e3b01c44d
+>>>>>>> 03d9d8ea365ac7c4ed6ac59077927b3f93b49314
     ) {
         // Glass pill container
         Box(
             modifier = Modifier
                 .fillMaxWidth()
+<<<<<<< HEAD
                 .liquidGlass(
                     shape = RoundedCornerShape(GlassCorners.Pill),
                     isDark = isDark,
@@ -111,6 +158,33 @@ fun BottomNavigationBar(navController: NavController) {
                         animationSpec = tween(durationMillis = 250),
                         label = "icon_color"
                     )
+=======
+                .padding(horizontal = 6.dp, vertical = 6.dp),
+        ) {
+            AppScreens.screens.filter { it.showBottomBar }.forEach { screen ->
+                val isSelected = currentRoute == screen.route
+                val scale by animateFloatAsState(
+                    targetValue = if (isSelected) 1.08f else 1f,
+                    animationSpec = spring(),
+                    label = "scale"
+                )
+                val iconColor by animateColorAsState(
+                    targetValue = if (isSelected)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant,
+                    animationSpec = tween(durationMillis = 220),
+                    label = "iconColor"
+                )
+                val textColor by animateColorAsState(
+                    targetValue = if (isSelected)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant,
+                    animationSpec = tween(durationMillis = 220),
+                    label = "textColor"
+                )
+>>>>>>> 03d9d8ea365ac7c4ed6ac59077927b3f93b49314
 
                     // Animated text color
                     val textColor by animateColorAsState(
@@ -149,6 +223,7 @@ fun BottomNavigationBar(navController: NavController) {
                                     }
                                 }
                             }
+<<<<<<< HEAD
                             .semantics {
                                 role = Role.Tab
                                 selected = isSelected
@@ -191,6 +266,43 @@ fun BottomNavigationBar(navController: NavController) {
                             maxLines = 1
                         )
                     }
+=======
+                        }
+                        .semantics {
+                            role = Role.Tab
+                            selected = isSelected
+                        }
+                        .padding(vertical = 4.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .scale(scale),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (isSelected) {
+                            Surface(
+                                modifier = Modifier.size(38.dp),
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
+                            ) {}
+                        }
+                        Icon(
+                            imageVector = screen.icon ?: Icons.Default.Movie,
+                            contentDescription = stringResource(screen.resourceId),
+                            tint = iconColor,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                    Text(
+                        text = stringResource(screen.resourceId),
+                        color = textColor,
+                        fontSize = MaterialTheme.typography.labelSmall.fontSize,
+                        fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Light,
+                        maxLines = 1
+                    )
+>>>>>>> 03d9d8ea365ac7c4ed6ac59077927b3f93b49314
                 }
             }
         }

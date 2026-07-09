@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import com.pira.ccloud.data.model.FilterType
 import com.pira.ccloud.data.model.Genre
 import com.pira.ccloud.ui.theme.GlassCorners
+<<<<<<< HEAD
 import com.pira.ccloud.ui.theme.GlassIntensity
 import com.pira.ccloud.ui.theme.GlassIconButton
 import com.pira.ccloud.ui.theme.liquidGlass
@@ -54,6 +55,14 @@ import com.pira.ccloud.ui.theme.liquidGlass
  *  - Content scrolls underneath and remains visible through the blur
  *  - Smooth expand animation on filter sheet
  *  - Same glass material as nav bar but slightly different opacity
+=======
+import com.pira.ccloud.ui.theme.glassSurface
+import com.pira.ccloud.ui.theme.rememberGlassTint
+
+/**
+ * Compact "Filters" trigger. Tapping it raises a glass-styled bottom sheet
+ * popup with the sort type and genre pickers.
+>>>>>>> 03d9d8ea365ac7c4ed6ac59077927b3f93b49314
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -83,10 +92,71 @@ fun GenreFilterSection(
     Box(
         modifier = Modifier
             .fillMaxWidth()
+<<<<<<< HEAD
             .padding(horizontal = 16.dp, vertical = 8.dp)
+=======
+<<<<<<< HEAD
+            .padding(start = 24.dp, end = 24.dp, top = 12.dp, bottom = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (onSearchClick != null) {
+            com.pira.ccloud.ui.theme.GlassIconButton(
+                icon = Icons.Default.Search,
+                contentDescription = "Search",
+                onClick = onSearchClick
+=======
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
+                        MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
+                    )
+                )
+>>>>>>> 16bb46ea3318e8f7e2ba73e2f974008e3b01c44d
+            )
+            .border(
+                width = 0.5.dp,
+                color = glassTint.copy(alpha = 0.12f)
+            )
+>>>>>>> 03d9d8ea365ac7c4ed6ac59077927b3f93b49314
     ) {
         Row(
             modifier = Modifier
+<<<<<<< HEAD
+                .weight(1f)
+                .glassSurface(
+                    shape = RoundedCornerShape(GlassCorners.Search),
+                    tint = glassTint
+                )
+                .clickable { showFilterSheet = true }
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Tune,
+                    contentDescription = "Filters",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.height(18.dp)
+                )
+                Text(
+                    text = "Filters",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+            Text(
+                text = "$filterLabel  ·  $selectedGenreTitle",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1
+            )
+=======
                 .fillMaxWidth()
                 .liquidGlass(
                     shape = RoundedCornerShape(GlassCorners.Pill),
@@ -139,6 +209,7 @@ fun GenreFilterSection(
                     maxLines = 1
                 )
             }
+>>>>>>> 16bb46ea3318e8f7e2ba73e2f974008e3b01c44d
         }
     }
 
@@ -175,18 +246,43 @@ private fun FilterSheetContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+<<<<<<< HEAD
             .liquidGlass(
                 shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
                 isDark = isDark,
                 intensity = GlassIntensity.Chrome
+=======
+<<<<<<< HEAD
+            .glassSurface(
+                shape = RoundedCornerShape(
+                    topStart = GlassCorners.BottomSheet,
+                    topEnd = GlassCorners.BottomSheet
+                ),
+                tint = glassTint
+=======
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.surface.copy(alpha = 0.94f),
+                        MaterialTheme.colorScheme.surface.copy(alpha = 0.97f)
+                    )
+                ),
+                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+            )
+            .border(
+                width = 1.dp,
+                color = glassTint.copy(alpha = 0.2f),
+                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+>>>>>>> 16bb46ea3318e8f7e2ba73e2f974008e3b01c44d
+>>>>>>> 03d9d8ea365ac7c4ed6ac59077927b3f93b49314
             )
             .navigationBarsPadding()
-            .padding(20.dp)
+            .padding(24.dp)
     ) {
         Text(
             text = "Sort By",
             style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Medium
         )
         Spacer(modifier = Modifier.height(12.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -200,7 +296,7 @@ private fun FilterSheetContent(
                     selected = selectedFilterType == type,
                     onClick = { onFilterTypeSelected(type) },
                     label = { Text(label) },
-                    shape = RoundedCornerShape(14.dp),
+                    shape = RoundedCornerShape(GlassCorners.Tag),
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = MaterialTheme.colorScheme.primary,
                         selectedLabelColor = MaterialTheme.colorScheme.onPrimary
@@ -214,7 +310,7 @@ private fun FilterSheetContent(
         Text(
             text = "Genre",
             style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Medium
         )
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -240,7 +336,7 @@ private fun FilterSheetContent(
                             maxLines = 1
                         )
                     },
-                    shape = RoundedCornerShape(14.dp),
+                    shape = RoundedCornerShape(GlassCorners.Tag),
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = MaterialTheme.colorScheme.secondary,
                         selectedLabelColor = MaterialTheme.colorScheme.onSecondary
