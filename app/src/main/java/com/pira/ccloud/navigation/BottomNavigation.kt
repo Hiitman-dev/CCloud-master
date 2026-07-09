@@ -2,6 +2,7 @@ package com.pira.ccloud.navigation
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -43,71 +44,64 @@ import com.pira.ccloud.ui.theme.glassSurface
 import com.pira.ccloud.ui.theme.rememberGlassTint
 
 /**
- * A fully custom floating pill nav bar - drawn as our own Row inside a glass
- * Box - instead of Material3's `NavigationBar`. `NavigationBar` draws its own
- * rectangular `Surface` internally for elevation/shadow, which showed through
- * as a hard square edge under our rounded clip. Building it ourselves means
- * the glass panel's shape is the *only* shape being drawn - a true floating
- * capsule that sits clear of the screen edges, with an opaque-enough tint
- * that it doesn't let the movie posters/list bleed through and confuse
- * which tab is selected.
+ * Telegram-inspired floating pill navigation bar.
+ *
+ * Semi-opaque glass surface, rounded capsule (32px), soft ambient shadow,
+ * thin 1px border. Height ~80dp. No heavy blur or liquid effects.
  */
 @Composable
 fun BottomNavigationBar(navController: NavController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-
     val glassTint = rememberGlassTint()
 
-    Box(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(horizontal = 20.dp, vertical = 10.dp)
+            .padding(horizontal = 20.dp, vertical = 8.dp)
             .shadow(
                 elevation = 12.dp,
                 shape = RoundedCornerShape(GlassCorners.Navigation),
                 ambientColor = Color.Black.copy(alpha = 0.06f),
-                spotColor = Color.Black.copy(alpha = 0.06f)
+                spotColor = Color.Black.copy(alpha = 0.04f)
             )
             .glassSurface(
                 shape = RoundedCornerShape(GlassCorners.Navigation),
                 tint = glassTint,
-                // A bit stronger than the ambient default so posters/lists
-                // behind it never bleed through enough to confuse which tab
-                // is selected, while still reading as translucent glass.
-                tintAlpha = 0.5f,
-                borderAlpha = 0.32f
-            )
+                tintAlpha = 0.42f,
+                borderAlpha = 0.28f
+            ),
+        shape = RoundedCornerShape(GlassCorners.Navigation),
+        color = Color.Transparent,
+        tonalElevation = 0.dp
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 4.dp, vertical = 6.dp),
+                .padding(horizontal = 6.dp, vertical = 6.dp),
         ) {
             AppScreens.screens.filter { it.showBottomBar }.forEach { screen ->
                 val isSelected = currentRoute == screen.route
                 val scale by animateFloatAsState(
-                    targetValue = if (isSelected) 1.1f else 1f,
-                    animationSpec = tween(durationMillis = 200),
+                    targetValue = if (isSelected) 1.08f else 1f,
+                    animationSpec = spring(),
                     label = "scale"
                 )
-
                 val iconColor by animateColorAsState(
                     targetValue = if (isSelected)
                         MaterialTheme.colorScheme.primary
                     else
                         MaterialTheme.colorScheme.onSurfaceVariant,
-                    animationSpec = tween(durationMillis = 200),
+                    animationSpec = tween(durationMillis = 220),
                     label = "iconColor"
                 )
-
                 val textColor by animateColorAsState(
                     targetValue = if (isSelected)
                         MaterialTheme.colorScheme.primary
                     else
                         MaterialTheme.colorScheme.onSurfaceVariant,
-                    animationSpec = tween(durationMillis = 200),
+                    animationSpec = tween(durationMillis = 220),
                     label = "textColor"
                 )
 
@@ -132,7 +126,7 @@ fun BottomNavigationBar(navController: NavController) {
                             role = Role.Tab
                             selected = isSelected
                         }
-                        .padding(vertical = 6.dp),
+                        .padding(vertical = 4.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Box(
@@ -143,23 +137,23 @@ fun BottomNavigationBar(navController: NavController) {
                     ) {
                         if (isSelected) {
                             Surface(
-                                modifier = Modifier.size(34.dp),
+                                modifier = Modifier.size(38.dp),
                                 shape = CircleShape,
-                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
                             ) {}
                         }
                         Icon(
                             imageVector = screen.icon ?: Icons.Default.Movie,
                             contentDescription = stringResource(screen.resourceId),
                             tint = iconColor,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(22.dp)
                         )
                     }
                     Text(
                         text = stringResource(screen.resourceId),
                         color = textColor,
-                        fontSize = MaterialTheme.typography.labelMedium.fontSize,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                        fontSize = MaterialTheme.typography.labelSmall.fontSize,
+                        fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Light,
                         maxLines = 1
                     )
                 }

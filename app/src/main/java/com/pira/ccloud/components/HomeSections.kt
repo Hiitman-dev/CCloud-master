@@ -108,7 +108,7 @@ fun HomeHeaderSections(
 }
 
 @Composable
-private fun SectionHeader(title: String) {
+fun SectionHeader(title: String) {
     Text(
         text = title,
         style = MaterialTheme.typography.titleMedium,
@@ -186,7 +186,7 @@ private fun ContinueWatchingCard(
 }
 
 @Composable
-private fun NewAndHotCard(
+fun NewAndHotCard(
     movie: Movie,
     badgeLabel: String = "NEW",
     onClick: () -> Unit

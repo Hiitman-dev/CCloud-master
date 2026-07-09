@@ -99,7 +99,13 @@ fun SeriesScreen(
             selectedGenreId = selectedGenreId,
             selectedFilterType = selectedFilterType,
             onGenreSelected = { genreId -> viewModel.selectGenre(genreId) },
-            onFilterTypeSelected = { filterType -> viewModel.selectFilterType(filterType) }
+            onFilterTypeSelected = { filterType -> viewModel.selectFilterType(filterType) },
+            onSearchClick = {
+                navController?.navigate("search") {
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            }
         )
         
         // Remove Column wrapper to use full screen space

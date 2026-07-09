@@ -20,196 +20,128 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import com.pira.ccloud.data.model.FontSettings
-import com.pira.ccloud.utils.StorageUtils
 
-// Set of Material typography styles to start with
 fun appTypography(fontFamily: FontFamily?): androidx.compose.material3.Typography {
+    val ff = fontFamily ?: FontFamily.Default
     return androidx.compose.material3.Typography(
-        bodyLarge = TextStyle(
-            fontFamily = fontFamily ?: FontFamily.Default,
-            fontWeight = FontWeight.Normal,
-            fontSize = 16.sp,
-            lineHeight = 24.sp,
-            letterSpacing = 0.5.sp
-        ),
-        bodyMedium = TextStyle(
-            fontFamily = fontFamily ?: FontFamily.Default,
-            fontWeight = FontWeight.Normal,
-            fontSize = 14.sp,
-            lineHeight = 20.sp,
-            letterSpacing = 0.25.sp
-        ),
-        bodySmall = TextStyle(
-            fontFamily = fontFamily ?: FontFamily.Default,
-            fontWeight = FontWeight.Normal,
-            fontSize = 12.sp,
-            lineHeight = 16.sp,
-            letterSpacing = 0.4.sp
-        ),
-        headlineLarge = TextStyle(
-            fontFamily = fontFamily ?: FontFamily.Default,
-            fontWeight = FontWeight.Normal,
-            fontSize = 32.sp,
-            lineHeight = 40.sp,
-            letterSpacing = 0.sp
-        ),
-        headlineMedium = TextStyle(
-            fontFamily = fontFamily ?: FontFamily.Default,
-            fontWeight = FontWeight.Normal,
-            fontSize = 28.sp,
-            lineHeight = 36.sp,
-            letterSpacing = 0.sp
-        ),
-        headlineSmall = TextStyle(
-            fontFamily = fontFamily ?: FontFamily.Default,
-            fontWeight = FontWeight.Normal,
-            fontSize = 24.sp,
-            lineHeight = 32.sp,
-            letterSpacing = 0.sp
-        ),
-        titleLarge = TextStyle(
-            fontFamily = fontFamily ?: FontFamily.Default,
-            fontWeight = FontWeight.Normal,
-            fontSize = 22.sp,
-            lineHeight = 28.sp,
-            letterSpacing = 0.sp
-        ),
-        titleMedium = TextStyle(
-            fontFamily = fontFamily ?: FontFamily.Default,
-            fontWeight = FontWeight.Medium,
-            fontSize = 16.sp,
-            lineHeight = 24.sp,
-            letterSpacing = 0.15.sp
-        ),
-        titleSmall = TextStyle(
-            fontFamily = fontFamily ?: FontFamily.Default,
-            fontWeight = FontWeight.Medium,
-            fontSize = 14.sp,
-            lineHeight = 20.sp,
-            letterSpacing = 0.1.sp
-        ),
-        labelLarge = TextStyle(
-            fontFamily = fontFamily ?: FontFamily.Default,
-            fontWeight = FontWeight.Medium,
-            fontSize = 14.sp,
-            lineHeight = 20.sp,
-            letterSpacing = 0.1.sp
-        ),
-        labelMedium = TextStyle(
-            fontFamily = fontFamily ?: FontFamily.Default,
-            fontWeight = FontWeight.Medium,
-            fontSize = 12.sp,
-            lineHeight = 16.sp,
-            letterSpacing = 0.5.sp
-        ),
-        labelSmall = TextStyle(
-            fontFamily = fontFamily ?: FontFamily.Default,
-            fontWeight = FontWeight.Medium,
-            fontSize = 11.sp,
-            lineHeight = 16.sp,
-            letterSpacing = 0.5.sp
-        )
+        bodyLarge = TextStyle(fontFamily = ff, fontWeight = FontWeight.Normal, fontSize = 16.sp, lineHeight = 26.sp, letterSpacing = 0.3.sp),
+        bodyMedium = TextStyle(fontFamily = ff, fontWeight = FontWeight.Normal, fontSize = 14.sp, lineHeight = 21.sp, letterSpacing = 0.2.sp),
+        bodySmall = TextStyle(fontFamily = ff, fontWeight = FontWeight.Light, fontSize = 12.sp, lineHeight = 17.sp, letterSpacing = 0.3.sp),
+        headlineLarge = TextStyle(fontFamily = ff, fontWeight = FontWeight.Normal, fontSize = 32.sp, lineHeight = 42.sp, letterSpacing = (-0.2).sp),
+        headlineMedium = TextStyle(fontFamily = ff, fontWeight = FontWeight.Normal, fontSize = 28.sp, lineHeight = 36.sp, letterSpacing = (-0.1).sp),
+        headlineSmall = TextStyle(fontFamily = ff, fontWeight = FontWeight.Normal, fontSize = 24.sp, lineHeight = 32.sp, letterSpacing = 0.sp),
+        titleLarge = TextStyle(fontFamily = ff, fontWeight = FontWeight.Normal, fontSize = 22.sp, lineHeight = 28.sp, letterSpacing = 0.sp),
+        titleMedium = TextStyle(fontFamily = ff, fontWeight = FontWeight.Medium, fontSize = 16.sp, lineHeight = 24.sp, letterSpacing = 0.1.sp),
+        titleSmall = TextStyle(fontFamily = ff, fontWeight = FontWeight.Medium, fontSize = 14.sp, lineHeight = 20.sp, letterSpacing = 0.08.sp),
+        labelLarge = TextStyle(fontFamily = ff, fontWeight = FontWeight.Medium, fontSize = 14.sp, lineHeight = 20.sp, letterSpacing = 0.08.sp),
+        labelMedium = TextStyle(fontFamily = ff, fontWeight = FontWeight.Medium, fontSize = 12.sp, lineHeight = 16.sp, letterSpacing = 0.4.sp),
+        labelSmall = TextStyle(fontFamily = ff, fontWeight = FontWeight.Light, fontSize = 11.sp, lineHeight = 15.sp, letterSpacing = 0.4.sp)
     )
 }
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80,
-    background = Color(0xFF121212),
-    surface = Color(0xFF1E1E1E),
-    surfaceVariant = Color(0xFF2D2D2D),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color.White,
-    onSurface = Color.White,
-    onSurfaceVariant = Color(0xFFE0E0E0)
-)
+private val SurfaceWarmWhite    = Color(0xFFF7F8FA)
+private val SurfacePearl        = Color(0xFFFCFCFE)
+private val SurfaceIceGray      = Color(0xFFECEEF2)
+private val SurfaceCloud        = Color(0xFFE2E4EA)
+
+private val DarkBackground      = Color(0xFF0E0F13)
+private val DarkSurface         = Color(0xFF181A20)
+private val DarkSurfaceElevated = Color(0xFF22242C)
+private val DarkSurfaceMuted    = Color(0xFF2A2D36)
+
+private val TextPrimary         = Color(0xFF1A1C22)
+private val TextOnDark          = Color(0xFFF0F1F5)
+private val TextMutedLight      = Color(0xFF8A8D96)
+private val TextMutedDark       = Color(0xFF9A9CA6)
+
+private val AccentBlue          = Color(0xFF5B7FFF)
+private val AccentBlueDark      = Color(0xFF7B9AFF)
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40,
-    // Deliberately layered so the page background, card surfaces, and
-    // secondary surfaces each read as visibly distinct depth levels instead
-    // of blending into one flat white sheet.
-    background = Color(0xFFF2F3F7),
-    surface = Color(0xFFFAFAFC),
-    surfaceVariant = Color(0xFFE7E9F0),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    onSurfaceVariant = Color(0xFF49454F)
+    primary = AccentBlue, onPrimary = Color.White,
+    primaryContainer = Color(0xFFE0E7FF), onPrimaryContainer = Color(0xFF1A2550),
+    secondary = SurfaceIceGray, onSecondary = TextPrimary,
+    secondaryContainer = SurfaceCloud, onSecondaryContainer = TextPrimary,
+    tertiary = Color(0xFF7C8DAA),
+    background = SurfaceWarmWhite, onBackground = TextPrimary,
+    surface = SurfacePearl, onSurface = TextPrimary,
+    surfaceVariant = SurfaceIceGray, onSurfaceVariant = TextMutedLight,
+    error = Color(0xFFBA1A1A), onError = Color.White,
+    outline = Color(0xFFD0D3DA), outlineVariant = Color(0xFFE4E6EC)
+)
+
+private val DarkColorScheme = darkColorScheme(
+    primary = AccentBlueDark, onPrimary = Color(0xFF0D1540),
+    primaryContainer = Color(0xFF2A3570), onPrimaryContainer = Color(0xFFD6DFFF),
+    secondary = DarkSurfaceElevated, onSecondary = TextOnDark,
+    secondaryContainer = DarkSurfaceMuted, onSecondaryContainer = TextOnDark,
+    tertiary = Color(0xFF8A95AD),
+    background = DarkBackground, onBackground = TextOnDark,
+    surface = DarkSurface, onSurface = TextOnDark,
+    surfaceVariant = DarkSurfaceElevated, onSurfaceVariant = TextMutedDark,
+    error = Color(0xFFFFB4AB), onError = Color(0xFF690005),
+    outline = Color(0xFF3A3D46), outlineVariant = Color(0xFF2A2D36)
 )
 
 @Composable
 fun CCloudTheme(
     themeSettings: ThemeSettings = ThemeSettings(),
-    fontSettings: FontSettings = FontSettings(), // Add font settings parameter
+    fontSettings: FontSettings = FontSettings(),
     content: @Composable () -> Unit
 ) {
     val context = LocalContext.current
     val darkTheme = when (themeSettings.themeMode) {
-        ThemeMode.LIGHT -> false
-        ThemeMode.DARK -> true
+        ThemeMode.LIGHT  -> false
+        ThemeMode.DARK   -> true
         ThemeMode.SYSTEM -> isSystemInDarkTheme()
     }
-    
-    // Load font family based on font settings
     val fontFamily = FontManager.loadFontFamily(context, fontSettings.fontType)
-    
+
     val colorScheme = when {
         themeSettings.primaryColor != defaultPrimaryColor -> {
-            // Custom colors - using the same color for primary and secondary since we removed secondary color setting
             if (darkTheme) {
                 darkColorScheme(
-                    primary = themeSettings.primaryColor,
-                    secondary = themeSettings.primaryColor,
-                    tertiary = Pink80,
-                    background = Color(0xFF121212),
-                    surface = Color(0xFF1E1E1E),
-                    surfaceVariant = Color(0xFF2D2D2D),
-                    onPrimary = Color.White,
-                    onSecondary = Color.White,
-                    onTertiary = Color.White,
-                    onBackground = Color.White,
-                    onSurface = Color.White,
-                    onSurfaceVariant = Color(0xFFE0E0E0)
+                    primary = themeSettings.primaryColor, onPrimary = Color.White,
+                    primaryContainer = themeSettings.primaryColor.copy(alpha = 0.15f),
+                    onPrimaryContainer = themeSettings.primaryColor.copy(alpha = 0.9f),
+                    secondary = DarkSurfaceElevated, onSecondary = TextOnDark,
+                    secondaryContainer = DarkSurfaceMuted, onSecondaryContainer = TextOnDark,
+                    tertiary = Color(0xFF8A95AD),
+                    background = DarkBackground, onBackground = TextOnDark,
+                    surface = DarkSurface, onSurface = TextOnDark,
+                    surfaceVariant = DarkSurfaceElevated, onSurfaceVariant = TextMutedDark,
+                    error = Color(0xFFFFB4AB), onError = Color(0xFF690005),
+                    outline = Color(0xFF3A3D46), outlineVariant = Color(0xFF2A2D36)
                 )
             } else {
                 lightColorScheme(
-                    primary = themeSettings.primaryColor,
-                    secondary = themeSettings.primaryColor,
-                    tertiary = Pink40,
-                    background = Color(0xFFF2F3F7),
-                    surface = Color(0xFFFAFAFC),
-                    surfaceVariant = Color(0xFFE7E9F0),
-                    onPrimary = Color.White,
-                    onSecondary = Color.White,
-                    onTertiary = Color.White,
-                    onBackground = Color(0xFF1C1B1F),
-                    onSurface = Color(0xFF1C1B1F),
-                    onSurfaceVariant = Color(0xFF49454F)
+                    primary = themeSettings.primaryColor, onPrimary = Color.White,
+                    primaryContainer = themeSettings.primaryColor.copy(alpha = 0.12f),
+                    onPrimaryContainer = themeSettings.primaryColor.copy(alpha = 0.85f),
+                    secondary = SurfaceIceGray, onSecondary = TextPrimary,
+                    secondaryContainer = SurfaceCloud, onSecondaryContainer = TextPrimary,
+                    tertiary = Color(0xFF7C8DAA),
+                    background = SurfaceWarmWhite, onBackground = TextPrimary,
+                    surface = SurfacePearl, onSurface = TextPrimary,
+                    surfaceVariant = SurfaceIceGray, onSurfaceVariant = TextMutedLight,
+                    error = Color(0xFFBA1A1A), onError = Color.White,
+                    outline = Color(0xFFD0D3DA), outlineVariant = Color(0xFFE4E6EC)
                 )
             }
         }
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
-    
+
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
+            window.statusBarColor = Color.Transparent.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
         }
     }
 

@@ -38,13 +38,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pira.ccloud.data.model.FilterType
 import com.pira.ccloud.data.model.Genre
+import com.pira.ccloud.ui.theme.GlassCorners
 import com.pira.ccloud.ui.theme.glassSurface
 import com.pira.ccloud.ui.theme.rememberGlassTint
 
 /**
  * Compact "Filters" trigger. Tapping it raises a glass-styled bottom sheet
- * popup with the sort type and genre pickers, instead of two wide always-open
- * dropdown cards taking up permanent space on the screen.
+ * popup with the sort type and genre pickers.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,16 +73,13 @@ fun GenreFilterSection(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(14.dp),
+            .padding(start = 24.dp, end = 24.dp, top = 12.dp, bottom = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Search icon comes first in reading order, with its own breathing
-        // room, then the filter trigger takes the remaining width - always a
-        // fixed, comfortable distance apart, never overlapping.
         if (onSearchClick != null) {
             com.pira.ccloud.ui.theme.GlassIconButton(
-                icon = androidx.compose.material.icons.Icons.Default.Search,
+                icon = Icons.Default.Search,
                 contentDescription = "Search",
                 onClick = onSearchClick
             )
@@ -91,7 +88,10 @@ fun GenreFilterSection(
         Row(
             modifier = Modifier
                 .weight(1f)
-                .glassSurface(shape = RoundedCornerShape(com.pira.ccloud.ui.theme.GlassCorners.Search), tint = glassTint)
+                .glassSurface(
+                    shape = RoundedCornerShape(GlassCorners.Search),
+                    tint = glassTint
+                )
                 .clickable { showFilterSheet = true }
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -105,16 +105,16 @@ fun GenreFilterSection(
                     imageVector = Icons.Default.Tune,
                     contentDescription = "Filters",
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.height(20.dp)
+                    modifier = Modifier.height(18.dp)
                 )
                 Text(
                     text = "Filters",
                     style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Medium
                 )
             }
             Text(
-                text = "$filterLabel  •  $selectedGenreTitle",
+                text = "$filterLabel  ·  $selectedGenreTitle",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1
@@ -155,16 +155,19 @@ private fun FilterSheetContent(
         modifier = Modifier
             .fillMaxWidth()
             .glassSurface(
-                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+                shape = RoundedCornerShape(
+                    topStart = GlassCorners.BottomSheet,
+                    topEnd = GlassCorners.BottomSheet
+                ),
                 tint = glassTint
             )
             .navigationBarsPadding()
-            .padding(20.dp)
+            .padding(24.dp)
     ) {
         Text(
             text = "Sort By",
             style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Medium
         )
         Spacer(modifier = Modifier.height(12.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -178,7 +181,7 @@ private fun FilterSheetContent(
                     selected = selectedFilterType == type,
                     onClick = { onFilterTypeSelected(type) },
                     label = { Text(label) },
-                    shape = RoundedCornerShape(14.dp),
+                    shape = RoundedCornerShape(GlassCorners.Tag),
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = MaterialTheme.colorScheme.primary,
                         selectedLabelColor = MaterialTheme.colorScheme.onPrimary
@@ -192,7 +195,7 @@ private fun FilterSheetContent(
         Text(
             text = "Genre",
             style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Medium
         )
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -218,7 +221,7 @@ private fun FilterSheetContent(
                             maxLines = 1
                         )
                     },
-                    shape = RoundedCornerShape(14.dp),
+                    shape = RoundedCornerShape(GlassCorners.Tag),
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = MaterialTheme.colorScheme.secondary,
                         selectedLabelColor = MaterialTheme.colorScheme.onSecondary

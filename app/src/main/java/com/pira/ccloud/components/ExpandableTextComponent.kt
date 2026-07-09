@@ -1,6 +1,8 @@
 package com.pira.ccloud.components
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,11 +24,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import com.pira.ccloud.ui.theme.GlassCorners
 import com.pira.ccloud.ui.theme.glassSurface
 import com.pira.ccloud.ui.theme.rememberGlassTint
 import androidx.compose.ui.draw.clip
@@ -43,7 +44,7 @@ fun ExpandableText(
     var expanded by remember { mutableStateOf(false) }
     var showReadMore by remember { mutableStateOf(false) }
     val context = LocalContext.current
-    
+
     Column(modifier = modifier) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -58,19 +59,15 @@ fun ExpandableText(
                 maxLines = if (expanded) Int.MAX_VALUE else collapsedMaxLines,
                 overflow = TextOverflow.Ellipsis,
                 onTextLayout = { textLayoutResult ->
-                    // Check if text is truncated (more lines than maxLines)
                     showReadMore = textLayoutResult.hasVisualOverflow
                 }
             )
-            
-            // Copy icon
+
             IconButton(
                 onClick = {
                     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
                     val clip = android.content.ClipData.newPlainText("Description", text)
                     clipboard.setPrimaryClip(clip)
-                    
-                    // Show a toast to indicate success
                     android.widget.Toast.makeText(context, "Description copied to clipboard", android.widget.Toast.LENGTH_SHORT).show()
                 },
                 modifier = Modifier
@@ -83,18 +80,17 @@ fun ExpandableText(
                 )
             }
         }
-        
+
         if (showReadMore || expanded) {
             val readMoreGlassTint = rememberGlassTint()
-            // Glass-like button for Show More/Show Less
             Card(
                 modifier = Modifier
                     .padding(top = 8.dp)
-                    .glassSurface(shape = RoundedCornerShape(16.dp), tint = readMoreGlassTint)
+                    .glassSurface(shape = RoundedCornerShape(GlassCorners.Button), tint = readMoreGlassTint)
                     .clickable { expanded = !expanded }
-                    .clip(RoundedCornerShape(16.dp))
+                    .clip(RoundedCornerShape(GlassCorners.Button))
                     .zIndex(1f),
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(GlassCorners.Button),
                 colors = CardDefaults.cardColors(
                     containerColor = Color.Transparent
                 ),
@@ -110,7 +106,7 @@ fun ExpandableText(
                         text = if (expanded) "Show Less" else "Show More",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Medium
                     )
                 }
             }
