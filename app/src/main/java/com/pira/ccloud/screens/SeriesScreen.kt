@@ -93,9 +93,9 @@ fun SeriesScreen(
     }
     
     Box(modifier = Modifier.fillMaxSize()) {
-        // Scrollable content starts below the filter bar
+        // Scrollable content fills the screen
         Column(modifier = Modifier.fillMaxSize()) {
-            Spacer(modifier = Modifier.height(68.dp)) // Reserve space for sticky filter
+            Spacer(modifier = Modifier.height(60.dp)) // Reserve space for floating filter bar
             when {
                 isLoading && series.isEmpty() -> {
                     LoadingScreenSeries()
@@ -121,7 +121,7 @@ fun SeriesScreen(
             }
         }
 
-        // Sticky frosted-glass filter bar pinned to top
+        // Floating glass filter bar — z-indexed above content
         Box(modifier = Modifier.fillMaxWidth()) {
             GenreFilterSection(
                 genres = genres,

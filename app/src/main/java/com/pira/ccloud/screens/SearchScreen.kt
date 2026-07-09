@@ -54,6 +54,9 @@ import androidx.compose.material3.MaterialTheme
 import com.pira.ccloud.ui.theme.glassSurface
 import com.pira.ccloud.ui.theme.subtleGlassSurface
 import com.pira.ccloud.ui.theme.rememberGlassTint
+import com.pira.ccloud.ui.theme.liquidGlass
+import com.pira.ccloud.ui.theme.GlassCorners
+import com.pira.ccloud.ui.theme.GlassIntensity
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
@@ -132,25 +135,34 @@ fun SearchScreen(
         ) {
             Spacer(modifier = Modifier.height(12.dp))
 
-            // ── Back button + Search bar row ─────────────────────────
+            // ── Floating glass search bar row ────────────────────────
             val searchGlassTint = rememberGlassTint()
+            val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .liquidGlass(
+                        shape = RoundedCornerShape(GlassCorners.Pill),
+                        isDark = isDark,
+                        intensity = GlassIntensity.Chrome
+                    )
+                    .padding(horizontal = 6.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                // Back arrow — frosted glass circle
+                // Back arrow — circular glass bubble
                 IconButton(
                     onClick = { navController?.popBackStack() },
                     modifier = Modifier
-                        .size(44.dp)
-                        .glassSurface(shape = CircleShape, tint = searchGlassTint, tintAlpha = 0.4f, borderAlpha = 0.28f)
+                        .size(40.dp)
+                        .liquidGlass(shape = CircleShape, isDark = isDark)
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
-                        tint = MaterialTheme.colorScheme.onSurface
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(20.dp)
                     )
                 }
 
@@ -158,12 +170,6 @@ fun SearchScreen(
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .glassSurface(
-                            shape = RoundedCornerShape(24.dp),
-                            tint = searchGlassTint,
-                            tintAlpha = 0.45f,
-                            borderAlpha = 0.32f
-                        )
                 ) {
                     TextField(
                         value = viewModel.searchQuery,
