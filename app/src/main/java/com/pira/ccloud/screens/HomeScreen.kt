@@ -64,10 +64,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
-import com.pira.ccloud.components.GenreFilterSection
 import com.pira.ccloud.data.model.FavoriteItem
 import com.pira.ccloud.data.model.FilterType
-import com.pira.ccloud.data.model.Genre
 import com.pira.ccloud.data.model.Movie
 import com.pira.ccloud.data.model.Series
 import com.pira.ccloud.ui.home.HomeViewModel

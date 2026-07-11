@@ -1,15 +1,12 @@
 package com.pira.ccloud.screens
 
 import android.content.Context
-<<<<<<< HEAD
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
-=======
->>>>>>> 6287ac19c27b480fc114839c05283fe62579b0c5
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -81,10 +78,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
-<<<<<<< HEAD
 import com.pira.ccloud.R
-=======
->>>>>>> 6287ac19c27b480fc114839c05283fe62579b0c5
 import com.pira.ccloud.data.model.Country
 import com.pira.ccloud.data.model.Poster
 import com.pira.ccloud.ui.search.SearchViewModel
@@ -99,7 +93,6 @@ fun SearchScreen(
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
     val focusRequester = remember { FocusRequester() }
-<<<<<<< HEAD
 
     // FEATURE: Recent Searches History - lightweight persistence via SharedPreferences.
     // Stored as an ordered JSON array, capped at 5 unique, most-recent-first entries.
@@ -109,10 +102,6 @@ fun SearchScreen(
     var recentSearches by remember {
         mutableStateOf(loadRecentSearches(recentSearchesPrefs))
     }
-=======
-    val recentSearchesPrefs = remember { context.getSharedPreferences("ccloud_recent_searches", Context.MODE_PRIVATE) }
-    var recentSearches by remember { mutableStateOf(loadRecentSearches(recentSearchesPrefs)) }
->>>>>>> 6287ac19c27b480fc114839c05283fe62579b0c5
 
     fun performSearch(query: String) {
         if (query.isNotEmpty()) {
@@ -121,7 +110,6 @@ fun SearchScreen(
             viewModel.triggerSearch()
         }
     }
-<<<<<<< HEAD
     
     // Request focus when the screen is first displayed to ensure keyboard opens on TV
     LaunchedEffect(Unit) {
@@ -134,12 +122,6 @@ fun SearchScreen(
             .padding(16.dp)
     ) {
         // Search bar
-=======
-
-    LaunchedEffect(Unit) { focusRequester.requestFocus() }
-
-    Column(modifier = Modifier.fillMaxSize().padding(24.dp)) {
->>>>>>> 6287ac19c27b480fc114839c05283fe62579b0c5
         val searchGlassTint = rememberGlassTint()
         TextField(
             value = viewModel.searchQuery,
@@ -318,7 +300,6 @@ fun SearchScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     if (viewModel.searchQuery.isEmpty() && recentSearches.isNotEmpty()) {
-<<<<<<< HEAD
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -378,25 +359,10 @@ fun SearchScreen(
                                             iconContentColor = MaterialTheme.colorScheme.primary
                                         )
                                     )
-=======
-                        Column(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
-                            Row(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                Text("Recent Searches", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.primary)
-                                androidx.compose.material3.TextButton(onClick = { recentSearches = clearRecentSearches(recentSearchesPrefs) }) {
-                                    Icon(Icons.Default.Delete, contentDescription = "Clear history", modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.error)
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text("Clear", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.error)
-                                }
-                            }
-                            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(bottom = 8.dp)) {
-                                items(recentSearches) { recentQuery ->
-                                    SuggestionChip(onClick = { performSearch(recentQuery) }, label = { Text(recentQuery) }, icon = { Icon(Icons.Default.History, contentDescription = "Recent", modifier = Modifier.size(16.dp)) }, shape = RoundedCornerShape(GlassCorners.Tag), colors = SuggestionChipDefaults.suggestionChipColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, labelColor = MaterialTheme.colorScheme.onSurfaceVariant, iconContentColor = MaterialTheme.colorScheme.primary))
->>>>>>> 6287ac19c27b480fc114839c05283fe62579b0c5
                                 }
                             }
                         }
                     }
-<<<<<<< HEAD
 
                     Box(
                         modifier = Modifier
@@ -425,15 +391,6 @@ fun SearchScreen(
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-=======
-                    Box(modifier = Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(Icons.Default.Search, contentDescription = "Search", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(48.dp))
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text("Search for movies and series", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onSurface)
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text("Enter a keyword to start searching", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
->>>>>>> 6287ac19c27b480fc114839c05283fe62579b0c5
                         }
                     }
                 }
@@ -442,17 +399,13 @@ fun SearchScreen(
     }
 }
 
-<<<<<<< HEAD
 // --- Recent Searches History helpers (SharedPreferences-backed) ---
 
-=======
->>>>>>> 6287ac19c27b480fc114839c05283fe62579b0c5
 private const val RECENT_SEARCHES_KEY = "recent_queries"
 private const val MAX_RECENT_SEARCHES = 5
 
 private fun loadRecentSearches(prefs: android.content.SharedPreferences): List<String> {
     val raw = prefs.getString(RECENT_SEARCHES_KEY, null) ?: return emptyList()
-<<<<<<< HEAD
     return try {
         val array = org.json.JSONArray(raw)
         (0 until array.length()).map { array.getString(it) }
@@ -533,34 +486,6 @@ fun SearchResultsGrid(
     navController: NavController?,
     context: Context
 ) {
-=======
-    return try { val array = org.json.JSONArray(raw); (0 until array.length()).map { array.getString(it) } } catch (e: Exception) { emptyList() }
-}
-
-private fun addRecentSearch(prefs: android.content.SharedPreferences, current: List<String>, query: String): List<String> {
-    val trimmed = query.trim(); if (trimmed.isEmpty()) return current
-    val updated = listOf(trimmed) + current.filterNot { it.equals(trimmed, ignoreCase = true) }
-    val capped = updated.take(MAX_RECENT_SEARCHES)
-    val jsonArray = org.json.JSONArray(); capped.forEach { jsonArray.put(it) }
-    prefs.edit().putString(RECENT_SEARCHES_KEY, jsonArray.toString()).apply(); return capped
-}
-
-private fun clearRecentSearches(prefs: android.content.SharedPreferences): List<String> { prefs.edit().remove(RECENT_SEARCHES_KEY).apply(); return emptyList() }
-
-@Composable
-fun CountryStoryItem(country: Country, onClick: () -> Unit) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onClick() }) {
-        Box(modifier = Modifier.size(60.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant), contentAlignment = Alignment.Center) {
-            Image(painter = rememberAsyncImagePainter(ImageRequest.Builder(LocalContext.current).data(country.image).crossfade(true).build()), contentDescription = country.title, modifier = Modifier.size(56.dp).clip(CircleShape), contentScale = ContentScale.Crop)
-        }
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(country.title, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.width(70.dp), textAlign = TextAlign.Center)
-    }
-}
-
-@Composable
-fun SearchResultsGrid(posters: List<Poster>, navController: NavController?, context: Context) {
->>>>>>> 6287ac19c27b480fc114839c05283fe62579b0c5
     val columns = DeviceUtils.getGridColumns(LocalContext.current.resources)
     LazyVerticalGrid(
         columns = GridCells.Fixed(columns),
@@ -570,7 +495,6 @@ fun SearchResultsGrid(posters: List<Poster>, navController: NavController?, cont
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(posters) { poster ->
-<<<<<<< HEAD
             PosterItem(
                 poster = poster,
                 onClick = {
@@ -585,18 +509,11 @@ fun SearchResultsGrid(posters: List<Poster>, navController: NavController?, cont
                     }
                 }
             )
-=======
-            PosterItem(poster = poster, onClick = {
-                if (poster.isMovie()) { StorageUtils.saveMovieToFile(context, poster.toMovie()); navController?.navigate("single_movie/${poster.id}") }
-                else if (poster.isSeries()) { StorageUtils.saveSeriesToFile(context, poster.toSeries()); navController?.navigate("single_series/${poster.id}") }
-            })
->>>>>>> 6287ac19c27b480fc114839c05283fe62579b0c5
         }
     }
 }
 
 @Composable
-<<<<<<< HEAD
 fun PosterItem(
     poster: Poster,
     onClick: () -> Unit
@@ -732,29 +649,6 @@ fun PosterItem(
                         overflow = TextOverflow.Ellipsis
                     )
                 }
-=======
-fun PosterItem(poster: Poster, onClick: () -> Unit) {
-    val tint = rememberGlassTint()
-    Card(modifier = Modifier.fillMaxWidth().height(310.dp).subtleGlassSurface(shape = RoundedCornerShape(GlassCorners.Card), tint = tint).clickable { onClick() }, shape = RoundedCornerShape(GlassCorners.Card), elevation = CardDefaults.cardElevation(0.dp), colors = CardDefaults.cardColors(containerColor = Color.Transparent)) {
-        Column(modifier = Modifier.fillMaxSize().padding(12.dp)) {
-            Box {
-                Image(painter = rememberAsyncImagePainter(ImageRequest.Builder(LocalContext.current).data(poster.image).crossfade(true).build()), contentDescription = poster.title, modifier = Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(GlassCorners.Poster)), contentScale = ContentScale.Crop)
-                Card(modifier = Modifier.align(Alignment.TopEnd).padding(8.dp), shape = RoundedCornerShape(GlassCorners.Tag), colors = CardDefaults.cardColors(containerColor = Color.Black.copy(alpha = 0.7f))) {
-                    Row(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Star, contentDescription = "Rating", tint = Color.Yellow, modifier = Modifier.size(14.dp)); Spacer(modifier = Modifier.width(4.dp)); Text(String.format("%.1f", poster.imdb), style = MaterialTheme.typography.bodySmall, color = Color.White, fontWeight = FontWeight.Medium)
-                    }
-                }
-                Card(modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp), shape = RoundedCornerShape(GlassCorners.Tag), colors = CardDefaults.cardColors(containerColor = if (poster.isMovie()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary)) {
-                    Box(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)) { Text(if (poster.isMovie()) "Movie" else "Series", style = MaterialTheme.typography.bodySmall, color = if (poster.isMovie()) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondary, fontWeight = FontWeight.Medium) }
-                }
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(poster.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium, maxLines = 2, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurface)
-                Spacer(modifier = Modifier.height(4.dp)); Text(poster.year.toString(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Spacer(modifier = Modifier.height(8.dp))
-                if (poster.genres.isNotEmpty()) Text(poster.genres.joinToString(", ") { it.title }, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary, maxLines = 1, overflow = TextOverflow.Ellipsis)
->>>>>>> 6287ac19c27b480fc114839c05283fe62579b0c5
             }
         }
     }
