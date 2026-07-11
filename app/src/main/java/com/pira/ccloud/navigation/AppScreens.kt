@@ -99,6 +99,10 @@ sealed class AppScreens(
     )
 
     companion object {
+<<<<<<< HEAD
         val screens = listOf(Home, Search, Favorites, Settings)
+=======
+        val screens = listOf(Movies, Series, Search, Favorites, Settings)
+>>>>>>> 6287ac19c27b480fc114839c05283fe62579b0c5
     }
 }

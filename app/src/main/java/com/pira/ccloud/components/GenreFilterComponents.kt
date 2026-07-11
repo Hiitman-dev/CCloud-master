@@ -38,13 +38,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pira.ccloud.data.model.FilterType
 import com.pira.ccloud.data.model.Genre
+<<<<<<< HEAD
+=======
+import com.pira.ccloud.ui.theme.GlassCorners
+>>>>>>> 6287ac19c27b480fc114839c05283fe62579b0c5
 import com.pira.ccloud.ui.theme.glassSurface
 import com.pira.ccloud.ui.theme.rememberGlassTint
 
 /**
  * Compact "Filters" trigger. Tapping it raises a glass-styled bottom sheet
+<<<<<<< HEAD
  * popup with the sort type and genre pickers, instead of two wide always-open
  * dropdown cards taking up permanent space on the screen.
+=======
+ * popup with the sort type and genre pickers.
+>>>>>>> 6287ac19c27b480fc114839c05283fe62579b0c5
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,8 +81,13 @@ fun GenreFilterSection(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+<<<<<<< HEAD
             .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(14.dp),
+=======
+            .padding(start = 24.dp, end = 24.dp, top = 12.dp, bottom = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+>>>>>>> 6287ac19c27b480fc114839c05283fe62579b0c5
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Search icon comes first in reading order, with its own breathing

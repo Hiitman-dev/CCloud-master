@@ -1,7 +1,11 @@
 package com.pira.ccloud.navigation
 
 import androidx.compose.animation.animateColorAsState
+<<<<<<< HEAD
 import androidx.compose.animation.core.animateFloatAsState
+=======
+import androidx.compose.animation.core.spring
+>>>>>>> 6287ac19c27b480fc114839c05283fe62579b0c5
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,6 +37,10 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.NavGraph.Companion.findStartDestination
+<<<<<<< HEAD
+=======
+import androidx.navigation.compose.currentBackStackEntryAsState
+>>>>>>> 6287ac19c27b480fc114839c05283fe62579b0c5
 
 @Composable
 fun SidebarNavigation(navController: NavController) {
@@ -42,9 +50,15 @@ fun SidebarNavigation(navController: NavController) {
     NavigationRail(
         modifier = Modifier
             .fillMaxHeight()
+<<<<<<< HEAD
             .width(100.dp) // Increased width for better TV experience
             .padding(top = 24.dp, bottom = 24.dp), // Add padding top and bottom
         containerColor = androidx.compose.material3.MaterialTheme.colorScheme.surface,
+=======
+            .width(100.dp)
+            .padding(top = 24.dp, bottom = 24.dp),
+        containerColor = MaterialTheme.colorScheme.surface,
+>>>>>>> 6287ac19c27b480fc114839c05283fe62579b0c5
         header = {
             // Optional header content
             Spacer(modifier = Modifier.height(16.dp))
@@ -147,8 +161,12 @@ fun SidebarNavigation(navController: NavController) {
                     )
                 }
             }
+<<<<<<< HEAD
             
             // Optional footer content like settings
+=======
+
+>>>>>>> 6287ac19c27b480fc114839c05283fe62579b0c5
             Spacer(modifier = Modifier.height(24.dp))
         }
     }

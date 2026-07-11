@@ -92,9 +92,17 @@ fun MoviesScreen(
             viewModel.loadMovies()
         }
     }
+<<<<<<< HEAD
     
     Column(modifier = Modifier.fillMaxSize()) {
         // Genre filter section
+=======
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        com.pira.ccloud.components.HomeAmbientBackground(modifier = Modifier.fillMaxSize())
+
+        Column(modifier = Modifier.fillMaxSize()) {
+>>>>>>> 6287ac19c27b480fc114839c05283fe62579b0c5
         GenreFilterSection(
             genres = genres,
             selectedGenreId = selectedGenreId,
@@ -133,6 +141,10 @@ fun MoviesScreen(
                 )
             }
         }
+<<<<<<< HEAD
+=======
+        }
+>>>>>>> 6287ac19c27b480fc114839c05283fe62579b0c5
     }
 }
 

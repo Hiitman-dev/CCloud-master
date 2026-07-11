@@ -116,6 +116,7 @@ fun appTypography(fontFamily: FontFamily?): androidx.compose.material3.Typograph
     )
 }
 
+<<<<<<< HEAD
 /**
  * App-wide Material3 theme.
  *
@@ -128,6 +129,44 @@ fun appTypography(fontFamily: FontFamily?): androidx.compose.material3.Typograph
  * [buildAppColorScheme] derivation so all color roles - including the ones
  * screens never override directly - stay internally consistent.
  */
+=======
+// Note: SurfaceWarmWhite, SurfacePearl, SurfaceIceGray, SurfaceCloud,
+// DarkBackground, DarkSurface, DarkSurfaceElevated, DarkSurfaceMuted,
+// TextMutedLight, TextMutedDark are already defined publicly in Color.kt
+// (same package) - reused directly here instead of redeclaring them.
+private val ThemeTextPrimary    = Color(0xFF1A1C22)
+private val ThemeTextOnDark     = Color(0xFFF0F1F5)
+
+private val ThemeAccentBlue     = Color(0xFF5B7FFF)
+private val ThemeAccentBlueDark = Color(0xFF7B9AFF)
+
+private val LightColorScheme = lightColorScheme(
+    primary = ThemeAccentBlue, onPrimary = Color.White,
+    primaryContainer = Color(0xFFE0E7FF), onPrimaryContainer = Color(0xFF1A2550),
+    secondary = SurfaceIceGray, onSecondary = ThemeTextPrimary,
+    secondaryContainer = SurfaceCloud, onSecondaryContainer = ThemeTextPrimary,
+    tertiary = Color(0xFF7C8DAA),
+    background = SurfaceWarmWhite, onBackground = ThemeTextPrimary,
+    surface = SurfacePearl, onSurface = ThemeTextPrimary,
+    surfaceVariant = SurfaceIceGray, onSurfaceVariant = TextMutedLight,
+    error = Color(0xFFBA1A1A), onError = Color.White,
+    outline = Color(0xFFD0D3DA), outlineVariant = Color(0xFFE4E6EC)
+)
+
+private val DarkColorScheme = darkColorScheme(
+    primary = ThemeAccentBlueDark, onPrimary = Color(0xFF0D1540),
+    primaryContainer = Color(0xFF2A3570), onPrimaryContainer = Color(0xFFD6DFFF),
+    secondary = DarkSurfaceElevated, onSecondary = ThemeTextOnDark,
+    secondaryContainer = DarkSurfaceMuted, onSecondaryContainer = ThemeTextOnDark,
+    tertiary = Color(0xFF8A95AD),
+    background = DarkBackground, onBackground = ThemeTextOnDark,
+    surface = DarkSurface, onSurface = ThemeTextOnDark,
+    surfaceVariant = DarkSurfaceElevated, onSurfaceVariant = TextMutedDark,
+    error = Color(0xFFFFB4AB), onError = Color(0xFF690005),
+    outline = Color(0xFF3A3D46), outlineVariant = Color(0xFF2A2D36)
+)
+
+>>>>>>> 6287ac19c27b480fc114839c05283fe62579b0c5
 @Composable
 fun CCloudTheme(
     themeSettings: ThemeSettings = ThemeSettings(),
@@ -143,8 +182,48 @@ fun CCloudTheme(
 
     val fontFamily = FontManager.loadFontFamily(context, fontSettings.fontType)
 
+<<<<<<< HEAD
     val colorScheme = remember(themeSettings.primaryColor, darkTheme) {
         buildAppColorScheme(seed = themeSettings.primaryColor, dark = darkTheme)
+=======
+    val colorScheme = when {
+        themeSettings.primaryColor != defaultPrimaryColor -> {
+            if (darkTheme) {
+                darkColorScheme(
+                    primary = themeSettings.primaryColor, onPrimary = Color.White,
+                    primaryContainer = themeSettings.primaryColor.copy(alpha = 0.15f),
+                    onPrimaryContainer = themeSettings.primaryColor.copy(alpha = 0.9f),
+                    secondary = DarkSurfaceElevated, onSecondary = ThemeTextOnDark,
+                    secondaryContainer = DarkSurfaceMuted, onSecondaryContainer = ThemeTextOnDark,
+                    tertiary = Color(0xFF8A95AD),
+                    background = DarkBackground, onBackground = ThemeTextOnDark,
+                    surface = DarkSurface, onSurface = ThemeTextOnDark,
+                    surfaceVariant = DarkSurfaceElevated, onSurfaceVariant = TextMutedDark,
+                    error = Color(0xFFFFB4AB), onError = Color(0xFF690005),
+                    outline = Color(0xFF3A3D46), outlineVariant = Color(0xFF2A2D36)
+                )
+            } else {
+                lightColorScheme(
+                    primary = themeSettings.primaryColor, onPrimary = Color.White,
+                    primaryContainer = themeSettings.primaryColor.copy(alpha = 0.12f),
+                    onPrimaryContainer = themeSettings.primaryColor.copy(alpha = 0.85f),
+                    secondary = SurfaceIceGray, onSecondary = ThemeTextPrimary,
+                    secondaryContainer = SurfaceCloud, onSecondaryContainer = ThemeTextPrimary,
+                    tertiary = Color(0xFF7C8DAA),
+                    background = SurfaceWarmWhite, onBackground = ThemeTextPrimary,
+                    surface = SurfacePearl, onSurface = ThemeTextPrimary,
+                    surfaceVariant = SurfaceIceGray, onSurfaceVariant = TextMutedLight,
+                    error = Color(0xFFBA1A1A), onError = Color.White,
+                    outline = Color(0xFFD0D3DA), outlineVariant = Color(0xFFE4E6EC)
+                )
+            }
+        }
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        }
+        darkTheme -> DarkColorScheme
+        else -> LightColorScheme
+>>>>>>> 6287ac19c27b480fc114839c05283fe62579b0c5
     }
 
     val view = LocalView.current

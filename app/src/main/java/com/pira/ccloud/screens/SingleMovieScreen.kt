@@ -38,9 +38,12 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+<<<<<<< HEAD
 import com.pira.ccloud.ui.theme.glassSurface
 import com.pira.ccloud.ui.theme.rememberGlassTint
 import androidx.compose.material3.Scaffold
+=======
+>>>>>>> 6287ac19c27b480fc114839c05283fe62579b0c5
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -92,11 +95,15 @@ fun SingleMovieScreen(
         MovieDetailsContent(
             movie = movie!!,
             onBackClick = { navController.popBackStack() },
+<<<<<<< HEAD
             onPlayClick = { source ->
                 // Launch video player activity
                 VideoPlayerActivity.start(context, source.url)
             },
             // Remove any padding from parent Scaffold to use full screen
+=======
+            onPlayClick = { source -> VideoPlayerActivity.start(context, source.url) },
+>>>>>>> 6287ac19c27b480fc114839c05283fe62579b0c5
             modifier = Modifier.fillMaxSize()
         )
     } else {

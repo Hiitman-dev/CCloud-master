@@ -43,6 +43,7 @@ import com.pira.ccloud.ui.theme.glassSurface
 import com.pira.ccloud.ui.theme.rememberGlassTint
 
 /**
+<<<<<<< HEAD
  * A fully custom floating pill nav bar - drawn as our own Row inside a glass
  * Box - instead of Material3's `NavigationBar`. `NavigationBar` draws its own
  * rectangular `Surface` internally for elevation/shadow, which showed through
@@ -51,11 +52,21 @@ import com.pira.ccloud.ui.theme.rememberGlassTint
  * capsule that sits clear of the screen edges, with an opaque-enough tint
  * that it doesn't let the movie posters/list bleed through and confuse
  * which tab is selected.
+=======
+ * Telegram-inspired floating pill navigation bar.
+ *
+ * Semi-opaque glass surface, rounded capsule (32px), soft ambient shadow,
+ * thin 1px border. Height ~80dp. No heavy blur or liquid effects.
+>>>>>>> 6287ac19c27b480fc114839c05283fe62579b0c5
  */
 @Composable
 fun BottomNavigationBar(navController: NavController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+<<<<<<< HEAD
+=======
+    val glassTint = rememberGlassTint()
+>>>>>>> 6287ac19c27b480fc114839c05283fe62579b0c5
 
     val glassTint = rememberGlassTint()
 
@@ -63,16 +74,25 @@ fun BottomNavigationBar(navController: NavController) {
         modifier = Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
+<<<<<<< HEAD
             .padding(horizontal = 20.dp, vertical = 10.dp)
+=======
+            .padding(horizontal = 20.dp, vertical = 8.dp)
+>>>>>>> 6287ac19c27b480fc114839c05283fe62579b0c5
             .shadow(
                 elevation = 12.dp,
                 shape = RoundedCornerShape(GlassCorners.Navigation),
                 ambientColor = Color.Black.copy(alpha = 0.06f),
+<<<<<<< HEAD
                 spotColor = Color.Black.copy(alpha = 0.06f)
+=======
+                spotColor = Color.Black.copy(alpha = 0.04f)
+>>>>>>> 6287ac19c27b480fc114839c05283fe62579b0c5
             )
             .glassSurface(
                 shape = RoundedCornerShape(GlassCorners.Navigation),
                 tint = glassTint,
+<<<<<<< HEAD
                 // Per spec, the bottom nav is a solid floating capsule, not a
                 // see-through glass panel: 90%-95% opaque with only soft
                 // blur/shadow for elevation, so it reads as "production
@@ -80,11 +100,23 @@ fun BottomNavigationBar(navController: NavController) {
                 tintAlpha = 0.94f,
                 borderAlpha = 0.22f
             )
+=======
+                tintAlpha = 0.42f,
+                borderAlpha = 0.28f
+            ),
+        shape = RoundedCornerShape(GlassCorners.Navigation),
+        color = Color.Transparent,
+        tonalElevation = 0.dp
+>>>>>>> 6287ac19c27b480fc114839c05283fe62579b0c5
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+<<<<<<< HEAD
                 .padding(horizontal = 4.dp, vertical = 6.dp),
+=======
+                .padding(horizontal = 6.dp, vertical = 6.dp),
+>>>>>>> 6287ac19c27b480fc114839c05283fe62579b0c5
         ) {
             AppScreens.screens.filter { it.showBottomBar }.forEach { screen ->
                 val isSelected = currentRoute == screen.route
