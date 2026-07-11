@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -50,6 +51,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -65,16 +67,19 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.pira.ccloud.data.model.FavoriteItem
-import com.pira.ccloud.data.model.FilterType
 import com.pira.ccloud.data.model.Movie
 import com.pira.ccloud.data.model.Series
 import com.pira.ccloud.ui.home.HomeViewModel
-import com.pira.ccloud.ui.movies.ModernCircularProgressIndicator
 import com.pira.ccloud.ui.theme.GlassCorners
 import com.pira.ccloud.ui.theme.rememberGlassTint
 import com.pira.ccloud.ui.theme.subtleGlassSurface
 import com.pira.ccloud.utils.DeviceUtils
 import com.pira.ccloud.utils.StorageUtils
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 
 private enum class HomeTab(val label: String) {
     CONTINUE_WATCHING("Continue Watching"),
@@ -99,12 +104,9 @@ fun HomeScreen(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // ---- Scrollable content (behind the floating bar) ----
         Column(modifier = Modifier.fillMaxSize()) {
-            // Spacer so content starts below the floating bar
             Spacer(modifier = Modifier.height(120.dp))
 
-            // Horizontal scrollable tabs
             ScrollableTabRow(
                 selectedTabIndex = selectedTab,
                 modifier = Modifier.fillMaxWidth(),
@@ -140,21 +142,15 @@ fun HomeScreen(
                 }
             }
 
-            // Tab content
             when (HomeTab.entries[selectedTab]) {
                 HomeTab.CONTINUE_WATCHING -> ContinueWatchingTab(viewModel, navController)
                 HomeTab.TODAY_UPDATES -> TodayUpdatesTab(viewModel, navController)
                 HomeTab.NEW_RELEASES -> NewReleasesTab(viewModel, navController)
-                HomeTab.MOVIES -> MoviesTab(
-                    viewModel = viewModel,
-                    navController = navController,
-                    onFilterClick = { showFilterSheet = true }
-                )
+                HomeTab.MOVIES -> MoviesTab(viewModel, navController)
                 HomeTab.SERIES -> SeriesTab(viewModel, navController)
             }
         }
 
-        // ---- Floating Glassmorphism Top Bar ----
         FloatingTopBar(
             onSearchClick = {
                 navController?.navigate("search") {
@@ -166,14 +162,13 @@ fun HomeScreen(
         )
     }
 
-    // Filter bottom sheet for Movies tab
     if (showFilterSheet) {
         com.pira.ccloud.components.GenreFilterBottomSheet(
             genres = viewModel.genres,
             selectedGenreId = viewModel.selectedGenreId,
             selectedFilterType = viewModel.selectedFilterType,
-            onGenreSelected = { viewModel.selectGenre(it) },
-            onFilterTypeSelected = { viewModel.selectFilterType(it) },
+            onGenreSelected = { genreId -> viewModel.selectGenre(genreId) },
+            onFilterTypeSelected = { filterType -> viewModel.selectFilterType(filterType) },
             onDismiss = { showFilterSheet = false }
         )
     }
@@ -226,26 +221,22 @@ private fun FloatingTopBar(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // App title
             Text(
                 text = "CCloud",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
             )
-
             Row(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Filter button
                 GlassCircleButton(
                     icon = Icons.Default.FilterList,
                     contentDescription = "Filter",
                     onClick = onFilterClick,
                     isDark = isDark
                 )
-                // Search button
                 GlassCircleButton(
                     icon = Icons.Default.Search,
                     contentDescription = "Search",
@@ -265,7 +256,6 @@ private fun GlassCircleButton(
     isDark: Boolean
 ) {
     val glassTint = rememberGlassTint()
-
     IconButton(
         onClick = onClick,
         modifier = Modifier
@@ -304,10 +294,10 @@ private fun GlassCircleButton(
 
 @Composable
 private fun ContinueWatchingTab(viewModel: HomeViewModel, navController: NavController?) {
-    val items = viewModel.recentlyViewed
+    val itemsList: List<FavoriteItem> = viewModel.recentlyViewed
     val context = LocalContext.current
 
-    if (items.isEmpty()) {
+    if (itemsList.isEmpty()) {
         EmptyState("No recently viewed content", "Start watching movies or series to see them here")
     } else {
         LazyVerticalGrid(
@@ -317,7 +307,10 @@ private fun ContinueWatchingTab(viewModel: HomeViewModel, navController: NavCont
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(items) { item ->
+            items(
+                items = itemsList,
+                key = { item: FavoriteItem -> "${item.type}_${item.id}" }
+            ) { item: FavoriteItem ->
                 FavoriteContentCard(
                     item = item,
                     onClick = {
@@ -336,15 +329,15 @@ private fun ContinueWatchingTab(viewModel: HomeViewModel, navController: NavCont
 
 @Composable
 private fun TodayUpdatesTab(viewModel: HomeViewModel, navController: NavController?) {
-    val movies = viewModel.todayMovies
-    val seriesList = viewModel.todaySeries
+    val moviesList: List<Movie> = viewModel.todayMovies
+    val seriesList: List<Series> = viewModel.todaySeries
 
-    if (movies.isEmpty() && seriesList.isEmpty() && viewModel.isLoading) {
+    if (moviesList.isEmpty() && seriesList.isEmpty() && viewModel.isLoading) {
         LoadingState()
-    } else if (movies.isEmpty() && seriesList.isEmpty()) {
+    } else if (moviesList.isEmpty() && seriesList.isEmpty()) {
         EmptyState("No updates today", "Check back later for new content")
     } else {
-        val columns = DeviceUtils.getGridColumns(LocalContext.current.resources)
+        val columns: Int = DeviceUtils.getGridColumns(LocalContext.current.resources)
         LazyVerticalGrid(
             columns = GridCells.Fixed(columns),
             modifier = Modifier.fillMaxSize(),
@@ -352,11 +345,14 @@ private fun TodayUpdatesTab(viewModel: HomeViewModel, navController: NavControll
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            if (movies.isNotEmpty()) {
+            if (moviesList.isNotEmpty()) {
                 item(span = { GridItemSpan(columns) }) {
                     SectionHeader("Movies Updated Today")
                 }
-                items(movies) { movie ->
+                items(
+                    items = moviesList,
+                    key = { movie: Movie -> movie.id }
+                ) { movie: Movie ->
                     MovieCard(movie = movie, onClick = {
                         StorageUtils.saveMovieToFile(LocalContext.current, movie)
                         navController?.navigate("single_movie/${movie.id}")
@@ -367,7 +363,10 @@ private fun TodayUpdatesTab(viewModel: HomeViewModel, navController: NavControll
                 item(span = { GridItemSpan(columns) }) {
                     SectionHeader("Series Updated Today")
                 }
-                items(seriesList) { series ->
+                items(
+                    items = seriesList,
+                    key = { series: Series -> series.id }
+                ) { series: Series ->
                     SeriesCard(series = series, onClick = {
                         navController?.navigate("single_series/${series.id}")
                     })
@@ -379,14 +378,14 @@ private fun TodayUpdatesTab(viewModel: HomeViewModel, navController: NavControll
 
 @Composable
 private fun NewReleasesTab(viewModel: HomeViewModel, navController: NavController?) {
-    val movies = viewModel.newReleases
+    val moviesList: List<Movie> = viewModel.newReleases
 
-    if (movies.isEmpty() && viewModel.isLoading) {
+    if (moviesList.isEmpty() && viewModel.isLoading) {
         LoadingState()
-    } else if (movies.isEmpty()) {
+    } else if (moviesList.isEmpty()) {
         EmptyState("No new releases", "Check back soon for new cinema content")
     } else {
-        val columns = DeviceUtils.getGridColumns(LocalContext.current.resources)
+        val columns: Int = DeviceUtils.getGridColumns(LocalContext.current.resources)
         LazyVerticalGrid(
             columns = GridCells.Fixed(columns),
             modifier = Modifier.fillMaxSize(),
@@ -394,7 +393,10 @@ private fun NewReleasesTab(viewModel: HomeViewModel, navController: NavControlle
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(movies) { movie ->
+            items(
+                items = moviesList,
+                key = { movie: Movie -> movie.id }
+            ) { movie: Movie ->
                 MovieCard(movie = movie, onClick = {
                     StorageUtils.saveMovieToFile(LocalContext.current, movie)
                     navController?.navigate("single_movie/${movie.id}")
@@ -405,32 +407,29 @@ private fun NewReleasesTab(viewModel: HomeViewModel, navController: NavControlle
 }
 
 @Composable
-private fun MoviesTab(
-    viewModel: HomeViewModel,
-    navController: NavController?,
-    onFilterClick: () -> Unit
-) {
-    val movies = viewModel.movies
+private fun MoviesTab(viewModel: HomeViewModel, navController: NavController?) {
+    val moviesList: List<Movie> = viewModel.movies
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
-        if (movies.isEmpty()) {
+        if (moviesList.isEmpty()) {
             viewModel.loadMovies()
         }
     }
 
     when {
-        viewModel.isLoading && movies.isEmpty() -> {
+        viewModel.isLoading && moviesList.isEmpty() -> {
             LoadingState()
         }
-        viewModel.errorMessage != null && movies.isEmpty() -> {
+        viewModel.errorMessage != null && moviesList.isEmpty() -> {
+            val msg: String = viewModel.errorMessage ?: "Unknown error"
             ErrorState(
-                message = viewModel.errorMessage ?: "Unknown error",
+                message = msg,
                 onRetry = { viewModel.refreshMovies() }
             )
         }
         else -> {
-            val columns = DeviceUtils.getGridColumns(context.resources)
+            val columns: Int = DeviceUtils.getGridColumns(context.resources)
             LazyVerticalGrid(
                 columns = GridCells.Fixed(columns),
                 modifier = Modifier.fillMaxSize(),
@@ -438,12 +437,15 @@ private fun MoviesTab(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                itemsIndexed(movies) { index, movie ->
+                itemsIndexed(
+                    items = moviesList,
+                    key = { index: Int, movie: Movie -> movie.id }
+                ) { index: Int, movie: Movie ->
                     MovieCard(movie = movie, onClick = {
                         StorageUtils.saveMovieToFile(context, movie)
                         navController?.navigate("single_movie/${movie.id}")
                     })
-                    if (index >= movies.size - 3) {
+                    if (index >= moviesList.size - 3) {
                         LaunchedEffect(Unit) {
                             viewModel.loadMoreMovies()
                         }
@@ -455,7 +457,7 @@ private fun MoviesTab(
                             modifier = Modifier.fillMaxWidth().padding(16.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            ModernCircularProgressIndicator()
+                            HomeProgressIndicator()
                         }
                     }
                 }
@@ -466,7 +468,7 @@ private fun MoviesTab(
 
 @Composable
 private fun SeriesTab(viewModel: HomeViewModel, navController: NavController?) {
-    val seriesList = viewModel.series
+    val seriesList: List<Series> = viewModel.series
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
@@ -480,13 +482,14 @@ private fun SeriesTab(viewModel: HomeViewModel, navController: NavController?) {
             LoadingState()
         }
         viewModel.errorMessage != null && seriesList.isEmpty() -> {
+            val msg: String = viewModel.errorMessage ?: "Unknown error"
             ErrorState(
-                message = viewModel.errorMessage ?: "Unknown error",
+                message = msg,
                 onRetry = { viewModel.refreshSeries() }
             )
         }
         else -> {
-            val columns = DeviceUtils.getGridColumns(context.resources)
+            val columns: Int = DeviceUtils.getGridColumns(context.resources)
             LazyVerticalGrid(
                 columns = GridCells.Fixed(columns),
                 modifier = Modifier.fillMaxSize(),
@@ -494,7 +497,10 @@ private fun SeriesTab(viewModel: HomeViewModel, navController: NavController?) {
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                itemsIndexed(seriesList) { index, series ->
+                itemsIndexed(
+                    items = seriesList,
+                    key = { index: Int, series: Series -> series.id }
+                ) { index: Int, series: Series ->
                     SeriesCard(series = series, onClick = {
                         navController?.navigate("single_series/${series.id}")
                     })
@@ -510,7 +516,7 @@ private fun SeriesTab(viewModel: HomeViewModel, navController: NavController?) {
                             modifier = Modifier.fillMaxWidth().padding(16.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            ModernCircularProgressIndicator()
+                            HomeProgressIndicator()
                         }
                     }
                 }
@@ -520,6 +526,32 @@ private fun SeriesTab(viewModel: HomeViewModel, navController: NavController?) {
 }
 
 // ---- Reusable UI Components ----
+
+@Composable
+private fun HomeProgressIndicator() {
+    val transition = rememberInfiniteTransition(label = "progress")
+    val progress by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1000, easing = LinearEasing)
+        ), label = "progress_anim"
+    )
+    val rotation by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 2000, easing = LinearEasing)
+        ), label = "rotation_anim"
+    )
+    CircularProgressIndicator(
+        progress = { progress },
+        modifier = Modifier.size(48.dp).rotate(rotation),
+        strokeWidth = 4.dp,
+        trackColor = MaterialTheme.colorScheme.surfaceVariant,
+        color = MaterialTheme.colorScheme.primary
+    )
+}
 
 @Composable
 private fun SectionHeader(title: String) {
@@ -837,7 +869,7 @@ private fun LoadingState() {
             modifier = Modifier.padding(16.dp),
             fontWeight = FontWeight.Medium
         )
-        ModernCircularProgressIndicator()
+        HomeProgressIndicator()
     }
 }
 
