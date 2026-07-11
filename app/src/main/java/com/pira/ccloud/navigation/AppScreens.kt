@@ -88,8 +88,6 @@ sealed class AppScreens(
     )
 
     companion object {
-        // Search removed from bottom bar — accessed via magnifying-glass icon
-        // next to the filter section on Movies / Series screens.
-        val screens = listOf(Movies, Series, Favorites, Settings)
+        val screens = listOf(Movies, Series, Search, Favorites, Settings)
     }
 }

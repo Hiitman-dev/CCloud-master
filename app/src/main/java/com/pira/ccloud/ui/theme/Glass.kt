@@ -195,48 +195,11 @@ fun GlassSurface(
 }
 
 /**
-<<<<<<< HEAD
  * Glass-styled Material Overlay Dialog.
  *
  * Background: Blur → Dim → Freeze
  * Dialog: Rounded (28dp), Glass, Minimal shadow
  * Only ONE sheet should exist. No nested overlays.
-=======
- * A matte overlay surface for detail screens (movie/series details).
- * Creates a semi-transparent frosted overlay that sits on top of the
- * previous screen content, giving a "matte glass" effect without a solid background.
- * The overlay uses the theme's surface color with low alpha for a subtle,
- * non-distracting appearance.
- */
-@Composable
-fun Modifier.matteOverlay(
-    shape: Shape = RoundedCornerShape(0.dp)
-): Modifier {
-    val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
-    val overlayColor = if (isDark) Color.Black else Color.White
-    return this
-        .background(
-            brush = Brush.verticalGradient(
-                colors = listOf(
-                    overlayColor.copy(alpha = 0.85f),
-                    overlayColor.copy(alpha = 0.92f),
-                    overlayColor.copy(alpha = 0.95f)
-                )
-            )
-        )
-        .border(
-            width = 0.dp,
-            color = Color.Transparent,
-            shape = shape
-        )
-}
-
-/**
- * A drop-in glass-styled replacement for Material3's `AlertDialog`.
- * Mirrors the same parameter names/positions (onDismissRequest, icon, title,
- * text, confirmButton, dismissButton) so existing call sites can switch from
- * `AlertDialog(...)` to `GlassAlertDialog(...)` without touching their content.
->>>>>>> 16bb46ea3318e8f7e2ba73e2f974008e3b01c44d
  */
 @Composable
 fun GlassAlertDialog(

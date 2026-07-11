@@ -39,13 +39,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-<<<<<<< HEAD
-=======
-import com.pira.ccloud.ui.theme.glassSurface
-import com.pira.ccloud.ui.theme.matteOverlay
-import com.pira.ccloud.ui.theme.rememberGlassTint
-import androidx.compose.material3.Scaffold
->>>>>>> 16bb46ea3318e8f7e2ba73e2f974008e3b01c44d
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -160,10 +153,7 @@ fun SingleSeriesScreen(
             onDownloadClick = { episode ->
                 if (episode.sources.isNotEmpty()) { downloadSources = episode.sources; showDownloadMenu = true }
             },
-            // Apply matte overlay effect for the entire screen
-            modifier = Modifier
-                .fillMaxSize()
-                .matteOverlay()
+            modifier = Modifier.fillMaxSize()
         )
     } else {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

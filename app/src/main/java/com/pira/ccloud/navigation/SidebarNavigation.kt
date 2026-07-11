@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material3.Icon
@@ -34,38 +33,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
-<<<<<<< HEAD
 import androidx.navigation.compose.currentBackStackEntryAsState
-=======
-import com.pira.ccloud.ui.theme.GlassCorners
-import com.pira.ccloud.ui.theme.glassSurface
-import com.pira.ccloud.ui.theme.rememberGlassTint
->>>>>>> 16bb46ea3318e8f7e2ba73e2f974008e3b01c44d
 
 @Composable
 fun SidebarNavigation(navController: NavController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    val glassTint = rememberGlassTint()
 
     NavigationRail(
         modifier = Modifier
             .fillMaxHeight()
-<<<<<<< HEAD
             .width(100.dp)
             .padding(top = 24.dp, bottom = 24.dp),
         containerColor = MaterialTheme.colorScheme.surface,
-=======
-            .width(100.dp) // Increased width for better TV experience
-            .padding(top = 24.dp, bottom = 24.dp)
-            .glassSurface(
-                shape = RoundedCornerShape(GlassCorners.Navigation),
-                tint = glassTint,
-                tintAlpha = 0.45f,
-                borderAlpha = 0.28f
-            ),
-        containerColor = Color.Transparent,
->>>>>>> 16bb46ea3318e8f7e2ba73e2f974008e3b01c44d
         header = {
             Spacer(modifier = Modifier.height(16.dp))
         }

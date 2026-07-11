@@ -109,69 +109,21 @@ fun AppNavigation(
         }
         composable(
             route = AppScreens.SingleMovie.route,
-            arguments = listOf(navArgument("movieId") { defaultValue = "0" }),
-            enterTransition = {
-                androidx.compose.animation.slideInVertically(
-                    initialOffsetY = { fullHeight -> fullHeight / 4 },
-                    animationSpec = androidx.compose.animation.core.tween(320)
-                ) + androidx.compose.animation.fadeIn(
-                    animationSpec = androidx.compose.animation.core.tween(320)
-                )
-            },
-            exitTransition = {
-                androidx.compose.animation.slideOutVertically(
-                    targetOffsetY = { fullHeight -> fullHeight / 4 },
-                    animationSpec = androidx.compose.animation.core.tween(280)
-                ) + androidx.compose.animation.fadeOut(
-                    animationSpec = androidx.compose.animation.core.tween(280)
-                )
-            }
+            arguments = listOf(navArgument("movieId") { defaultValue = "0" })
         ) { backStackEntry ->            
             val movieId = backStackEntry.arguments?.getString("movieId")?.toIntOrNull() ?: 0
             SingleMovieScreen(movieId = movieId, navController = navController)
         }
         composable(
             route = AppScreens.SingleSeries.route,
-            arguments = listOf(navArgument("seriesId") { defaultValue = "0" }),
-            enterTransition = {
-                androidx.compose.animation.slideInVertically(
-                    initialOffsetY = { fullHeight -> fullHeight / 4 },
-                    animationSpec = androidx.compose.animation.core.tween(320)
-                ) + androidx.compose.animation.fadeIn(
-                    animationSpec = androidx.compose.animation.core.tween(320)
-                )
-            },
-            exitTransition = {
-                androidx.compose.animation.slideOutVertically(
-                    targetOffsetY = { fullHeight -> fullHeight / 4 },
-                    animationSpec = androidx.compose.animation.core.tween(280)
-                ) + androidx.compose.animation.fadeOut(
-                    animationSpec = androidx.compose.animation.core.tween(280)
-                )
-            }
+            arguments = listOf(navArgument("seriesId") { defaultValue = "0" })
         ) { backStackEntry ->
             val seriesId = backStackEntry.arguments?.getString("seriesId")?.toIntOrNull() ?: 0
             SingleSeriesScreen(seriesId = seriesId, navController = navController)
         }
         composable(
             route = AppScreens.Country.route,
-            arguments = listOf(navArgument("countryId") { defaultValue = "0" }),
-            enterTransition = {
-                androidx.compose.animation.slideInHorizontally(
-                    initialOffsetX = { fullWidth -> fullWidth / 3 },
-                    animationSpec = androidx.compose.animation.core.tween(320)
-                ) + androidx.compose.animation.fadeIn(
-                    animationSpec = androidx.compose.animation.core.tween(320)
-                )
-            },
-            exitTransition = {
-                androidx.compose.animation.slideOutHorizontally(
-                    targetOffsetX = { fullWidth -> fullWidth / 3 },
-                    animationSpec = androidx.compose.animation.core.tween(280)
-                ) + androidx.compose.animation.fadeOut(
-                    animationSpec = androidx.compose.animation.core.tween(280)
-                )
-            }
+            arguments = listOf(navArgument("countryId") { defaultValue = "0" })
         ) { backStackEntry ->
             val countryId = backStackEntry.arguments?.getString("countryId")?.toIntOrNull() ?: 0
             CountryScreen(countryId = countryId, viewModel = countryViewModel, navController = navController)
