@@ -1,6 +1,9 @@
 package com.pira.ccloud.ui.home
 
 import android.app.Application
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.pira.ccloud.data.model.FavoriteItem
@@ -76,7 +79,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             try {
                 genres = genreRepository.getGenres()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 // Non-critical
             }
         }
@@ -107,13 +110,13 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         try {
             val fetchedMovies = movieRepository.getMovies(0, 0, FilterType.DEFAULT)
             todayMovies = fetchedMovies.filter { LanguageUtils.shouldDisplayTitle(it.title) }.take(20)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             todayMovies = emptyList()
         }
         try {
             val fetchedSeries = seriesRepository.getSeries(0, 0, FilterType.DEFAULT)
             todaySeries = fetchedSeries.filter { LanguageUtils.shouldDisplayTitle(it.title) }.take(20)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             todaySeries = emptyList()
         }
     }
@@ -122,7 +125,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         try {
             val fetchedMovies = movieRepository.getMovies(0, 0, FilterType.BY_YEAR)
             newReleases = fetchedMovies.filter { LanguageUtils.shouldDisplayTitle(it.title) }.take(20)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             newReleases = emptyList()
         }
     }
@@ -140,7 +143,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 if (page == 0) {
                     movies = filtered
                 } else {
-                    movies = movies + filtered
+                    val currentMovies = movies
+                    movies = currentMovies + filtered
                 }
                 currentMoviePage = page
             } catch (e: Exception) {
@@ -153,7 +157,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun loadMoreMovies() {
-        if (!isLoading && !isLoadingMore && canLoadMoreMovies) {
+        val shouldLoad = !isLoading && !isLoadingMore && canLoadMoreMovies
+        if (shouldLoad) {
             loadMovies(currentMoviePage + 1)
         }
     }
@@ -171,7 +176,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 if (page == 0) {
                     series = filtered
                 } else {
-                    series = series + filtered
+                    val currentSeries = series
+                    series = currentSeries + filtered
                 }
                 currentSeriesPage = page
             } catch (e: Exception) {
@@ -184,7 +190,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun loadMoreSeries() {
-        if (!isLoading && !isLoadingMore && canLoadMoreSeries) {
+        val shouldLoad = !isLoading && !isLoadingMore && canLoadMoreSeries
+        if (shouldLoad) {
             loadSeries(currentSeriesPage + 1)
         }
     }

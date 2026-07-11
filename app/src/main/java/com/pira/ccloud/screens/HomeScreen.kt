@@ -1,5 +1,10 @@
 package com.pira.ccloud.screens
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -75,11 +80,6 @@ import com.pira.ccloud.ui.theme.rememberGlassTint
 import com.pira.ccloud.ui.theme.subtleGlassSurface
 import com.pira.ccloud.utils.DeviceUtils
 import com.pira.ccloud.utils.StorageUtils
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 
 private enum class HomeTab(val label: String) {
     CONTINUE_WATCHING("Continue Watching"),
@@ -97,8 +97,11 @@ fun HomeScreen(
     var selectedTab by remember { mutableIntStateOf(0) }
     var showFilterSheet by remember { mutableStateOf(false) }
 
+    val todayMoviesList: List<Movie> = viewModel.todayMovies
+    val todaySeriesList: List<Series> = viewModel.todaySeries
+
     LaunchedEffect(Unit) {
-        if (viewModel.todayMovies.isEmpty() && viewModel.todaySeries.isEmpty()) {
+        if (todayMoviesList.isEmpty() && todaySeriesList.isEmpty()) {
             viewModel.loadAllSections()
         }
     }
@@ -124,7 +127,8 @@ fun HomeScreen(
                 },
                 divider = {}
             ) {
-                HomeTab.entries.forEachIndexed { index, tab ->
+                val tabs: List<HomeTab> = HomeTab.entries.toList()
+                tabs.forEachIndexed { index, tab ->
                     Tab(
                         selected = selectedTab == index,
                         onClick = { selectedTab = index },
@@ -331,6 +335,7 @@ private fun ContinueWatchingTab(viewModel: HomeViewModel, navController: NavCont
 private fun TodayUpdatesTab(viewModel: HomeViewModel, navController: NavController?) {
     val moviesList: List<Movie> = viewModel.todayMovies
     val seriesList: List<Series> = viewModel.todaySeries
+    val context = LocalContext.current
 
     if (moviesList.isEmpty() && seriesList.isEmpty() && viewModel.isLoading) {
         LoadingState()
@@ -354,7 +359,7 @@ private fun TodayUpdatesTab(viewModel: HomeViewModel, navController: NavControll
                     key = { movie: Movie -> movie.id }
                 ) { movie: Movie ->
                     MovieCard(movie = movie, onClick = {
-                        StorageUtils.saveMovieToFile(LocalContext.current, movie)
+                        StorageUtils.saveMovieToFile(context, movie)
                         navController?.navigate("single_movie/${movie.id}")
                     })
                 }
@@ -379,6 +384,7 @@ private fun TodayUpdatesTab(viewModel: HomeViewModel, navController: NavControll
 @Composable
 private fun NewReleasesTab(viewModel: HomeViewModel, navController: NavController?) {
     val moviesList: List<Movie> = viewModel.newReleases
+    val context = LocalContext.current
 
     if (moviesList.isEmpty() && viewModel.isLoading) {
         LoadingState()
@@ -398,7 +404,7 @@ private fun NewReleasesTab(viewModel: HomeViewModel, navController: NavControlle
                 key = { movie: Movie -> movie.id }
             ) { movie: Movie ->
                 MovieCard(movie = movie, onClick = {
-                    StorageUtils.saveMovieToFile(LocalContext.current, movie)
+                    StorageUtils.saveMovieToFile(context, movie)
                     navController?.navigate("single_movie/${movie.id}")
                 })
             }
@@ -409,6 +415,9 @@ private fun NewReleasesTab(viewModel: HomeViewModel, navController: NavControlle
 @Composable
 private fun MoviesTab(viewModel: HomeViewModel, navController: NavController?) {
     val moviesList: List<Movie> = viewModel.movies
+    val errorMsg: String? = viewModel.errorMessage
+    val isStillLoading: Boolean = viewModel.isLoading
+    val isStillLoadingMore: Boolean = viewModel.isLoadingMore
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
@@ -418,13 +427,12 @@ private fun MoviesTab(viewModel: HomeViewModel, navController: NavController?) {
     }
 
     when {
-        viewModel.isLoading && moviesList.isEmpty() -> {
+        isStillLoading && moviesList.isEmpty() -> {
             LoadingState()
         }
-        viewModel.errorMessage != null && moviesList.isEmpty() -> {
-            val msg: String = viewModel.errorMessage ?: "Unknown error"
+        errorMsg != null && moviesList.isEmpty() -> {
             ErrorState(
-                message = msg,
+                message = errorMsg,
                 onRetry = { viewModel.refreshMovies() }
             )
         }
@@ -439,7 +447,7 @@ private fun MoviesTab(viewModel: HomeViewModel, navController: NavController?) {
             ) {
                 itemsIndexed(
                     items = moviesList,
-                    key = { index: Int, movie: Movie -> movie.id }
+                    key = { _: Int, movie: Movie -> movie.id }
                 ) { index: Int, movie: Movie ->
                     MovieCard(movie = movie, onClick = {
                         StorageUtils.saveMovieToFile(context, movie)
@@ -451,7 +459,7 @@ private fun MoviesTab(viewModel: HomeViewModel, navController: NavController?) {
                         }
                     }
                 }
-                if (viewModel.isLoadingMore) {
+                if (isStillLoadingMore) {
                     item {
                         Box(
                             modifier = Modifier.fillMaxWidth().padding(16.dp),
@@ -469,6 +477,9 @@ private fun MoviesTab(viewModel: HomeViewModel, navController: NavController?) {
 @Composable
 private fun SeriesTab(viewModel: HomeViewModel, navController: NavController?) {
     val seriesList: List<Series> = viewModel.series
+    val errorMsg: String? = viewModel.errorMessage
+    val isStillLoading: Boolean = viewModel.isLoading
+    val isStillLoadingMore: Boolean = viewModel.isLoadingMore
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
@@ -478,13 +489,12 @@ private fun SeriesTab(viewModel: HomeViewModel, navController: NavController?) {
     }
 
     when {
-        viewModel.isLoading && seriesList.isEmpty() -> {
+        isStillLoading && seriesList.isEmpty() -> {
             LoadingState()
         }
-        viewModel.errorMessage != null && seriesList.isEmpty() -> {
-            val msg: String = viewModel.errorMessage ?: "Unknown error"
+        errorMsg != null && seriesList.isEmpty() -> {
             ErrorState(
-                message = msg,
+                message = errorMsg,
                 onRetry = { viewModel.refreshSeries() }
             )
         }
@@ -499,7 +509,7 @@ private fun SeriesTab(viewModel: HomeViewModel, navController: NavController?) {
             ) {
                 itemsIndexed(
                     items = seriesList,
-                    key = { index: Int, series: Series -> series.id }
+                    key = { _: Int, series: Series -> series.id }
                 ) { index: Int, series: Series ->
                     SeriesCard(series = series, onClick = {
                         navController?.navigate("single_series/${series.id}")
@@ -510,7 +520,7 @@ private fun SeriesTab(viewModel: HomeViewModel, navController: NavController?) {
                         }
                     }
                 }
-                if (viewModel.isLoadingMore) {
+                if (isStillLoadingMore) {
                     item {
                         Box(
                             modifier = Modifier.fillMaxWidth().padding(16.dp),
