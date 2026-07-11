@@ -1083,7 +1083,7 @@ fun VideoPlayerScreen(
                                         text = String.format("%.2fx", playbackSpeed),
                                         color = Color.White,
                                         style = MaterialTheme.typography.bodySmall,
-                                        fontWeight = FontWeight.Bold,
+                                        fontWeight = FontWeight.Medium,
                                         modifier = Modifier.padding(horizontal = 4.dp),
                                         fontFamily = FontManager.loadFontFamily(context, fontSettings.fontType)
                                     )
@@ -1119,7 +1119,7 @@ fun VideoPlayerScreen(
                                 text = "Normal",
                                 color = if (playbackSpeed == 1.0f) MaterialTheme.colorScheme.primary else Color.White,
                                 style = MaterialTheme.typography.bodySmall,
-                                fontWeight = if (playbackSpeed == 1.0f) FontWeight.Bold else FontWeight.Normal,
+                                fontWeight = if (playbackSpeed == 1.0f) FontWeight.Medium else FontWeight.Normal,
                                 modifier = Modifier
                                     .clickable { playbackSpeed = 1.0f }
                                     .padding(4.dp),

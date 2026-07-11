@@ -1,0 +1,46 @@
+package com.pira.ccloud.ui.theme
+
+import androidx.compose.ui.unit.dp
+
+/**
+ * 8pt grid spacing system for the premium streaming design system.
+ *
+ * All spacing values are multiples of 8dp to maintain visual rhythm.
+ * No random spacing values are permitted — every gap, margin and
+ * padding in the app should resolve to one of these tokens.
+ */
+object AppSpacing {
+    /** Half-step: icon gaps, inline micro-spacing */
+    val xs = 4.dp
+
+    /** Base unit: icon-to-label gaps, small element spacing */
+    val sm = 8.dp
+
+    /** Double: card internal padding, chip gaps */
+    val md = 16.dp
+
+    /** Triple: screen margins (24px per spec), card-to-card spacing */
+    val lg = 24.dp
+
+    /** Quadruple: section spacing (32px per spec) */
+    val xl = 32.dp
+
+    /** Sextuple: large section gaps, hero spacing */
+    val xxl = 48.dp
+}
+
+/**
+ * Corner radius scale — consistent across the entire application.
+ *
+ * Values match the design spec exactly. Every component that uses
+ * rounded corners must reference one of these tokens instead of
+ * ad-hoc values.
+ */
+object GlassCorners {
+    val Navigation = 32.dp
+    val Search = 26.dp
+    val Card = 20.dp
+    val Button = 18.dp
+    val Dialog = 28.dp
+    val Tag = 999.dp
+}

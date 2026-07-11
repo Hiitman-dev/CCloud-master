@@ -2,7 +2,6 @@ package com.pira.ccloud.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -17,6 +16,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -34,35 +34,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pira.ccloud.data.model.FilterType
 import com.pira.ccloud.data.model.Genre
-import com.pira.ccloud.ui.theme.GlassCorners
-<<<<<<< HEAD
-import com.pira.ccloud.ui.theme.GlassIntensity
-import com.pira.ccloud.ui.theme.GlassIconButton
-import com.pira.ccloud.ui.theme.liquidGlass
-
-/**
- * Floating Liquid Glass filter bar.
- *
- * Design:
- *  - Floats above scrollable content (not a static header)
- *  - Rounded pill / rounded-2xl shape with glassmorphism material
- *  - Search icon button on the left, filter trigger on the right
- *  - Content scrolls underneath and remains visible through the blur
- *  - Smooth expand animation on filter sheet
- *  - Same glass material as nav bar but slightly different opacity
-=======
 import com.pira.ccloud.ui.theme.glassSurface
 import com.pira.ccloud.ui.theme.rememberGlassTint
 
 /**
  * Compact "Filters" trigger. Tapping it raises a glass-styled bottom sheet
- * popup with the sort type and genre pickers.
->>>>>>> 03d9d8ea365ac7c4ed6ac59077927b3f93b49314
+ * popup with the sort type and genre pickers, instead of two wide always-open
+ * dropdown cards taking up permanent space on the screen.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,7 +57,7 @@ fun GenreFilterSection(
     onSearchClick: (() -> Unit)? = null
 ) {
     var showFilterSheet by remember { mutableStateOf(false) }
-    val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+    val glassTint = rememberGlassTint()
 
     val selectedGenreTitle = if (selectedGenreId == 0) {
         "All Genres"
@@ -88,47 +70,28 @@ fun GenreFilterSection(
         FilterType.BY_IMDB -> "By IMDB"
     }
 
-    // Floating glass filter bar — positioned above content
-    Box(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-<<<<<<< HEAD
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-=======
-<<<<<<< HEAD
-            .padding(start = 24.dp, end = 24.dp, top = 12.dp, bottom = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+            .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // Search icon comes first in reading order, with its own breathing
+        // room, then the filter trigger takes the remaining width - always a
+        // fixed, comfortable distance apart, never overlapping.
         if (onSearchClick != null) {
             com.pira.ccloud.ui.theme.GlassIconButton(
-                icon = Icons.Default.Search,
+                icon = androidx.compose.material.icons.Icons.Default.Search,
                 contentDescription = "Search",
                 onClick = onSearchClick
-=======
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
-                        MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
-                    )
-                )
->>>>>>> 16bb46ea3318e8f7e2ba73e2f974008e3b01c44d
             )
-            .border(
-                width = 0.5.dp,
-                color = glassTint.copy(alpha = 0.12f)
-            )
->>>>>>> 03d9d8ea365ac7c4ed6ac59077927b3f93b49314
-    ) {
+        }
+
         Row(
             modifier = Modifier
-<<<<<<< HEAD
                 .weight(1f)
-                .glassSurface(
-                    shape = RoundedCornerShape(GlassCorners.Search),
-                    tint = glassTint
-                )
+                .glassSurface(shape = RoundedCornerShape(com.pira.ccloud.ui.theme.GlassCorners.Search), tint = glassTint)
                 .clickable { showFilterSheet = true }
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -142,7 +105,7 @@ fun GenreFilterSection(
                     imageVector = Icons.Default.Tune,
                     contentDescription = "Filters",
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.height(18.dp)
+                    modifier = Modifier.height(20.dp)
                 )
                 Text(
                     text = "Filters",
@@ -151,65 +114,11 @@ fun GenreFilterSection(
                 )
             }
             Text(
-                text = "$filterLabel  ·  $selectedGenreTitle",
+                text = "$filterLabel  •  $selectedGenreTitle",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1
             )
-=======
-                .fillMaxWidth()
-                .liquidGlass(
-                    shape = RoundedCornerShape(GlassCorners.Pill),
-                    isDark = isDark,
-                    intensity = GlassIntensity.Chrome
-                )
-                .padding(horizontal = 6.dp, vertical = 6.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Search icon button — circular glass bubble
-            if (onSearchClick != null) {
-                GlassIconButton(
-                    icon = Icons.Default.Tune,
-                    contentDescription = "Search",
-                    onClick = onSearchClick,
-                    size = 40.dp
-                )
-            }
-
-            // Filter trigger — glass pill that expands
-            Row(
-                modifier = Modifier
-                    .weight(1f)
-                    .clickable { showFilterSheet = true }
-                    .padding(horizontal = 14.dp, vertical = 10.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Tune,
-                        contentDescription = "Filters",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.height(18.dp)
-                    )
-                    Text(
-                        text = "Filters",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-                Text(
-                    text = "$filterLabel  •  $selectedGenreTitle",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1
-                )
-            }
->>>>>>> 16bb46ea3318e8f7e2ba73e2f974008e3b01c44d
         }
     }
 
@@ -232,6 +141,37 @@ fun GenreFilterSection(
     }
 }
 
+/**
+ * Standalone filter bottom sheet that can be triggered from any floating button.
+ * Used by the Home screen's floating glassmorphism bar.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun GenreFilterBottomSheet(
+    genres: List<Genre>,
+    selectedGenreId: Int,
+    selectedFilterType: FilterType,
+    onGenreSelected: (Int) -> Unit,
+    onFilterTypeSelected: (FilterType) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = Color.Transparent,
+        dragHandle = null
+    ) {
+        FilterSheetContent(
+            genres = genres,
+            selectedGenreId = selectedGenreId,
+            selectedFilterType = selectedFilterType,
+            onGenreSelected = onGenreSelected,
+            onFilterTypeSelected = onFilterTypeSelected
+        )
+    }
+}
+
 @Composable
 private fun FilterSheetContent(
     genres: List<Genre>,
@@ -240,44 +180,17 @@ private fun FilterSheetContent(
     onGenreSelected: (Int) -> Unit,
     onFilterTypeSelected: (FilterType) -> Unit
 ) {
-    val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+    val glassTint = rememberGlassTint()
 
-    // Frosted-glass bottom sheet with liquid glass material
     Column(
         modifier = Modifier
             .fillMaxWidth()
-<<<<<<< HEAD
-            .liquidGlass(
-                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-                isDark = isDark,
-                intensity = GlassIntensity.Chrome
-=======
-<<<<<<< HEAD
             .glassSurface(
-                shape = RoundedCornerShape(
-                    topStart = GlassCorners.BottomSheet,
-                    topEnd = GlassCorners.BottomSheet
-                ),
+                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
                 tint = glassTint
-=======
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.surface.copy(alpha = 0.94f),
-                        MaterialTheme.colorScheme.surface.copy(alpha = 0.97f)
-                    )
-                ),
-                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
-            )
-            .border(
-                width = 1.dp,
-                color = glassTint.copy(alpha = 0.2f),
-                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
->>>>>>> 16bb46ea3318e8f7e2ba73e2f974008e3b01c44d
->>>>>>> 03d9d8ea365ac7c4ed6ac59077927b3f93b49314
             )
             .navigationBarsPadding()
-            .padding(24.dp)
+            .padding(20.dp)
     ) {
         Text(
             text = "Sort By",
@@ -296,7 +209,7 @@ private fun FilterSheetContent(
                     selected = selectedFilterType == type,
                     onClick = { onFilterTypeSelected(type) },
                     label = { Text(label) },
-                    shape = RoundedCornerShape(GlassCorners.Tag),
+                    shape = RoundedCornerShape(com.pira.ccloud.ui.theme.GlassCorners.Tag),
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = MaterialTheme.colorScheme.primary,
                         selectedLabelColor = MaterialTheme.colorScheme.onPrimary
@@ -336,7 +249,7 @@ private fun FilterSheetContent(
                             maxLines = 1
                         )
                     },
-                    shape = RoundedCornerShape(GlassCorners.Tag),
+                    shape = RoundedCornerShape(com.pira.ccloud.ui.theme.GlassCorners.Tag),
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = MaterialTheme.colorScheme.secondary,
                         selectedLabelColor = MaterialTheme.colorScheme.onSecondary

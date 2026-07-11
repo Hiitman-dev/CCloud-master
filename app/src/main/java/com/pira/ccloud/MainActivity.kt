@@ -117,7 +117,7 @@ fun MainScreen(
         currentRoute?.startsWith("country") == true -> AppScreens.Country
         currentRoute == "favorites" -> AppScreens.Favorites
         currentRoute == "about" -> AppScreens.About
-        else -> AppScreens.screens.find { it.route == currentRoute } ?: AppScreens.Movies
+        else -> AppScreens.screens.find { it.route == currentRoute } ?: AppScreens.Home
     }
     
     // System UI controller for edge-to-edge support

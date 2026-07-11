@@ -1,23 +1,14 @@
 package com.pira.ccloud.screens
 
 import android.content.Context
-<<<<<<< HEAD
-=======
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
->>>>>>> 16bb46ea3318e8f7e2ba73e2f974008e3b01c44d
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -41,7 +32,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.History
@@ -51,16 +41,13 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import com.pira.ccloud.ui.theme.GlassCorners
 import com.pira.ccloud.ui.theme.glassSurface
 import com.pira.ccloud.ui.theme.subtleGlassSurface
 import com.pira.ccloud.ui.theme.rememberGlassTint
-import com.pira.ccloud.ui.theme.liquidGlass
-import com.pira.ccloud.ui.theme.GlassCorners
-import com.pira.ccloud.ui.theme.GlassIntensity
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
@@ -75,16 +62,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
@@ -94,10 +78,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
-<<<<<<< HEAD
-=======
-import com.pira.ccloud.components.HomeAmbientBackground
->>>>>>> 16bb46ea3318e8f7e2ba73e2f974008e3b01c44d
+import com.pira.ccloud.R
 import com.pira.ccloud.data.model.Country
 import com.pira.ccloud.data.model.Poster
 import com.pira.ccloud.ui.search.SearchViewModel
@@ -112,18 +93,15 @@ fun SearchScreen(
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
     val focusRequester = remember { FocusRequester() }
-<<<<<<< HEAD
-    val recentSearchesPrefs = remember { context.getSharedPreferences("ccloud_recent_searches", Context.MODE_PRIVATE) }
-    var recentSearches by remember { mutableStateOf(loadRecentSearches(recentSearchesPrefs)) }
-=======
 
+    // FEATURE: Recent Searches History - lightweight persistence via SharedPreferences.
+    // Stored as an ordered JSON array, capped at 5 unique, most-recent-first entries.
     val recentSearchesPrefs = remember {
         context.getSharedPreferences("ccloud_recent_searches", Context.MODE_PRIVATE)
     }
     var recentSearches by remember {
         mutableStateOf(loadRecentSearches(recentSearchesPrefs))
     }
->>>>>>> 16bb46ea3318e8f7e2ba73e2f974008e3b01c44d
 
     fun performSearch(query: String) {
         if (query.isNotEmpty()) {
@@ -132,11 +110,18 @@ fun SearchScreen(
             viewModel.triggerSearch()
         }
     }
-<<<<<<< HEAD
-
-    LaunchedEffect(Unit) { focusRequester.requestFocus() }
-
-    Column(modifier = Modifier.fillMaxSize().padding(24.dp)) {
+    
+    // Request focus when the screen is first displayed to ensure keyboard opens on TV
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+    }
+    
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        // Search bar
         val searchGlassTint = rememberGlassTint()
         TextField(
             value = viewModel.searchQuery,
@@ -144,465 +129,268 @@ fun SearchScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .focusRequester(focusRequester)
-                .glassSurface(shape = RoundedCornerShape(GlassCorners.Search), tint = searchGlassTint)
-                .clickable { focusRequester.requestFocus() },
-            placeholder = { Text("Search movies and series…", color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                .glassSurface(
+                    shape = RoundedCornerShape(24.dp),
+                    tint = searchGlassTint
+                )
+                .clickable { 
+                    // Ensure keyboard opens when clicking on the TextField on TV
+                    focusRequester.requestFocus()
+                },
+            placeholder = { 
+                Text(
+                    text = "Search movies and series...",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                ) 
+            },
             leadingIcon = {
-                IconButton(onClick = {
-                    if (viewModel.searchQuery.isNotEmpty()) { performSearch(viewModel.searchQuery); focusManager.clearFocus() }
-                }) { Icon(Icons.Default.Search, contentDescription = "Search", tint = MaterialTheme.colorScheme.onSurfaceVariant) }
+                IconButton(onClick = { 
+                    // Trigger search when clicking search icon
+                    if (viewModel.searchQuery.isNotEmpty()) {
+                        performSearch(viewModel.searchQuery)
+                        focusManager.clearFocus()
+                    }
+                }) {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Search",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             },
             trailingIcon = {
                 if (viewModel.searchQuery.isNotEmpty()) {
-                    IconButton(onClick = { viewModel.clearSearch(); focusManager.clearFocus() }) { Icon(Icons.Default.Clear, contentDescription = "Clear", tint = MaterialTheme.colorScheme.onSurfaceVariant) }
+                    IconButton(onClick = { 
+                        viewModel.clearSearch()
+                        focusManager.clearFocus() // Dismiss keyboard when clearing search
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.Clear,
+                            contentDescription = "Clear",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             },
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-            keyboardActions = KeyboardActions(onSearch = { if (viewModel.searchQuery.isNotEmpty()) performSearch(viewModel.searchQuery); focusManager.clearFocus() }),
-            colors = TextFieldDefaults.colors(focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, disabledIndicatorColor = Color.Transparent, focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent),
-            shape = RoundedCornerShape(GlassCorners.Search),
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Search
+            ),
+            keyboardActions = KeyboardActions(
+                onSearch = {
+                    // Trigger search when pressing Enter
+                    if (viewModel.searchQuery.isNotEmpty()) {
+                        performSearch(viewModel.searchQuery)
+                    }
+                    focusManager.clearFocus()
+                }
+            ),
+            colors = TextFieldDefaults.colors(
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent,
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
+            ),
+            shape = RoundedCornerShape(24.dp),
             singleLine = true
         )
-
+        
+        // Country stories section - only visible when no search has been performed
         if (!viewModel.hasSearched) {
             if (viewModel.isCountriesLoading) {
-                Box(modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.primary)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 }
             } else if (viewModel.countries.isNotEmpty()) {
-                LazyRow(modifier = Modifier.fillMaxWidth().padding(top = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                LazyRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                     items(viewModel.countries) { country ->
-                        CountryStoryItem(country = country, onClick = { navController?.navigate("country/${country.id}") })
+                        CountryStoryItem(
+                            country = country,
+                            onClick = {
+                                // Navigate to country screen
+                                navController?.navigate("country/${country.id}")
+                            }
+                        )
                     }
                 }
             }
         }
-
+        
         Spacer(modifier = Modifier.height(16.dp))
-
+        
+        // Search results
         when {
             viewModel.isLoading -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(modifier = Modifier.size(48.dp), color = MaterialTheme.colorScheme.primary)
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(48.dp),
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 }
             }
             viewModel.errorMessage != null -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("Error: ${viewModel.errorMessage}", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.error)
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Error: ${viewModel.errorMessage}",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.error
+                        )
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text("Please try again", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            text = "Please try again",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                         Spacer(modifier = Modifier.height(16.dp))
-                        Button(onClick = { viewModel.triggerSearch() }, modifier = Modifier.padding(24.dp)) { Text("Retry") }
+                        Button(
+                            onClick = { viewModel.triggerSearch() },
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Text("Retry")
+                        }
                     }
                 }
             }
             viewModel.searchResults.isNotEmpty() -> {
-                SearchResultsGrid(viewModel.searchResults, navController, context)
+                SearchResultsGrid(
+                    posters = viewModel.searchResults,
+                    navController = navController,
+                    context = context
+                )
             }
+            // Only show "No results found" after a search has been performed
             viewModel.hasSearched && viewModel.searchQuery.isNotEmpty() && !viewModel.isLoading -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No results found", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No results found",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
             else -> {
-                Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+                // Initial / empty state - show recent search chips (if any) and instructions
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     if (viewModel.searchQuery.isEmpty() && recentSearches.isNotEmpty()) {
-                        Column(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
-                            Row(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                Text("Recent Searches", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.primary)
-                                androidx.compose.material3.TextButton(onClick = { recentSearches = clearRecentSearches(recentSearchesPrefs) }) {
-                                    Icon(Icons.Default.Delete, contentDescription = "Clear history", modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.error)
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text("Clear", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.error)
-                                }
-                            }
-                            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(bottom = 8.dp)) {
-                                items(recentSearches) { recentQuery ->
-                                    SuggestionChip(onClick = { performSearch(recentQuery) }, label = { Text(recentQuery) }, icon = { Icon(Icons.Default.History, contentDescription = "Recent", modifier = Modifier.size(16.dp)) }, shape = RoundedCornerShape(GlassCorners.Tag), colors = SuggestionChipDefaults.suggestionChipColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, labelColor = MaterialTheme.colorScheme.onSurfaceVariant, iconContentColor = MaterialTheme.colorScheme.primary))
-                                }
-                            }
-                        }
-                    }
-                    Box(modifier = Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(Icons.Default.Search, contentDescription = "Search", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(48.dp))
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text("Search for movies and series", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onSurface)
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text("Enter a keyword to start searching", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-=======
-
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
-    }
-
-    Box(modifier = Modifier.fillMaxSize()) {
-        HomeAmbientBackground(modifier = Modifier.fillMaxSize())
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp)
-        ) {
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // ── Floating glass search bar row ────────────────────────
-            val searchGlassTint = rememberGlassTint()
-            val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .liquidGlass(
-                        shape = RoundedCornerShape(GlassCorners.Pill),
-                        isDark = isDark,
-                        intensity = GlassIntensity.Chrome
-                    )
-                    .padding(horizontal = 6.dp, vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                // Back arrow — circular glass bubble
-                IconButton(
-                    onClick = { navController?.popBackStack() },
-                    modifier = Modifier
-                        .size(40.dp)
-                        .liquidGlass(shape = CircleShape, isDark = isDark)
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-
-                // Search field
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                ) {
-                    TextField(
-                        value = viewModel.searchQuery,
-                        onValueChange = { viewModel.updateSearchQuery(it) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .focusRequester(focusRequester)
-                            .clickable { focusRequester.requestFocus() },
-                        placeholder = {
-                            Text(
-                                text = "Search movies & series...",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                            )
-                        },
-                        leadingIcon = {
-                            IconButton(onClick = {
-                                if (viewModel.searchQuery.isNotEmpty()) {
-                                    performSearch(viewModel.searchQuery)
-                                    focusManager.clearFocus()
-                                }
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Default.Search,
-                                    contentDescription = "Search",
-                                    tint = MaterialTheme.colorScheme.primary
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Recent Searches",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Medium,
+                                    color = MaterialTheme.colorScheme.primary
                                 )
-                            }
-                        },
-                        trailingIcon = {
-                            if (viewModel.searchQuery.isNotEmpty()) {
-                                IconButton(onClick = {
-                                    viewModel.clearSearch()
-                                    focusManager.clearFocus()
-                                }) {
+                                androidx.compose.material3.TextButton(
+                                    onClick = {
+                                        recentSearches = clearRecentSearches(recentSearchesPrefs)
+                                    }
+                                ) {
                                     Icon(
-                                        imageVector = Icons.Default.Clear,
-                                        contentDescription = "Clear",
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = "Clear history",
+                                        modifier = Modifier.size(16.dp),
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "Clear",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.error
                                     )
                                 }
                             }
-                        },
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                        keyboardActions = KeyboardActions(
-                            onSearch = {
-                                if (viewModel.searchQuery.isNotEmpty()) {
-                                    performSearch(viewModel.searchQuery)
+                            LazyRow(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                contentPadding = PaddingValues(bottom = 8.dp)
+                            ) {
+                                items(recentSearches) { recentQuery ->
+                                    SuggestionChip(
+                                        onClick = { performSearch(recentQuery) },
+                                        label = { Text(recentQuery) },
+                                        icon = {
+                                            Icon(
+                                                imageVector = Icons.Default.History,
+                                                contentDescription = "Recent search",
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        },
+                                        shape = RoundedCornerShape(12.dp),
+                                        colors = SuggestionChipDefaults.suggestionChipColors(
+                                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                            labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            iconContentColor = MaterialTheme.colorScheme.primary
+                                        )
+                                    )
                                 }
-                                focusManager.clearFocus()
                             }
-                        ),
-                        colors = TextFieldDefaults.colors(
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent,
-                            disabledIndicatorColor = Color.Transparent,
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent,
-                        ),
-                        shape = RoundedCornerShape(24.dp),
-                        singleLine = true
-                    )
-                }
-            }
+                        }
+                    }
 
-            // ── Country stories row (pre-search only) ─────────────────
-            if (!viewModel.hasSearched) {
-                if (viewModel.isCountriesLoading) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 16.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                } else if (viewModel.countries.isNotEmpty()) {
-                    // Section title
-                    Text(
-                        text = "Browse by Country",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(top = 20.dp, bottom = 10.dp)
-                    )
-                    LazyRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(14.dp)
-                    ) {
-                        items(viewModel.countries) { country ->
-                            CountryStoryItem(
-                                country = country,
-                                onClick = { navController?.navigate("country/${country.id}") }
-                            )
-                        }
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // ── Search results / empty / loading states ───────────────
-            when {
-                viewModel.isLoading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        SearchLoadingIndicator()
-                    }
-                }
-                viewModel.errorMessage != null -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
+                            .weight(1f),
                         contentAlignment = Alignment.Center
                     ) {
                         Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier
-                                .glassSurface(
-                                    shape = RoundedCornerShape(28.dp),
-                                    tint = searchGlassTint,
-                                    tintAlpha = 0.35f,
-                                    borderAlpha = 0.25f
-                                )
-                                .padding(32.dp)
-                        ) {
-                            Text(
-                                text = "Something went wrong",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = viewModel.errorMessage ?: "Unknown error",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Button(onClick = { viewModel.triggerSearch() }) {
-                                Text("Retry")
-                            }
-                        }
-                    }
-                }
-                viewModel.searchResults.isNotEmpty() -> {
-                    SearchResultsGrid(
-                        posters = viewModel.searchResults,
-                        navController = navController,
-                        context = context
-                    )
-                }
-                viewModel.hasSearched && viewModel.searchQuery.isNotEmpty() && !viewModel.isLoading -> {
-                    // No results — glass card
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier
-                                .glassSurface(
-                                    shape = RoundedCornerShape(28.dp),
-                                    tint = searchGlassTint,
-                                    tintAlpha = 0.35f,
-                                    borderAlpha = 0.25f
-                                )
-                                .padding(horizontal = 40.dp, vertical = 32.dp)
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Search,
-                                contentDescription = null,
+                                contentDescription = "Search",
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(48.dp)
                             )
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
                             Text(
-                                text = "No results found",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontWeight = FontWeight.Bold
+                                text = "Search for movies and series",
+                                style = MaterialTheme.typography.headlineSmall,
+                                color = MaterialTheme.colorScheme.onSurface
                             )
-                            Spacer(modifier = Modifier.height(4.dp))
+                            Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "Try a different keyword",
+                                text = "Enter a keyword to start searching",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
->>>>>>> 16bb46ea3318e8f7e2ba73e2f974008e3b01c44d
-                        }
-                    }
-                }
-                else -> {
-                    // ── Idle state ─────────────────────────────────────
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        // Recent searches
-                        if (viewModel.searchQuery.isEmpty() && recentSearches.isNotEmpty()) {
-                            Column(
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(bottom = 8.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = "Recent Searches",
-                                        style = MaterialTheme.typography.titleSmall,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                    androidx.compose.material3.TextButton(
-                                        onClick = {
-                                            recentSearches = clearRecentSearches(recentSearchesPrefs)
-                                        }
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Delete,
-                                            contentDescription = "Clear history",
-                                            modifier = Modifier.size(16.dp),
-                                            tint = MaterialTheme.colorScheme.error
-                                        )
-                                        Spacer(modifier = Modifier.width(4.dp))
-                                        Text(
-                                            text = "Clear",
-                                            style = MaterialTheme.typography.labelMedium,
-                                            color = MaterialTheme.colorScheme.error
-                                        )
-                                    }
-                                }
-                                LazyRow(
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    contentPadding = PaddingValues(bottom = 8.dp)
-                                ) {
-                                    items(recentSearches) { recentQuery ->
-                                        SuggestionChip(
-                                            onClick = { performSearch(recentQuery) },
-                                            label = { Text(recentQuery) },
-                                            icon = {
-                                                Icon(
-                                                    imageVector = Icons.Default.History,
-                                                    contentDescription = "Recent search",
-                                                    modifier = Modifier.size(16.dp)
-                                                )
-                                            },
-                                            shape = RoundedCornerShape(14.dp),
-                                            colors = SuggestionChipDefaults.suggestionChipColors(
-                                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                                                labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                iconContentColor = MaterialTheme.colorScheme.primary
-                                            )
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                        // Hero empty state
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier
-                                    .glassSurface(
-                                        shape = RoundedCornerShape(32.dp),
-                                        tint = searchGlassTint,
-                                        tintAlpha = 0.22f,
-                                        borderAlpha = 0.18f
-                                    )
-                                    .padding(horizontal = 48.dp, vertical = 40.dp)
-                            ) {
-                                // Glowing search icon
-                                Box(
-                                    modifier = Modifier
-                                        .size(80.dp)
-                                        .background(
-                                            brush = Brush.radialGradient(
-                                                colors = listOf(
-                                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.25f),
-                                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.0f)
-                                                ),
-                                                radius = 120f
-                                            ),
-                                            shape = CircleShape
-                                        ),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Search,
-                                        contentDescription = "Search",
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(40.dp)
-                                    )
-                                }
-                                Spacer(modifier = Modifier.height(20.dp))
-                                Text(
-                                    text = "Discover Content",
-                                    style = MaterialTheme.typography.headlineSmall,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = "Search across movies, series,\nand explore by country",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    textAlign = TextAlign.Center
-                                )
-                            }
                         }
                     }
                 }
@@ -611,56 +399,58 @@ fun SearchScreen(
     }
 }
 
-<<<<<<< HEAD
-=======
-// ── Loading indicator ──────────────────────────────────────────────────────
+// --- Recent Searches History helpers (SharedPreferences-backed) ---
 
-@Composable
-private fun SearchLoadingIndicator() {
-    val transition = rememberInfiniteTransition(label = "search_loading")
-    val progress by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1000, easing = FastOutSlowInEasing)
-        ),
-        label = "progress"
-    )
-    val rotation by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = LinearEasing)
-        ),
-        label = "rotation"
-    )
-    CircularProgressIndicator(
-        progress = { progress },
-        modifier = Modifier
-            .size(48.dp)
-            .rotate(rotation),
-        strokeWidth = 4.dp,
-        color = MaterialTheme.colorScheme.primary,
-        trackColor = MaterialTheme.colorScheme.surfaceVariant
-    )
+private const val RECENT_SEARCHES_KEY = "recent_queries"
+private const val MAX_RECENT_SEARCHES = 5
+
+private fun loadRecentSearches(prefs: android.content.SharedPreferences): List<String> {
+    val raw = prefs.getString(RECENT_SEARCHES_KEY, null) ?: return emptyList()
+    return try {
+        val array = org.json.JSONArray(raw)
+        (0 until array.length()).map { array.getString(it) }
+    } catch (e: Exception) {
+        emptyList()
+    }
 }
 
-// ── Country story item (frosted circle) ───────────────────────────────────
+private fun addRecentSearch(
+    prefs: android.content.SharedPreferences,
+    current: List<String>,
+    query: String
+): List<String> {
+    val trimmedQuery = query.trim()
+    if (trimmedQuery.isEmpty()) return current
+
+    val updated = listOf(trimmedQuery) + current.filterNot { it.equals(trimmedQuery, ignoreCase = true) }
+    val capped = updated.take(MAX_RECENT_SEARCHES)
+
+    val jsonArray = org.json.JSONArray()
+    capped.forEach { jsonArray.put(it) }
+    prefs.edit().putString(RECENT_SEARCHES_KEY, jsonArray.toString()).apply()
+
+    return capped
+}
+
+private fun clearRecentSearches(prefs: android.content.SharedPreferences): List<String> {
+    prefs.edit().remove(RECENT_SEARCHES_KEY).apply()
+    return emptyList()
+}
 
 @Composable
 fun CountryStoryItem(
-    country: Country,
+    country: com.pira.ccloud.data.model.Country,
     onClick: () -> Unit
 ) {
-    val tint = rememberGlassTint()
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.clickable { onClick() }
     ) {
         Box(
             modifier = Modifier
-                .size(64.dp)
-                .glassSurface(shape = CircleShape, tint = tint, tintAlpha = 0.3f, borderAlpha = 0.22f),
+                .size(60.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center
         ) {
             Image(
@@ -672,112 +462,58 @@ fun CountryStoryItem(
                 ),
                 contentDescription = country.title,
                 modifier = Modifier
-                    .size(58.dp)
+                    .size(56.dp)
                     .clip(CircleShape),
                 contentScale = ContentScale.Crop
             )
         }
-        Spacer(modifier = Modifier.height(6.dp))
+        Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = country.title,
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurface,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.width(72.dp),
+            modifier = Modifier.width(70.dp),
             textAlign = TextAlign.Center
         )
     }
 }
 
-// ── Recent searches history helpers (SharedPreferences-backed) ─────────────
-
->>>>>>> 16bb46ea3318e8f7e2ba73e2f974008e3b01c44d
-private const val RECENT_SEARCHES_KEY = "recent_queries"
-private const val MAX_RECENT_SEARCHES = 5
-
-private fun loadRecentSearches(prefs: android.content.SharedPreferences): List<String> {
-    val raw = prefs.getString(RECENT_SEARCHES_KEY, null) ?: return emptyList()
-    return try { val array = org.json.JSONArray(raw); (0 until array.length()).map { array.getString(it) } } catch (e: Exception) { emptyList() }
-}
-
-private fun addRecentSearch(prefs: android.content.SharedPreferences, current: List<String>, query: String): List<String> {
-    val trimmed = query.trim(); if (trimmed.isEmpty()) return current
-    val updated = listOf(trimmed) + current.filterNot { it.equals(trimmed, ignoreCase = true) }
-    val capped = updated.take(MAX_RECENT_SEARCHES)
-    val jsonArray = org.json.JSONArray(); capped.forEach { jsonArray.put(it) }
-    prefs.edit().putString(RECENT_SEARCHES_KEY, jsonArray.toString()).apply(); return capped
-}
-
-private fun clearRecentSearches(prefs: android.content.SharedPreferences): List<String> { prefs.edit().remove(RECENT_SEARCHES_KEY).apply(); return emptyList() }
-
-<<<<<<< HEAD
 @Composable
-fun CountryStoryItem(country: Country, onClick: () -> Unit) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onClick() }) {
-        Box(modifier = Modifier.size(60.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant), contentAlignment = Alignment.Center) {
-            Image(painter = rememberAsyncImagePainter(ImageRequest.Builder(LocalContext.current).data(country.image).crossfade(true).build()), contentDescription = country.title, modifier = Modifier.size(56.dp).clip(CircleShape), contentScale = ContentScale.Crop)
-        }
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(country.title, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.width(70.dp), textAlign = TextAlign.Center)
-    }
-}
-=======
-// ── Search results grid ────────────────────────────────────────────────────
->>>>>>> 16bb46ea3318e8f7e2ba73e2f974008e3b01c44d
-
-@Composable
-fun SearchResultsGrid(posters: List<Poster>, navController: NavController?, context: Context) {
+fun SearchResultsGrid(
+    posters: List<Poster>,
+    navController: NavController?,
+    context: Context
+) {
     val columns = DeviceUtils.getGridColumns(LocalContext.current.resources)
-    LazyVerticalGrid(columns = GridCells.Fixed(columns), modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(0.dp), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(columns),
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(0.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
         items(posters) { poster ->
-<<<<<<< HEAD
-            PosterItem(poster = poster, onClick = {
-                if (poster.isMovie()) { StorageUtils.saveMovieToFile(context, poster.toMovie()); navController?.navigate("single_movie/${poster.id}") }
-                else if (poster.isSeries()) { StorageUtils.saveSeriesToFile(context, poster.toSeries()); navController?.navigate("single_series/${poster.id}") }
-            })
-=======
             PosterItem(
                 poster = poster,
                 onClick = {
                     if (poster.isMovie()) {
+                        // Save movie to storage and navigate to single movie screen
                         StorageUtils.saveMovieToFile(context, poster.toMovie())
                         navController?.navigate("single_movie/${poster.id}")
                     } else if (poster.isSeries()) {
+                        // Save series to storage and navigate to single series screen
                         StorageUtils.saveSeriesToFile(context, poster.toSeries())
                         navController?.navigate("single_series/${poster.id}")
                     }
                 }
             )
->>>>>>> 16bb46ea3318e8f7e2ba73e2f974008e3b01c44d
         }
     }
 }
 
 @Composable
-<<<<<<< HEAD
-fun PosterItem(poster: Poster, onClick: () -> Unit) {
-    val tint = rememberGlassTint()
-    Card(modifier = Modifier.fillMaxWidth().height(310.dp).subtleGlassSurface(shape = RoundedCornerShape(GlassCorners.Card), tint = tint).clickable { onClick() }, shape = RoundedCornerShape(GlassCorners.Card), elevation = CardDefaults.cardElevation(0.dp), colors = CardDefaults.cardColors(containerColor = Color.Transparent)) {
-        Column(modifier = Modifier.fillMaxSize().padding(12.dp)) {
-            Box {
-                Image(painter = rememberAsyncImagePainter(ImageRequest.Builder(LocalContext.current).data(poster.image).crossfade(true).build()), contentDescription = poster.title, modifier = Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(GlassCorners.Poster)), contentScale = ContentScale.Crop)
-                Card(modifier = Modifier.align(Alignment.TopEnd).padding(8.dp), shape = RoundedCornerShape(GlassCorners.Tag), colors = CardDefaults.cardColors(containerColor = Color.Black.copy(alpha = 0.7f))) {
-                    Row(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Star, contentDescription = "Rating", tint = Color.Yellow, modifier = Modifier.size(14.dp)); Spacer(modifier = Modifier.width(4.dp)); Text(String.format("%.1f", poster.imdb), style = MaterialTheme.typography.bodySmall, color = Color.White, fontWeight = FontWeight.Medium)
-                    }
-                }
-                Card(modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp), shape = RoundedCornerShape(GlassCorners.Tag), colors = CardDefaults.cardColors(containerColor = if (poster.isMovie()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary)) {
-                    Box(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)) { Text(if (poster.isMovie()) "Movie" else "Series", style = MaterialTheme.typography.bodySmall, color = if (poster.isMovie()) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondary, fontWeight = FontWeight.Medium) }
-                }
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(poster.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium, maxLines = 2, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurface)
-                Spacer(modifier = Modifier.height(4.dp)); Text(poster.year.toString(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Spacer(modifier = Modifier.height(8.dp))
-                if (poster.genres.isNotEmpty()) Text(poster.genres.joinToString(", ") { it.title }, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary, maxLines = 1, overflow = TextOverflow.Ellipsis)
-=======
 fun PosterItem(
     poster: Poster,
     onClick: () -> Unit
@@ -786,18 +522,21 @@ fun PosterItem(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(310.dp)
+            .height(310.dp) // Fixed height for all cards
             .subtleGlassSurface(shape = RoundedCornerShape(20.dp), tint = posterCardGlassTint)
             .clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+        colors = CardDefaults.cardColors(
+            containerColor = Color.Transparent
+        )
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(12.dp)
         ) {
+            // Poster image with rating overlay
             Box {
                 Image(
                     painter = rememberAsyncImagePainter(
@@ -813,8 +552,8 @@ fun PosterItem(
                         .clip(RoundedCornerShape(8.dp)),
                     contentScale = ContentScale.Crop
                 )
-
-                // Rating badge
+                
+                // Rating overlay at top-right corner
                 Card(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
@@ -843,52 +582,64 @@ fun PosterItem(
                         )
                     }
                 }
-
-                // Type badge
+                
+                // Type indicator at bottom-right corner
                 Card(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .padding(8.dp),
                     shape = RoundedCornerShape(50.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = if (poster.isMovie())
+                        containerColor = if (poster.isMovie()) {
                             MaterialTheme.colorScheme.primary
-                        else
+                        } else {
                             MaterialTheme.colorScheme.secondary
+                        }
                     )
                 ) {
-                    Box(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
+                    Box(
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
                         Text(
                             text = if (poster.isMovie()) "Movie" else "Series",
                             style = MaterialTheme.typography.bodySmall,
-                            color = if (poster.isMovie())
+                            color = if (poster.isMovie()) {
                                 MaterialTheme.colorScheme.onPrimary
-                            else
-                                MaterialTheme.colorScheme.onSecondary,
+                            } else {
+                                MaterialTheme.colorScheme.onSecondary
+                            },
                             fontWeight = FontWeight.Medium
                         )
                     }
                 }
             }
-
+            
             Spacer(modifier = Modifier.height(12.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
+            
+            // Poster details with weight to fill remaining space
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
                 Text(
                     text = poster.title,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Medium,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     color = MaterialTheme.colorScheme.onSurface
                 )
+                
                 Spacer(modifier = Modifier.height(4.dp))
+                
                 Text(
                     text = poster.year.toString(),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                
                 Spacer(modifier = Modifier.height(8.dp))
+                
+                // Genres
                 if (poster.genres.isNotEmpty()) {
                     Text(
                         text = poster.genres.joinToString(", ") { it.title },
@@ -898,7 +649,6 @@ fun PosterItem(
                         overflow = TextOverflow.Ellipsis
                     )
                 }
->>>>>>> 16bb46ea3318e8f7e2ba73e2f974008e3b01c44d
             }
         }
     }

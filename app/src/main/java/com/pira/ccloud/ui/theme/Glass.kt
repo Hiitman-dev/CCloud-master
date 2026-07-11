@@ -1,10 +1,5 @@
 package com.pira.ccloud.ui.theme
 
-import android.graphics.RenderEffect
-import android.graphics.Shader
-import android.os.Build
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -14,7 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -29,12 +23,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
@@ -42,127 +33,98 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 
-// ─── Corner Radius Scale ───────────────────────────────────────────────
-
+/**
+ * Standard corner-radius scale, kept consistent everywhere instead of ad hoc
+ * values scattered around the app.
+ */
 object GlassCorners {
-    val Navigation = 28.dp
-    val Pill = 999.dp
-    val Search = 24.dp
+    val Navigation = 30.dp
+    val Search = 26.dp
     val Card = 20.dp
     val Button = 18.dp
     val Tag = 999.dp
 }
 
-// ─── Liquid Glass Material ─────────────────────────────────────────────
-
 /**
- * iOS 26-inspired "Liquid Glass" material.
+ * Liquid-glass ("glassmorphism") styling shared across the app.
  *
- * Layers (bottom → top):
- *  1. Multi-layer drop shadow (ambient + spot) for physical depth
- *  2. Tinted translucent fill (gradient from top to bottom)
- *  3. Top-edge highlight border (glass refraction rim)
- *  4. Inner light-catch gradient (diagonal, low-alpha white)
+ * Note on limits: true backdrop blur-of-what's-behind-this-element requires
+ * Android 12+ (RenderEffect, API 31). Since this app supports API 24+, we
+ * approximate the "glass" look everywhere with a translucent tinted surface,
+ * a soft diagonal light-catch gradient, and a hairline edge highlight - the
+ * same technique most glassmorphism UIs use for broad device compatibility.
+ *
+ * Two intensities are used across the app, deliberately:
+ *  - [glassSurface] (this one): for UI *chrome* - search bar, bottom nav,
+ *    modal sheets, filter chips, dialogs. These are allowed to read as
+ *    visibly translucent glass.
+ *  - [subtleGlassSurface]: for regular *content* cards (movie/series
+ *    posters). These stay close to a clean, opaque surface with only a
+ *    faint frosted hint, so poster art stays vibrant and readable instead
+ *    of every card in a grid looking like foggy glass.
  */
-fun Modifier.liquidGlass(
-    shape: Shape = RoundedCornerShape(GlassCorners.Card),
-    isDark: Boolean = true,
-    intensity: GlassIntensity = GlassIntensity.Chrome,
-): Modifier {
-    val (fillTop, fillBottom) = if (isDark) {
-        Color.White.copy(alpha = when (intensity) {
-            GlassIntensity.Chrome -> 0.18f
-            GlassIntensity.Subtle -> 0.08f
-        }) to Color.White.copy(alpha = when (intensity) {
-            GlassIntensity.Chrome -> 0.10f
-            GlassIntensity.Subtle -> 0.04f
-        })
-    } else {
-        Color.White.copy(alpha = when (intensity) {
-            GlassIntensity.Chrome -> 0.65f
-            GlassIntensity.Subtle -> 0.40f
-        }) to Color.White.copy(alpha = when (intensity) {
-            GlassIntensity.Chrome -> 0.45f
-            GlassIntensity.Subtle -> 0.20f
-        })
-    }
-
-    val shadowColor = if (isDark) Color.Black.copy(alpha = 0.40f) else Color.Black.copy(alpha = 0.12f)
-    val highlightColor = Color.White.copy(alpha = if (isDark) 0.25f else 0.60f)
-    val borderTopColor = Color.White.copy(alpha = if (isDark) 0.22f else 0.70f)
-    val borderBottomColor = Color.White.copy(alpha = if (isDark) 0.06f else 0.20f)
-
-    return this
-        .shadow(
-            elevation = when (intensity) {
-                GlassIntensity.Chrome -> 20.dp
-                GlassIntensity.Subtle -> 8.dp
-            },
-            shape = shape,
-            ambientColor = shadowColor.copy(alpha = shadowColor.alpha * 0.5f),
-            spotColor = shadowColor
-        )
-        .clip(shape)
-        .background(
-            brush = Brush.verticalGradient(colors = listOf(fillTop, fillBottom))
-        )
-        .border(
-            width = 1.dp,
-            brush = Brush.verticalGradient(colors = listOf(borderTopColor, borderBottomColor)),
-            shape = shape
-        )
-        .background(
-            brush = Brush.linearGradient(
-                colors = listOf(
-                    highlightColor.copy(alpha = highlightColor.alpha * 0.3f),
-                    Color.Transparent,
-                    Color.Transparent,
-                    highlightColor.copy(alpha = highlightColor.alpha * 0.12f)
-                ),
-                start = Offset.Zero,
-                end = Offset.Infinite
-            )
-        )
-}
-
-/**
- * Backdrop blur — API 31+ only (RenderEffect).
- * On older APIs the translucent fill + shadow + edge highlight
- * already creates a convincing glass effect.
- */
-fun Modifier.backdropBlur(
-    blurRadius: Dp = 24.dp,
-): Modifier {
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return this
-    val radius = blurRadius.value
-    return this.graphicsLayer {
-        renderEffect = RenderEffect
-            .createBlurEffect(radius, radius, Shader.TileMode.CLAMP)
-    }
-}
-
 fun Modifier.glassSurface(
     shape: Shape = RoundedCornerShape(GlassCorners.Card),
     tint: Color = Color.White,
-    tintAlpha: Float = 0.38f,
-    borderAlpha: Float = 0.28f
+    // Spec range: glass opacity 18%-28%, border ~rgba(255,255,255,0.22).
+    // Kept deliberately restrained - glass is a material for chrome, not a
+    // decorative identity, so it should never read as a bright, glowing
+    // "bubble" surface.
+    tintAlpha: Float = 0.22f,
+    borderAlpha: Float = 0.22f
 ): Modifier = this
-    .liquidGlass(shape = shape, isDark = tint.luminance() < 0.5f, intensity = GlassIntensity.Chrome)
+    .clip(shape)
+    .background(
+        brush = Brush.linearGradient(
+            colors = listOf(
+                tint.copy(alpha = (tintAlpha * 1.15f).coerceAtMost(1f)),
+                tint.copy(alpha = (tintAlpha * 0.82f).coerceAtMost(1f))
+            )
+        )
+    )
+    .border(
+        width = 1.dp,
+        brush = Brush.linearGradient(
+            colors = listOf(
+                tint.copy(alpha = borderAlpha),
+                tint.copy(alpha = borderAlpha * 0.5f)
+            )
+        ),
+        shape = shape
+    )
 
+/**
+ * A much lighter touch than [glassSurface] - a near-opaque clean surface
+ * with only a faint frosted hint. Use this for regular content cards
+ * (movie/series posters, grid items) so the poster art stays vibrant and
+ * clear, per the "don't make every card glass" design direction.
+ */
 fun Modifier.subtleGlassSurface(
     shape: Shape = RoundedCornerShape(GlassCorners.Card),
     tint: Color = Color.White
 ): Modifier = this
-    .liquidGlass(shape = shape, isDark = tint.luminance() < 0.5f, intensity = GlassIntensity.Subtle)
+    .clip(shape)
+    .background(tint.copy(alpha = 0.08f))
+    .border(
+        width = 1.dp,
+        color = tint.copy(alpha = 0.14f),
+        shape = shape
+    )
 
-enum class GlassIntensity { Chrome, Subtle }
-
+/**
+ * Picks a tint that matches the theme's own surface tone (dark tint on dark
+ * theme, light tint on light theme) so that normal onSurface/onBackground
+ * text - which is already tuned for that tone - stays readable on top of it.
+ * (A tint that inverted the tone would fight with same-colored text sitting
+ * on top of it, which is what made earlier glass surfaces hard to read.)
+ */
 @Composable
 fun rememberGlassTint(): Color {
     val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
     return if (isDark) Color.Black else Color.White
 }
 
+/** A circular, frosted-glass icon button - used for the floating search icon, filter trigger, etc. */
 @Composable
 fun GlassIconButton(
     icon: ImageVector,
@@ -177,7 +139,7 @@ fun GlassIconButton(
         onClick = onClick,
         modifier = modifier
             .size(size)
-            .liquidGlass(shape = CircleShape, isDark = tint.luminance() < 0.5f)
+            .glassSurface(shape = CircleShape, tint = tint)
     ) {
         Icon(
             imageVector = icon,
@@ -187,6 +149,7 @@ fun GlassIconButton(
     }
 }
 
+/** A generic frosted-glass surface container for cards, chips, sheets, etc. */
 @Composable
 fun GlassSurface(
     modifier: Modifier = Modifier,
@@ -195,31 +158,18 @@ fun GlassSurface(
 ) {
     val tint = rememberGlassTint()
     Box(
-        modifier = modifier.liquidGlass(shape = shape, isDark = tint.luminance() < 0.5f)
+        modifier = modifier.glassSurface(shape = shape, tint = tint)
     ) {
         content()
     }
 }
 
-@Composable
-fun Modifier.matteOverlay(
-    shape: Shape = RoundedCornerShape(0.dp)
-): Modifier {
-    val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
-    val overlayColor = if (isDark) Color.Black else Color.White
-    return this
-        .background(
-            brush = Brush.verticalGradient(
-                colors = listOf(
-                    overlayColor.copy(alpha = 0.85f),
-                    overlayColor.copy(alpha = 0.92f),
-                    overlayColor.copy(alpha = 0.95f)
-                )
-            )
-        )
-        .border(width = 0.dp, color = Color.Transparent, shape = shape)
-}
-
+/**
+ * A drop-in glass-styled replacement for Material3's `AlertDialog`.
+ * Mirrors the same parameter names/positions (onDismissRequest, icon, title,
+ * text, confirmButton, dismissButton) so existing call sites can switch from
+ * `AlertDialog(...)` to `GlassAlertDialog(...)` without touching their content.
+ */
 @Composable
 fun GlassAlertDialog(
     onDismissRequest: () -> Unit,
@@ -230,17 +180,18 @@ fun GlassAlertDialog(
     title: (@Composable () -> Unit)? = null,
     text: (@Composable () -> Unit)? = null,
     shape: Shape = RoundedCornerShape(28.dp),
+    // Accepted for drop-in compatibility with Material3's AlertDialog signature,
+    // but intentionally unused - the glass surface fully determines the look.
     containerColor: Color = Color.Unspecified,
     tonalElevation: Dp = 0.dp,
     properties: DialogProperties = DialogProperties()
 ) {
     val tint = rememberGlassTint()
-    val isDark = tint.luminance() < 0.5f
     Dialog(onDismissRequest = onDismissRequest, properties = properties) {
         Box(
             modifier = modifier
                 .widthIn(min = 280.dp, max = 560.dp)
-                .liquidGlass(shape = shape, isDark = isDark, intensity = GlassIntensity.Chrome)
+                .glassSurface(shape = shape, tint = tint, tintAlpha = 0.5f, borderAlpha = 0.45f)
                 .padding(24.dp)
         ) {
             Column {
