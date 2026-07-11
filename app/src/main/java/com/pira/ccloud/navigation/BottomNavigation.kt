@@ -42,16 +42,6 @@ import com.pira.ccloud.ui.theme.GlassCorners
 import com.pira.ccloud.ui.theme.glassSurface
 import com.pira.ccloud.ui.theme.rememberGlassTint
 
-/**
- * A fully custom floating pill nav bar - drawn as our own Row inside a glass
- * Box - instead of Material3's `NavigationBar`. `NavigationBar` draws its own
- * rectangular `Surface` internally for elevation/shadow, which showed through
- * as a hard square edge under our rounded clip. Building it ourselves means
- * the glass panel's shape is the *only* shape being drawn - a true floating
- * capsule that sits clear of the screen edges, with an opaque-enough tint
- * that it doesn't let the movie posters/list bleed through and confuse
- * which tab is selected.
- */
 @Composable
 fun BottomNavigationBar(navController: NavController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -73,10 +63,6 @@ fun BottomNavigationBar(navController: NavController) {
             .glassSurface(
                 shape = RoundedCornerShape(GlassCorners.Navigation),
                 tint = glassTint,
-                // Per spec, the bottom nav is a solid floating capsule, not a
-                // see-through glass panel: 90%-95% opaque with only soft
-                // blur/shadow for elevation, so it reads as "production
-                // surface" rather than "glass material".
                 tintAlpha = 0.94f,
                 borderAlpha = 0.22f
             )
@@ -86,7 +72,7 @@ fun BottomNavigationBar(navController: NavController) {
                 .fillMaxWidth()
                 .padding(horizontal = 4.dp, vertical = 6.dp),
         ) {
-            AppScreens.screens.filter { it.showBottomBar }.forEach { screen ->
+            AppScreens.bottomNavScreens.forEach { screen ->
                 val isSelected = currentRoute == screen.route
                 val scale by animateFloatAsState(
                     targetValue = if (isSelected) 1.1f else 1f,

@@ -4,7 +4,6 @@ import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
@@ -33,24 +32,29 @@ sealed class AppScreens(
     data object Movies : AppScreens(
         route = "movies",
         resourceId = R.string.movies,
-        icon = Icons.Default.Movie,
-        showBottomBar = false,
-        showSidebar = false
+        icon = Icons.Default.Movie
     )
 
     data object Series : AppScreens(
         route = "series",
         resourceId = R.string.series,
-        icon = Icons.Default.Tv,
-        showBottomBar = false,
-        showSidebar = false
+        icon = Icons.Default.Tv
     )
 
     data object Search : AppScreens(
         route = "search",
         resourceId = R.string.search,
         icon = Icons.Default.Search,
-        showBottomBar = false // Moved to a circular icon at the top of the screen instead
+        showBottomBar = false,
+        showSidebar = false
+    )
+
+    data object Favorites : AppScreens(
+        route = "favorites",
+        resourceId = R.string.favorites,
+        icon = Icons.Default.Favorite,
+        showBottomBar = false,
+        showSidebar = false
     )
 
     data object Settings : AppScreens(
@@ -66,7 +70,7 @@ sealed class AppScreens(
         showBottomBar = false,
         showSidebar = false
     )
-    
+
     data object SingleSeries : AppScreens(
         route = "single_series/{seriesId}",
         resourceId = R.string.series_details,
@@ -75,22 +79,14 @@ sealed class AppScreens(
         showSidebar = false
     )
 
-    data object Favorites : AppScreens(
-        route = "favorites",
-        resourceId = R.string.favorites,
-        icon = Icons.Default.Favorite,
-        showBottomBar = true,
-        showSidebar = true
-    )
-
     data object About : AppScreens(
         route = "about",
         resourceId = R.string.about,
-        icon = Icons.Default.Info,
+        icon = Icons.Default.Settings,
         showBottomBar = false,
         showSidebar = false
     )
-    
+
     data object Country : AppScreens(
         route = "country/{countryId}",
         resourceId = R.string.country,
@@ -99,6 +95,7 @@ sealed class AppScreens(
     )
 
     companion object {
-        val screens = listOf(Home, Search, Favorites, Settings)
+        val bottomNavScreens = listOf(Home, Movies, Series, Settings)
+        val allScreens = listOf(Home, Movies, Series, Search, Favorites, Settings)
     }
 }

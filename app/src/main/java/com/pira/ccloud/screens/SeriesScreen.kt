@@ -1,595 +1,246 @@
 package com.pira.ccloud.screens
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.grid.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
-import com.pira.ccloud.ui.theme.glassSurface
-import com.pira.ccloud.ui.theme.subtleGlassSurface
-import com.pira.ccloud.ui.theme.rememberGlassTint
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import coil.compose.rememberAsyncImagePainter
-import coil.request.ImageRequest
-import com.pira.ccloud.components.GenreFilterSection
+import com.pira.ccloud.components.FloatingTopBar
+import com.pira.ccloud.components.PosterCard
+import com.pira.ccloud.data.model.FilterType
 import com.pira.ccloud.data.model.Genre
 import com.pira.ccloud.data.model.Series
 import com.pira.ccloud.ui.series.SeriesViewModel
 import com.pira.ccloud.utils.DeviceUtils
-import com.pira.ccloud.utils.StorageUtils
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SeriesScreen(
     viewModel: SeriesViewModel = viewModel(),
     navController: NavController? = null
 ) {
-    val series = viewModel.series
-    val isLoading = viewModel.isLoading
-    val isLoadingMore = viewModel.isLoadingMore
-    val errorMessage = viewModel.errorMessage
-    val genres = viewModel.genres
-    val selectedGenreId = viewModel.selectedGenreId
-    val selectedFilterType = viewModel.selectedFilterType
-    
+    val seriesList: List<Series> = viewModel.series
+    val genres: List<Genre> = viewModel.genres
+    val isLoading: Boolean = viewModel.isLoading
+    val isLoadingMore: Boolean = viewModel.isLoadingMore
+    val errorMessage: String? = viewModel.errorMessage
+    val context = LocalContext.current
+    var showFilterSheet by remember { mutableStateOf(false) }
+    var selectedTab by remember { mutableIntStateOf(0) }
+
+    val filterTypes = listOf("Default", "By Year", "By IMDB")
+
     LaunchedEffect(Unit) {
-        if (series.isEmpty()) {
+        if (seriesList.isEmpty()) {
             viewModel.loadSeries()
         }
     }
-    
-    Column(modifier = Modifier.fillMaxSize()) {
-        // Genre filter section
-        GenreFilterSection(
-            genres = genres,
-            selectedGenreId = selectedGenreId,
-            selectedFilterType = selectedFilterType,
-            onGenreSelected = { genreId -> viewModel.selectGenre(genreId) },
-            onFilterTypeSelected = { filterType -> viewModel.selectFilterType(filterType) },
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Spacer(modifier = Modifier.height(70.dp))
+
+            // Filter chips row
+            ScrollableTabRow(
+                selectedTabIndex = selectedTab,
+                modifier = Modifier.fillMaxWidth(),
+                edgePadding = 16.dp,
+                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
+                contentColor = MaterialTheme.colorScheme.primary,
+                indicator = { tabPositions ->
+                    if (selectedTab < tabPositions.size) {
+                        TabRowDefaults.SecondaryIndicator(
+                            modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
+                            height = 3.dp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                },
+                divider = {}
+            ) {
+                filterTypes.forEachIndexed { index, label ->
+                    Tab(
+                        selected = selectedTab == index,
+                        onClick = {
+                            selectedTab = index
+                            val filterType = when (index) {
+                                0 -> FilterType.DEFAULT
+                                1 -> FilterType.BY_YEAR
+                                2 -> FilterType.BY_IMDB
+                                else -> FilterType.DEFAULT
+                            }
+                            viewModel.selectFilterType(filterType)
+                        },
+                        text = {
+                            Text(
+                                text = label,
+                                fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal
+                            )
+                        }
+                    )
+                }
+            }
+
+            // Series grid
+            when {
+                isLoading && seriesList.isEmpty() -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                    }
+                }
+                errorMessage != null && seriesList.isEmpty() -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = errorMessage,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+                else -> {
+                    val columns = DeviceUtils.getGridColumns(context.resources)
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(columns),
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(
+                            items = seriesList,
+                            key = { series: Series -> series.id }
+                        ) { series: Series ->
+                            PosterCard(
+                                image = series.image,
+                                title = series.title,
+                                year = series.year,
+                                imdb = series.imdb,
+                                subtitle = series.genres.firstOrNull()?.title,
+                                onClick = {
+                                    navController?.navigate("single_series/${series.id}")
+                                }
+                            )
+                        }
+
+                        if (isLoadingMore) {
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(16.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator(
+                                        color = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.padding(16.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Floating top bar
+        FloatingTopBar(
+            title = "Series",
             onSearchClick = {
                 navController?.navigate("search") {
                     launchSingleTop = true
                     restoreState = true
                 }
-            }
+            },
+            onFilterClick = { showFilterSheet = true },
+            modifier = Modifier.padding(top = 40.dp)
         )
-        
-        // Remove Column wrapper to use full screen space
-        when {
-            isLoading && series.isEmpty() -> {
-                // Show modern loading animation when initial series are loading
-                LoadingScreenSeries()
-            }
-            errorMessage != null && series.isEmpty() -> {
-                ErrorScreenSeries(
-                    errorMessage = errorMessage,
-                    onRetry = { viewModel.retry() }
-                )
-            }
-            else -> {
-                SeriesGrid(
-                    series = series,
-                    isLoading = isLoading,
-                    isLoadingMore = isLoadingMore,
-                    errorMessage = errorMessage,
-                    onRetry = { viewModel.retry() },
-                    onRefresh = { viewModel.refresh() },
-                    onLoadMore = { viewModel.loadMoreSeries() },
-                    navController = navController
-                )
-            }
-        }
     }
-}
 
-@Composable
-fun LoadingScreenSeries() {
-    val shimmerColor = MaterialTheme.colorScheme.surfaceVariant
-    val shimmerColorShade = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
-    
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Add a title while loading
-        Text(
-            text = "Loading Series...",
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(16.dp),
-            fontWeight = FontWeight.Medium
-        )
-        
-        AnimatedVisibility(
-            visible = true,
-            enter = fadeIn(initialAlpha = 0.3f),
-            exit = fadeOut()
+    // Genre filter bottom sheet
+    if (showFilterSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showFilterSheet = false },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            containerColor = MaterialTheme.colorScheme.surface
         ) {
-            val columns = DeviceUtils.getGridColumns(LocalContext.current.resources)
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(columns),
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+            Column(
+                modifier = Modifier.padding(20.dp)
             ) {
-                items(6) { // Show 6 loading placeholders
-                    ShimmerSeriesItem(shimmerColor, shimmerColorShade)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun ShimmerSeriesItem(
-    shimmerColor: Color,
-    shimmerColorShade: Color
-) {
-    val transition = rememberInfiniteTransition(label = "shimmer")
-    val translateAnim by transition.animateFloat(
-        initialValue = -1000f,
-        targetValue = 1000f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1200)
-        ), label = "shimmer_translate"
-    )
-    
-    val brush = Brush.linearGradient(
-        colors = listOf(
-            shimmerColor,
-            shimmerColorShade,
-            shimmerColor,
-            shimmerColorShade,
-            shimmerColor
-        ),
-        start = Offset.Zero,
-        end = Offset(x = translateAnim, y = translateAnim)
-    )
-    
-    val shimmerSeriesCardGlassTint = rememberGlassTint()
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .subtleGlassSurface(shape = RoundedCornerShape(20.dp), tint = shimmerSeriesCardGlassTint),
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.Transparent
-        )
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp)
-        ) {
-            // Series poster shimmer
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(brush)
-            )
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            // Title shimmer
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(0.8f)
-                    .height(20.dp)
-                    .background(brush)
-            )
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            // Year shimmer
-            Box(
-                modifier = Modifier
-                    .width(60.dp)
-                    .height(16.dp)
-                    .background(brush)
-            )
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            // Genres shimmer
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(0.6f)
-                    .height(16.dp)
-                    .background(brush)
-            )
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            // Rating shimmer
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(16.dp)
-                        .background(brush)
+                Text(
+                    text = "Select Genre",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 16.dp)
                 )
-                
-                Spacer(modifier = Modifier.width(8.dp))
-                
-                Box(
-                    modifier = Modifier
-                        .width(40.dp)
-                        .height(16.dp)
-                        .background(brush)
-                )
-            }
-        }
-    }
-}
 
-@Composable
-fun SeriesGrid(
-    series: List<Series>,
-    isLoading: Boolean,
-    isLoadingMore: Boolean,
-    errorMessage: String?,
-    onRetry: () -> Unit,
-    onRefresh: () -> Unit,
-    onLoadMore: () -> Unit,
-    navController: NavController? = null
-) {
-    val seriesList = series.toList()
-    val context = LocalContext.current
-    
-    val columns = DeviceUtils.getGridColumns(LocalContext.current.resources)
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(columns),
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        itemsIndexed(seriesList) { index, seriesItem ->
-            SeriesItem(
-                series = seriesItem,
-                onClick = {
-                    // Save series to storage
-                    StorageUtils.saveSeriesToFile(context, seriesItem)
-                    // Navigate to single series screen
-                    navController?.navigate("single_series/${seriesItem.id}")
-                }
-            )
-            
-            // Load more when we're near the end of the list
-            if (index >= seriesList.size - 3) {
-                LaunchedEffect(Unit) {
-                    onLoadMore()
-                }
-            }
-        }
-        
-        if (isLoadingMore) {
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    // Modern animated loading indicator
-                    ModernCircularProgressIndicatorSeries()
-                }
-            }
-        }
-        
-        if (errorMessage != null) {
-            item {
-                ErrorItemSeries(
-                    errorMessage = errorMessage,
-                    onRetry = onRetry
-                )
-            }
-        }
-        
-        // Add a small spacer at the bottom to avoid excessive padding
-        item {
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-    }
-}
-
-@Composable
-fun ModernCircularProgressIndicatorSeries() {
-    val transition = rememberInfiniteTransition(label = "progress")
-    val progress by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(
-                durationMillis = 1000,
-                easing = FastOutSlowInEasing
-            )
-        ), label = "progress_anim"
-    )
-    
-    // Add rotation animation for a more dynamic effect
-    val rotation by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(
-                durationMillis = 2000,
-                easing = LinearEasing
-            )
-        ), label = "rotation_anim"
-    )
-    
-    CircularProgressIndicator(
-        progress = progress,
-        modifier = Modifier
-            .size(48.dp)
-            .rotate(rotation), // Add rotation
-        strokeWidth = 4.dp,
-        trackColor = MaterialTheme.colorScheme.surfaceVariant,
-        color = MaterialTheme.colorScheme.primary
-    )
-}
-
-@Composable
-fun SeriesItem(
-    series: Series,
-    onClick: () -> Unit
-) {
-    val seriesCardGlassTint = rememberGlassTint()
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(310.dp) // Fixed height for all cards
-            .subtleGlassSurface(shape = RoundedCornerShape(20.dp), tint = seriesCardGlassTint)
-            .clickable { onClick() },
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.Transparent
-        )
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(12.dp)
-        ) {
-            // Series poster with rating overlay
-            Box {
-                Image(
-                    painter = rememberAsyncImagePainter(
-                        ImageRequest.Builder(LocalContext.current)
-                            .data(series.image)
-                            .crossfade(true)
-                            .build()
-                    ),
-                    contentDescription = series.title,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(180.dp)
-                        .clip(RoundedCornerShape(8.dp)),
-                    contentScale = ContentScale.Crop
-                )
-                
-                // Rating overlay at top-right corner
-                Card(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(8.dp),
-                    shape = RoundedCornerShape(50.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color.Black.copy(alpha = 0.7f)
+                FilterChip(
+                    selected = viewModel.selectedGenreId == 0,
+                    onClick = {
+                        viewModel.selectGenre(0)
+                        showFilterSheet = false
+                    },
+                    label = { Text("All Genres") },
+                    modifier = Modifier.padding(bottom = 8.dp),
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primary,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary
                     )
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Star,
-                            contentDescription = "Rating",
-                            tint = Color.Yellow,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = String.format("%.1f", series.imdb),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color.White,
-                            fontWeight = FontWeight.Medium
+                )
+
+                genres.chunked(2).forEach { rowGenres ->
+                    rowGenres.forEach { genre ->
+                        FilterChip(
+                            selected = viewModel.selectedGenreId == genre.id,
+                            onClick = {
+                                viewModel.selectGenre(genre.id)
+                                showFilterSheet = false
+                            },
+                            label = { Text(genre.title) },
+                            modifier = Modifier.padding(bottom = 8.dp),
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                            )
                         )
                     }
                 }
-            }
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            // Series details with weight to fill remaining space
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = series.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                
-                Spacer(modifier = Modifier.height(4.dp))
-                
-                Text(
-                    text = series.year.toString(),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                // Genres
-                if (series.genres.isNotEmpty()) {
-                    Text(
-                        text = series.genres.joinToString(", ") { it.title },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun ErrorScreenSeries(
-    errorMessage: String,
-    onRetry: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = "Failed to load series",
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-        
-        Text(
-            text = errorMessage,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-        
-        Button(
-            onClick = onRetry,
-            modifier = Modifier.padding(top = 8.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Refresh,
-                contentDescription = "Retry",
-                modifier = Modifier.size(16.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Retry")
-        }
-    }
-}
-
-@Composable
-fun ErrorItemSeries(
-    errorMessage: String,
-    onRetry: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer,
-        )
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "Failed to load more series",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onErrorContainer,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-            
-            Text(
-                text = errorMessage,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onErrorContainer,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-            
-            Button(
-                onClick = onRetry,
-                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.onErrorContainer,
-                    contentColor = MaterialTheme.colorScheme.errorContainer
-                )
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Refresh,
-                    contentDescription = "Retry",
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Retry")
             }
         }
     }
