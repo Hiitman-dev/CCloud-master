@@ -1,5 +1,10 @@
 package com.pira.ccloud.ui.theme
 
+import android.graphics.RenderEffect
+import android.graphics.Shader
+import android.os.Build
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -25,9 +30,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
@@ -35,124 +42,127 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 
-/**
- * ─── Glass Corner Radius System ───────────────────────────────────
- * Every radius value comes from the design system.
- *
- * Bottom Navigation : 32dp
- * Search Bar        : 28dp
- * Cards             : 22dp
- * Buttons           : 18dp
- * Poster            : 18dp
- * Bottom Sheet      : 30dp
- * Dialog            : 28dp
- * Tags / Chips      : 999dp (pill)
- */
+// ─── Corner Radius Scale ───────────────────────────────────────────────
+
 object GlassCorners {
-    val Navigation  = 32.dp
-    val Search      = 28.dp
-    val Card        = 22.dp
-    val Button      = 18.dp
-    val Poster      = 18.dp
-    val BottomSheet = 30.dp
-    val Dialog      = 28.dp
-    val Tag         = 999.dp
+    val Navigation = 28.dp
+    val Pill = 999.dp
+    val Search = 24.dp
+    val Card = 20.dp
+    val Button = 18.dp
+    val Tag = 999.dp
+}
+
+// ─── Liquid Glass Material ─────────────────────────────────────────────
+
+/**
+ * iOS 26-inspired "Liquid Glass" material.
+ *
+ * Layers (bottom → top):
+ *  1. Multi-layer drop shadow (ambient + spot) for physical depth
+ *  2. Tinted translucent fill (gradient from top to bottom)
+ *  3. Top-edge highlight border (glass refraction rim)
+ *  4. Inner light-catch gradient (diagonal, low-alpha white)
+ */
+fun Modifier.liquidGlass(
+    shape: Shape = RoundedCornerShape(GlassCorners.Card),
+    isDark: Boolean = true,
+    intensity: GlassIntensity = GlassIntensity.Chrome,
+): Modifier {
+    val (fillTop, fillBottom) = if (isDark) {
+        Color.White.copy(alpha = when (intensity) {
+            GlassIntensity.Chrome -> 0.18f
+            GlassIntensity.Subtle -> 0.08f
+        }) to Color.White.copy(alpha = when (intensity) {
+            GlassIntensity.Chrome -> 0.10f
+            GlassIntensity.Subtle -> 0.04f
+        })
+    } else {
+        Color.White.copy(alpha = when (intensity) {
+            GlassIntensity.Chrome -> 0.65f
+            GlassIntensity.Subtle -> 0.40f
+        }) to Color.White.copy(alpha = when (intensity) {
+            GlassIntensity.Chrome -> 0.45f
+            GlassIntensity.Subtle -> 0.20f
+        })
+    }
+
+    val shadowColor = if (isDark) Color.Black.copy(alpha = 0.40f) else Color.Black.copy(alpha = 0.12f)
+    val highlightColor = Color.White.copy(alpha = if (isDark) 0.25f else 0.60f)
+    val borderTopColor = Color.White.copy(alpha = if (isDark) 0.22f else 0.70f)
+    val borderBottomColor = Color.White.copy(alpha = if (isDark) 0.06f else 0.20f)
+
+    return this
+        .shadow(
+            elevation = when (intensity) {
+                GlassIntensity.Chrome -> 20.dp
+                GlassIntensity.Subtle -> 8.dp
+            },
+            shape = shape,
+            ambientColor = shadowColor.copy(alpha = shadowColor.alpha * 0.5f),
+            spotColor = shadowColor
+        )
+        .clip(shape)
+        .background(
+            brush = Brush.verticalGradient(colors = listOf(fillTop, fillBottom))
+        )
+        .border(
+            width = 1.dp,
+            brush = Brush.verticalGradient(colors = listOf(borderTopColor, borderBottomColor)),
+            shape = shape
+        )
+        .background(
+            brush = Brush.linearGradient(
+                colors = listOf(
+                    highlightColor.copy(alpha = highlightColor.alpha * 0.3f),
+                    Color.Transparent,
+                    Color.Transparent,
+                    highlightColor.copy(alpha = highlightColor.alpha * 0.12f)
+                ),
+                start = Offset.Zero,
+                end = Offset.Infinite
+            )
+        )
 }
 
 /**
- * ─── Shadow System ────────────────────────────────────────────────
- * Soft ambient shadows only. Never heavy drop shadows.
- *
- * Large Surface : 0 12 40 rgba(0,0,0,0.08)
- * Small Surface : 0 6 20 rgba(0,0,0,0.06)
- * Buttons       : very subtle elevation only
+ * Backdrop blur — API 31+ only (RenderEffect).
+ * On older APIs the translucent fill + shadow + edge highlight
+ * already creates a convincing glass effect.
  */
-object GlassShadow {
-    val LargeSurface = Pair(12.dp, Color.Black.copy(alpha = 0.08f))
-    val SmallSurface = Pair(6.dp, Color.Black.copy(alpha = 0.06f))
+fun Modifier.backdropBlur(
+    blurRadius: Dp = 24.dp,
+): Modifier {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return this
+    val radius = blurRadius.value
+    return this.graphicsLayer {
+        renderEffect = RenderEffect
+            .createBlurEffect(radius, radius, Shader.TileMode.CLAMP)
+    }
 }
 
-/**
- * ─── Glass Design System ─────────────────────────────────────────
- *
- * Architectural frosted glass — NOT Apple Liquid Glass, NOT bubble,
- * NOT jelly. Think luxury hotel interiors, modern architecture,
- * premium automotive displays.
- *
- * Specifications:
- *   Opacity       : 28%–38%
- *   Backdrop Blur : 20px–32px (approximated via translucent tint on API < 31)
- *   Border        : 1px rgba(255,255,255,0.30)
- *   Reflection    : Very subtle diagonal gradient
- *   Shadow        : Soft ambient only
- *   Edge Highlight: Minimal
- *
- * Two intensities are deliberately maintained:
- *  - [glassSurface]       : for UI *chrome* — search bar, bottom nav,
- *                            modal sheets, filter chips, dialogs.
- *                            These read as visibly translucent glass.
- *  - [subtleGlassSurface] : for regular *content* cards (movie/series
- *                            posters). Near-opaque with only a faint
- *                            frosted hint, so poster art stays vibrant.
- */
 fun Modifier.glassSurface(
     shape: Shape = RoundedCornerShape(GlassCorners.Card),
     tint: Color = Color.White,
-    tintAlpha: Float = 0.32f,
-    borderAlpha: Float = 0.30f
+    tintAlpha: Float = 0.38f,
+    borderAlpha: Float = 0.28f
 ): Modifier = this
-    .clip(shape)
-    .background(
-        brush = Brush.linearGradient(
-            colors = listOf(
-                tint.copy(alpha = (tintAlpha * 1.15f).coerceAtMost(0.44f)),
-                tint.copy(alpha = (tintAlpha * 0.80f).coerceAtMost(0.35f))
-            )
-        )
-    )
-    .border(
-        width = 1.dp,
-        brush = Brush.linearGradient(
-            colors = listOf(
-                tint.copy(alpha = borderAlpha),
-                tint.copy(alpha = borderAlpha * 0.35f)
-            )
-        ),
-        shape = shape
-    )
+    .liquidGlass(shape = shape, isDark = tint.luminance() < 0.5f, intensity = GlassIntensity.Chrome)
 
-/**
- * A much lighter touch — near-opaque clean surface with only a faint
- * frosted hint. Use for content cards (movie/series posters, grid items)
- * so artwork stays vibrant and readable.
- */
 fun Modifier.subtleGlassSurface(
     shape: Shape = RoundedCornerShape(GlassCorners.Card),
     tint: Color = Color.White
 ): Modifier = this
-    .clip(shape)
-    .background(tint.copy(alpha = 0.06f))
-    .border(
-        width = 1.dp,
-        color = tint.copy(alpha = 0.10f),
-        shape = shape
-    )
+    .liquidGlass(shape = shape, isDark = tint.luminance() < 0.5f, intensity = GlassIntensity.Subtle)
 
-/**
- * Picks a tint matching the theme's surface tone (dark tint on dark
- * theme, light tint on light theme) so normal onSurface/onBackground
- * text stays readable on top of it.
- */
+enum class GlassIntensity { Chrome, Subtle }
+
 @Composable
 fun rememberGlassTint(): Color {
     val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
     return if (isDark) Color.Black else Color.White
 }
 
-/**
- * A circular, frosted-glass icon button — floating search, filter trigger, etc.
- * Touch target: 44dp minimum per accessibility rules.
- */
 @Composable
 fun GlassIconButton(
     icon: ImageVector,
@@ -167,7 +177,7 @@ fun GlassIconButton(
         onClick = onClick,
         modifier = modifier
             .size(size)
-            .glassSurface(shape = CircleShape, tint = tint)
+            .liquidGlass(shape = CircleShape, isDark = tint.luminance() < 0.5f)
     ) {
         Icon(
             imageVector = icon,
@@ -177,23 +187,21 @@ fun GlassIconButton(
     }
 }
 
-/**
- * A generic frosted-glass surface container.
- */
 @Composable
 fun GlassSurface(
     modifier: Modifier = Modifier,
-    shape: Shape = RoundedCornerShape(GlassCorners.Card),
+    shape: Shape = RoundedCornerShape(20.dp),
     content: @Composable () -> Unit
 ) {
     val tint = rememberGlassTint()
     Box(
-        modifier = modifier.glassSurface(shape = shape, tint = tint)
+        modifier = modifier.liquidGlass(shape = shape, isDark = tint.luminance() < 0.5f)
     ) {
         content()
     }
 }
 
+<<<<<<< HEAD
 /**
  * Glass-styled Material Overlay Dialog.
  *
@@ -201,6 +209,27 @@ fun GlassSurface(
  * Dialog: Rounded (28dp), Glass, Minimal shadow
  * Only ONE sheet should exist. No nested overlays.
  */
+=======
+@Composable
+fun Modifier.matteOverlay(
+    shape: Shape = RoundedCornerShape(0.dp)
+): Modifier {
+    val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+    val overlayColor = if (isDark) Color.Black else Color.White
+    return this
+        .background(
+            brush = Brush.verticalGradient(
+                colors = listOf(
+                    overlayColor.copy(alpha = 0.85f),
+                    overlayColor.copy(alpha = 0.92f),
+                    overlayColor.copy(alpha = 0.95f)
+                )
+            )
+        )
+        .border(width = 0.dp, color = Color.Transparent, shape = shape)
+}
+
+>>>>>>> 18e9b33b29dda900dfc7eb9a48c6fbad8abbd743
 @Composable
 fun GlassAlertDialog(
     onDismissRequest: () -> Unit,
@@ -210,28 +239,18 @@ fun GlassAlertDialog(
     icon: (@Composable () -> Unit)? = null,
     title: (@Composable () -> Unit)? = null,
     text: (@Composable () -> Unit)? = null,
-    shape: Shape = RoundedCornerShape(GlassCorners.Dialog),
+    shape: Shape = RoundedCornerShape(28.dp),
     containerColor: Color = Color.Unspecified,
     tonalElevation: Dp = 0.dp,
     properties: DialogProperties = DialogProperties()
 ) {
     val tint = rememberGlassTint()
+    val isDark = tint.luminance() < 0.5f
     Dialog(onDismissRequest = onDismissRequest, properties = properties) {
         Box(
             modifier = modifier
                 .widthIn(min = 280.dp, max = 560.dp)
-                .shadow(
-                    elevation = GlassShadow.SmallSurface.first,
-                    shape = shape,
-                    ambientColor = GlassShadow.SmallSurface.second,
-                    spotColor = GlassShadow.SmallSurface.second
-                )
-                .glassSurface(
-                    shape = shape,
-                    tint = tint,
-                    tintAlpha = 0.48f,
-                    borderAlpha = 0.38f
-                )
+                .liquidGlass(shape = shape, isDark = isDark, intensity = GlassIntensity.Chrome)
                 .padding(24.dp)
         ) {
             Column {
@@ -243,15 +262,11 @@ fun GlassAlertDialog(
                     Spacer(modifier = Modifier.height(16.dp))
                 }
                 title?.let { titleContent ->
-                    ProvideTextStyle(MaterialTheme.typography.headlineSmall) {
-                        titleContent()
-                    }
+                    ProvideTextStyle(MaterialTheme.typography.headlineSmall) { titleContent() }
                     Spacer(modifier = Modifier.height(16.dp))
                 }
                 text?.let { textContent ->
-                    ProvideTextStyle(MaterialTheme.typography.bodyMedium) {
-                        textContent()
-                    }
+                    ProvideTextStyle(MaterialTheme.typography.bodyMedium) { textContent() }
                     Spacer(modifier = Modifier.height(24.dp))
                 }
                 Row(
@@ -266,48 +281,5 @@ fun GlassAlertDialog(
                 }
             }
         }
-    }
-}
-
-/**
- * Glass-styled Bottom Sheet — used for Filter Panel, Download Panel,
- * Search Suggestions, etc.
- *
- * Radius: 30dp per design system.
- * Background auto-blurs, freezes, dims the page behind.
- * Only one sheet should exist at a time.
- */
-@Composable
-fun GlassBottomSheet(
-    onDismiss: () -> Unit,
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit
-) {
-    val tint = rememberGlassTint()
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .glassSurface(
-                shape = RoundedCornerShape(
-                    topStart = GlassCorners.BottomSheet,
-                    topEnd = GlassCorners.BottomSheet
-                ),
-                tint = tint,
-                tintAlpha = 0.42f,
-                borderAlpha = 0.32f
-            )
-            .shadow(
-                elevation = GlassShadow.LargeSurface.first,
-                shape = RoundedCornerShape(
-                    topStart = GlassCorners.BottomSheet,
-                    topEnd = GlassCorners.BottomSheet
-                ),
-                ambientColor = GlassShadow.LargeSurface.second,
-                spotColor = GlassShadow.LargeSurface.second
-            )
-            .navigationBarsPadding()
-            .padding(24.dp)
-    ) {
-        content()
     }
 }

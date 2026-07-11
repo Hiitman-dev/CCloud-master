@@ -131,8 +131,53 @@ fun SeriesScreen(
                     onLoadMore = { viewModel.loadMoreSeries() },
                     navController = navController
                 )
+<<<<<<< HEAD
             }
         }
+=======
+=======
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Scrollable content fills the screen
+        Column(modifier = Modifier.fillMaxSize()) {
+            Spacer(modifier = Modifier.height(60.dp)) // Reserve space for floating filter bar
+            when {
+                isLoading && series.isEmpty() -> {
+                    LoadingScreenSeries()
+                }
+                errorMessage != null && series.isEmpty() -> {
+                    ErrorScreenSeries(
+                        errorMessage = errorMessage,
+                        onRetry = { viewModel.retry() }
+                    )
+                }
+                else -> {
+                    SeriesGrid(
+                        series = series,
+                        isLoading = isLoading,
+                        isLoadingMore = isLoadingMore,
+                        errorMessage = errorMessage,
+                        onRetry = { viewModel.retry() },
+                        onRefresh = { viewModel.refresh() },
+                        onLoadMore = { viewModel.loadMoreSeries() },
+                        navController = navController
+                    )
+                }
+>>>>>>> 16bb46ea3318e8f7e2ba73e2f974008e3b01c44d
+            }
+        }
+
+        // Floating glass filter bar — z-indexed above content
+        Box(modifier = Modifier.fillMaxWidth()) {
+            GenreFilterSection(
+                genres = genres,
+                selectedGenreId = selectedGenreId,
+                selectedFilterType = selectedFilterType,
+                onGenreSelected = { genreId -> viewModel.selectGenre(genreId) },
+                onFilterTypeSelected = { filterType -> viewModel.selectFilterType(filterType) },
+                onSearchClick = { navController?.navigate("search") }
+            )
+        }
+>>>>>>> 18e9b33b29dda900dfc7eb9a48c6fbad8abbd743
     }
 }
 

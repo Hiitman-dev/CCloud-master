@@ -16,7 +16,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -39,12 +38,29 @@ import androidx.compose.ui.unit.dp
 import com.pira.ccloud.data.model.FilterType
 import com.pira.ccloud.data.model.Genre
 import com.pira.ccloud.ui.theme.GlassCorners
+<<<<<<< HEAD
+import com.pira.ccloud.ui.theme.GlassIntensity
+import com.pira.ccloud.ui.theme.GlassIconButton
+import com.pira.ccloud.ui.theme.liquidGlass
+
+/**
+ * Floating Liquid Glass filter bar.
+ *
+ * Design:
+ *  - Floats above scrollable content (not a static header)
+ *  - Rounded pill / rounded-2xl shape with glassmorphism material
+ *  - Search icon button on the left, filter trigger on the right
+ *  - Content scrolls underneath and remains visible through the blur
+ *  - Smooth expand animation on filter sheet
+ *  - Same glass material as nav bar but slightly different opacity
+=======
 import com.pira.ccloud.ui.theme.glassSurface
 import com.pira.ccloud.ui.theme.rememberGlassTint
 
 /**
  * Compact "Filters" trigger. Tapping it raises a glass-styled bottom sheet
  * popup with the sort type and genre pickers.
+>>>>>>> 03d9d8ea365ac7c4ed6ac59077927b3f93b49314
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,7 +73,7 @@ fun GenreFilterSection(
     onSearchClick: (() -> Unit)? = null
 ) {
     var showFilterSheet by remember { mutableStateOf(false) }
-    val glassTint = rememberGlassTint()
+    val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
 
     val selectedGenreTitle = if (selectedGenreId == 0) {
         "All Genres"
@@ -70,9 +86,20 @@ fun GenreFilterSection(
         FilterType.BY_IMDB -> "By IMDB"
     }
 
+<<<<<<< HEAD
     Row(
         modifier = Modifier
             .fillMaxWidth()
+=======
+    // Floating glass filter bar — positioned above content
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+<<<<<<< HEAD
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+=======
+<<<<<<< HEAD
+>>>>>>> 18e9b33b29dda900dfc7eb9a48c6fbad8abbd743
             .padding(start = 24.dp, end = 24.dp, top = 12.dp, bottom = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -83,8 +110,17 @@ fun GenreFilterSection(
                 contentDescription = "Search",
                 onClick = onSearchClick
             )
+<<<<<<< HEAD
         }
 
+=======
+            .border(
+                width = 0.5.dp,
+                color = glassTint.copy(alpha = 0.12f)
+            )
+>>>>>>> 03d9d8ea365ac7c4ed6ac59077927b3f93b49314
+    ) {
+>>>>>>> 18e9b33b29dda900dfc7eb9a48c6fbad8abbd743
         Row(
             modifier = Modifier
                 .weight(1f)
@@ -119,6 +155,63 @@ fun GenreFilterSection(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1
             )
+<<<<<<< HEAD
+=======
+=======
+                .fillMaxWidth()
+                .liquidGlass(
+                    shape = RoundedCornerShape(GlassCorners.Pill),
+                    isDark = isDark,
+                    intensity = GlassIntensity.Chrome
+                )
+                .padding(horizontal = 6.dp, vertical = 6.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Search icon button — circular glass bubble
+            if (onSearchClick != null) {
+                GlassIconButton(
+                    icon = Icons.Default.Tune,
+                    contentDescription = "Search",
+                    onClick = onSearchClick,
+                    size = 40.dp
+                )
+            }
+
+            // Filter trigger — glass pill that expands
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable { showFilterSheet = true }
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Tune,
+                        contentDescription = "Filters",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.height(18.dp)
+                    )
+                    Text(
+                        text = "Filters",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Text(
+                    text = "$filterLabel  •  $selectedGenreTitle",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1
+                )
+            }
+>>>>>>> 16bb46ea3318e8f7e2ba73e2f974008e3b01c44d
+>>>>>>> 18e9b33b29dda900dfc7eb9a48c6fbad8abbd743
         }
     }
 
@@ -149,17 +242,52 @@ private fun FilterSheetContent(
     onGenreSelected: (Int) -> Unit,
     onFilterTypeSelected: (FilterType) -> Unit
 ) {
+<<<<<<< HEAD
     val glassTint = rememberGlassTint()
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
+=======
+    val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+
+    // Frosted-glass bottom sheet with liquid glass material
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+<<<<<<< HEAD
+            .liquidGlass(
+                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+                isDark = isDark,
+                intensity = GlassIntensity.Chrome
+=======
+<<<<<<< HEAD
+>>>>>>> 18e9b33b29dda900dfc7eb9a48c6fbad8abbd743
             .glassSurface(
                 shape = RoundedCornerShape(
                     topStart = GlassCorners.BottomSheet,
                     topEnd = GlassCorners.BottomSheet
                 ),
                 tint = glassTint
+<<<<<<< HEAD
+=======
+=======
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.surface.copy(alpha = 0.94f),
+                        MaterialTheme.colorScheme.surface.copy(alpha = 0.97f)
+                    )
+                ),
+                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+            )
+            .border(
+                width = 1.dp,
+                color = glassTint.copy(alpha = 0.2f),
+                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+>>>>>>> 16bb46ea3318e8f7e2ba73e2f974008e3b01c44d
+>>>>>>> 03d9d8ea365ac7c4ed6ac59077927b3f93b49314
+>>>>>>> 18e9b33b29dda900dfc7eb9a48c6fbad8abbd743
             )
             .navigationBarsPadding()
             .padding(24.dp)
