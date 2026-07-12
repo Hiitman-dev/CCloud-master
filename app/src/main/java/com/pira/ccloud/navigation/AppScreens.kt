@@ -94,6 +94,13 @@ sealed class AppScreens(
         showSidebar = false
     )
 
+    data object WatchAnalytics : AppScreens(
+        route = "watch_analytics",
+        resourceId = R.string.watch_analytics,
+        showBottomBar = false,
+        showSidebar = false
+    )
+
     companion object {
         val bottomNavScreens = listOf(Home, Movies, Series, Settings)
         val allScreens = listOf(Home, Movies, Series, Search, Favorites, Settings)

@@ -103,6 +103,10 @@ fun AppNavigation(
             AboutScreen(navController)
         }
 
+        composable(route = AppScreens.WatchAnalytics.route) {
+            WatchAnalyticsScreen(navController)
+        }
+
         composable(
             route = AppScreens.SingleMovie.route,
             arguments = listOf(navArgument("movieId") { defaultValue = "0" })

@@ -194,6 +194,17 @@ fun SearchScreen(
             shape = RoundedCornerShape(24.dp),
             singleLine = true
         )
+
+        // Advanced search filters — visible when searching
+        if (viewModel.hasSearched && viewModel.searchQuery.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(12.dp))
+            AdvancedSearchFilters(
+                selectedType = viewModel.selectedTypeFilter,
+                onTypeSelected = { viewModel.selectedTypeFilter = it },
+                minRating = viewModel.minRatingFilter,
+                onRatingChanged = { viewModel.minRatingFilter = it }
+            )
+        }
         
         // Country stories section - only visible when no search has been performed
         if (!viewModel.hasSearched) {
@@ -274,11 +285,31 @@ fun SearchScreen(
                 }
             }
             viewModel.searchResults.isNotEmpty() -> {
-                SearchResultsGrid(
-                    posters = viewModel.searchResults,
-                    navController = navController,
-                    context = context
-                )
+                val filteredResults = viewModel.searchResults.filter { poster ->
+                    val typeMatch = viewModel.selectedTypeFilter == "All" ||
+                        (viewModel.selectedTypeFilter == "Movie" && poster.type == "movie") ||
+                        (viewModel.selectedTypeFilter == "Series" && poster.type == "serie")
+                    val ratingMatch = poster.imdb >= viewModel.minRatingFilter
+                    typeMatch && ratingMatch
+                }
+                if (filteredResults.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No results match your filters",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                } else {
+                    SearchResultsGrid(
+                        posters = filteredResults,
+                        navController = navController,
+                        context = context
+                    )
+                }
             }
             // Only show "No results found" after a search has been performed
             viewModel.hasSearched && viewModel.searchQuery.isNotEmpty() && !viewModel.isLoading -> {
@@ -649,6 +680,78 @@ fun PosterItem(
                         overflow = TextOverflow.Ellipsis
                     )
                 }
+            }
+        }
+    }
+}
+
+/**
+ * Advanced search filter chips — type (Movie/Series/All) and minimum rating.
+ */
+@Composable
+private fun AdvancedSearchFilters(
+    selectedType: String,
+    onTypeSelected: (String) -> Unit,
+    minRating: Float,
+    onRatingChanged: (Float) -> Unit
+) {
+    val types = listOf("All", "Movie", "Series")
+    val ratings = listOf(0f, 3f, 5f, 7f, 8f)
+
+    Column {
+        // Type filter
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            types.forEach { type ->
+                androidx.compose.material3.FilterChip(
+                    selected = selectedType == type,
+                    onClick = { onTypeSelected(type) },
+                    label = {
+                        Text(
+                            text = type,
+                            fontSize = 12.sp
+                        )
+                    },
+                    shape = RoundedCornerShape(20.dp),
+                    colors = androidx.compose.material3.FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primary,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Rating filter
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Min:",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            ratings.forEach { rating ->
+                androidx.compose.material3.FilterChip(
+                    selected = minRating == rating,
+                    onClick = { onRatingChanged(rating) },
+                    label = {
+                        Text(
+                            text = if (rating == 0f) "Any" else "${rating.toInt()}+",
+                            fontSize = 11.sp
+                        )
+                    },
+                    shape = RoundedCornerShape(16.dp),
+                    colors = androidx.compose.material3.FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.secondary,
+                        selectedLabelColor = MaterialTheme.colorScheme.onSecondary
+                    )
+                )
             }
         }
     }

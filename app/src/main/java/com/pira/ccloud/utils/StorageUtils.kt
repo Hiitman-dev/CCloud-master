@@ -142,9 +142,6 @@ object StorageUtils {
     
     fun saveMovieToFile(context: Context, movie: Movie) {
         try {
-            // Clear all existing movie files first
-            clearAllMovies(context)
-            
             val jsonString = Json.encodeToString(movie)
             val fileName = "movie_${movie.id}.json"
             val file = File(context.filesDir, fileName)
@@ -193,9 +190,6 @@ object StorageUtils {
     // Series functions
     fun saveSeriesToFile(context: Context, series: Series) {
         try {
-            // Clear all existing series files first
-            clearAllSeries(context)
-            
             val jsonString = Json.encodeToString(series)
             val fileName = "series_${series.id}.json"
             val file = File(context.filesDir, fileName)

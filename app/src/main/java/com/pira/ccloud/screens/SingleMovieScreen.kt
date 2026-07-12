@@ -85,16 +85,28 @@ fun SingleMovieScreen(
     
     LaunchedEffect(movieId) {
         movie = StorageUtils.loadMovieFromFile(context, movieId)
+        // Add to Continue Watching when user opens the movie details
+        movie?.let { m ->
+            com.pira.ccloud.utils.ViewHistoryManager.addToContinueWatching(
+                context = context,
+                id = m.id,
+                type = "movie",
+                title = m.title,
+                image = m.image,
+                genres = m.genres.map { it.title }
+            )
+        }
     }
-    
+
     // Directly render content without Scaffold since it's already in MainScreen's Scaffold
     if (movie != null) {
         MovieDetailsContent(
             movie = movie!!,
             onBackClick = { navController.popBackStack() },
             onPlayClick = { source ->
-                // Launch video player activity
-                VideoPlayerActivity.start(context, source.url)
+                // Mark as watching and launch player
+                com.pira.ccloud.utils.ViewHistoryManager.markAsWatching(context, movie!!.id, "movie")
+                VideoPlayerActivity.start(context, source.url, movie!!.title)
             },
             // Remove any padding from parent Scaffold to use full screen
             modifier = Modifier.fillMaxSize()
@@ -534,7 +546,7 @@ fun SourceOptionsDialog(
 ) {
     val context = LocalContext.current
     var showDownloadOptions by remember { mutableStateOf(false) }
-    
+
     if (showDownloadOptions) {
         DownloadOptionsDialog(
             source = source,
@@ -542,79 +554,73 @@ fun SourceOptionsDialog(
             onCopyLink = { DownloadUtils.copyToClipboard(context, source.url) },
             onDownloadWithBrowser = { DownloadUtils.openUrl(context, source.url) },
             onDownloadWithADM = { DownloadUtils.openWithADM(context, source.url) },
-            onOpenInVLC = { DownloadUtils.openWithVLC(context, source.url) },
-            onOpenInMXPlayer = { DownloadUtils.openWithMXPlayer(context, source.url) },
-            onOpenInKMPlayer = { DownloadUtils.openWithKMPlayer(context, source.url) }
+            onOpenInVLC = {
+                com.pira.ccloud.utils.ViewHistoryManager.markAsExternal(context, source.hashCode(), "movie")
+                DownloadUtils.openWithVLC(context, source.url)
+            },
+            onOpenInMXPlayer = {
+                com.pira.ccloud.utils.ViewHistoryManager.markAsExternal(context, source.hashCode(), "movie")
+                DownloadUtils.openWithMXPlayer(context, source.url)
+            },
+            onOpenInKMPlayer = {
+                com.pira.ccloud.utils.ViewHistoryManager.markAsExternal(context, source.hashCode(), "movie")
+                DownloadUtils.openWithKMPlayer(context, source.url)
+            }
         )
     }
-    
+
     GlassAlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
                 text = source.quality,
                 style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Medium
+                fontWeight = FontWeight.Bold
             )
         },
         text = {
-            Text(
-                text = "Choose an action for this video quality",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        },
-        confirmButton = {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Button(
-                    onClick = { showDownloadOptions = true },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    elevation = androidx.compose.material3.ButtonDefaults.elevatedButtonElevation()
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Download,
-                        contentDescription = "Download",
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Download Options")
-                }
-                
+            Column {
+                Text(
+                    text = "Choose an action",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                // Play button
                 Button(
                     onClick = { onPlay(source) },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    ),
-                    elevation = androidx.compose.material3.ButtonDefaults.elevatedButtonElevation()
+                    shape = RoundedCornerShape(14.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.PlayArrow,
-                        contentDescription = "Play",
-                        modifier = Modifier.size(20.dp)
-                    )
+                    Icon(Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Play in CCloud")
+                    Text("Play", fontWeight = FontWeight.SemiBold)
                 }
-                
-                // Cancel button moved to the bottom of the dialog
-                TextButton(
-                    onClick = onDismiss,
+                Spacer(modifier = Modifier.height(8.dp))
+                // Download options button
+                Button(
+                    onClick = { showDownloadOptions = true },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
                 ) {
-                    Text("Cancel")
+                    Icon(Icons.Default.Download, contentDescription = null, modifier = Modifier.size(20.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Download Options", fontWeight = FontWeight.SemiBold)
                 }
             }
         },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        },
         containerColor = MaterialTheme.colorScheme.surface,
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(24.dp),
         tonalElevation = 6.dp
     )
 }

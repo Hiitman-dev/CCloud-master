@@ -99,6 +99,17 @@ fun SingleSeriesScreen(
     LaunchedEffect(seriesId) {
         series = StorageUtils.loadSeriesFromFile(context, seriesId)
         seasonsViewModel.loadSeasons(seriesId)
+        // Add to Continue Watching when user opens the series details
+        series?.let { s ->
+            com.pira.ccloud.utils.ViewHistoryManager.addToContinueWatching(
+                context = context,
+                id = s.id,
+                type = "series",
+                title = s.title,
+                image = s.image,
+                genres = s.genres.map { it.title }
+            )
+        }
     }
     
     // Source selection dialog
@@ -115,7 +126,10 @@ fun SingleSeriesScreen(
             },
             onPlay = { source ->
                 showSourceDialog = false
-                // Launch video player activity with the selected source URL and episode info
+                // Mark as watching and launch player
+                com.pira.ccloud.utils.ViewHistoryManager.markAsWatching(
+                    context, series!!.id, "series", selectedEpisode!!.id
+                )
                 VideoPlayerActivity.startWithEpisodeInfo(
                     context,
                     source.url,
@@ -148,14 +162,28 @@ fun SingleSeriesScreen(
             onEpisodeClick = { episode ->
                 if (episode.sources.isNotEmpty() && series != null) {
                     val selectedSeason = seasonsViewModel.seasons[selectedSeasonIndex]
+                    // Add episode to Continue Watching
+                    com.pira.ccloud.utils.ViewHistoryManager.addToContinueWatching(
+                        context = context,
+                        id = series!!.id,
+                        type = "series",
+                        title = "${series!!.title} - ${episode.title}",
+                        image = series!!.image,
+                        genres = series!!.genres.map { it.title },
+                        episodeId = episode.id,
+                        seasonId = selectedSeason.id
+                    )
                     if (episode.sources.size > 1) {
                         // Show source selection dialog if there are multiple sources
                         selectedEpisode = episode
                         showSourceDialog = true
                     } else {
-                        // Directly play if there's only one source
+                        // Mark as watching and play
+                        com.pira.ccloud.utils.ViewHistoryManager.markAsWatching(
+                            context, series!!.id, "series", episode.id
+                        )
                         VideoPlayerActivity.startWithEpisodeInfo(
-                            context, 
+                            context,
                             episode.sources[0].url,
                             series!!.id,
                             selectedSeason.id,
@@ -218,7 +246,7 @@ fun SourceOptionsDialog(
     val context = LocalContext.current
     var selectedSource by remember { mutableStateOf<Source?>(null) }
     var showDownloadOptions by remember { mutableStateOf(false) }
-    
+
     if (showDownloadOptions && selectedSource != null) {
         DownloadOptionsDialog(
             source = selectedSource!!,
@@ -231,58 +259,47 @@ fun SourceOptionsDialog(
             onOpenInKMPlayer = { DownloadUtils.openWithKMPlayer(context, selectedSource!!.url) }
         )
     }
-    
+
     GlassAlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = "Episode: ${episode.title}",
+                text = episode.title,
                 style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Medium
+                fontWeight = FontWeight.Bold
             )
         },
         text = {
-            Text(
-                text = "Choose quality to play",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        },
-        confirmButton = {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Play buttons for each source/quality
+            Column {
+                Text(
+                    text = "Choose quality to play",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                // Quality buttons for each source
                 episode.sources.forEach { source ->
                     Button(
                         onClick = { onPlay(source) },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        elevation = androidx.compose.material3.ButtonDefaults.elevatedButtonElevation()
+                        shape = RoundedCornerShape(14.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.PlayArrow,
-                            contentDescription = "Play",
-                            modifier = Modifier.size(20.dp)
-                        )
+                        Icon(Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(20.dp))
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Play ${source.quality}")
+                        Text("Play ${source.quality}", fontWeight = FontWeight.SemiBold)
                     }
-                }
-                
-                // Cancel button
-                TextButton(
-                    onClick = onDismiss,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Text("Cancel")
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
         },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        },
         containerColor = MaterialTheme.colorScheme.surface,
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(24.dp),
         tonalElevation = 6.dp
     )
 }

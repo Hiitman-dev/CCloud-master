@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -180,8 +181,10 @@ fun SeriesScreen(
         }
 
         // Floating top bar
+        val selectedGenreName = genres.find { it.id == viewModel.selectedGenreId }?.title ?: "All"
         FloatingTopBar(
             title = "Series",
+            filterText = selectedGenreName,
             onSearchClick = {
                 navController?.navigate("search") {
                     launchSingleTop = true

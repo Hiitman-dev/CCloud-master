@@ -34,6 +34,7 @@ import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.Brightness1
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.FormatColorFill
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Download
@@ -325,6 +326,19 @@ fun SettingsScreen(
                             Icon(
                                 imageVector = Icons.Default.Favorite,
                                 contentDescription = "Favorites",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        IconButton(
+                            onClick = { navController.navigate("watch_analytics") },
+                            modifier = Modifier
+                                .size(48.dp)
+                                .focusable()
+                                .focusRequester(remember { FocusRequester() })
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.BarChart,
+                                contentDescription = "Watch Analytics",
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }
