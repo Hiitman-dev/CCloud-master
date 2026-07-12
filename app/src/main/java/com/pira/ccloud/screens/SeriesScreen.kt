@@ -63,6 +63,13 @@ fun SeriesScreen(
         }
     }
 
+    // Whenever the genre or sort filter changes, jump back to the top of
+    // the grid instead of leaving the user scrolled into the middle of a
+    // now-different list.
+    LaunchedEffect(viewModel.selectedGenreId, viewModel.selectedFilterType) {
+        gridState.scrollToItem(0)
+    }
+
     // Infinite scroll: request the next page once the user is close to the
     // bottom of the currently loaded list.
     val shouldLoadMore by remember {

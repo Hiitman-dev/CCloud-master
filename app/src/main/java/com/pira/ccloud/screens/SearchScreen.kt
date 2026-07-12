@@ -305,11 +305,21 @@ fun SearchScreen(
                         )
                     }
                 } else {
-                    SearchResultsGrid(
-                        posters = filteredResults,
-                        navController = navController,
-                        context = context
-                    )
+                    // Keying on the query + active filters forces a fresh grid
+                    // state whenever any of them change, so results always
+                    // reopen scrolled to the top instead of wherever the
+                    // previous list happened to be scrolled to.
+                    androidx.compose.runtime.key(
+                        viewModel.searchQuery,
+                        viewModel.selectedTypeFilter,
+                        viewModel.minRatingFilter
+                    ) {
+                        SearchResultsGrid(
+                            posters = filteredResults,
+                            navController = navController,
+                            context = context
+                        )
+                    }
                 }
             }
             // Only show "No results found" after a search has been performed

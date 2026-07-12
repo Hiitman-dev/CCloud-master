@@ -44,14 +44,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.ui.zIndex
 import com.pira.ccloud.components.ContentCarousel
-import com.pira.ccloud.components.FloatingTopBar
 import com.pira.ccloud.components.HeroCard
 import com.pira.ccloud.components.PosterCard
 import com.pira.ccloud.data.model.FavoriteItem
 import com.pira.ccloud.data.model.Movie
 import com.pira.ccloud.data.model.Series
 import com.pira.ccloud.ui.home.HomeViewModel
+import com.pira.ccloud.ui.theme.GlassIconButton
 import com.pira.ccloud.ui.theme.rememberGlassTint
 import com.pira.ccloud.utils.StorageUtils
 import com.pira.ccloud.utils.ViewHistoryManager
@@ -274,19 +276,26 @@ fun HomeScreen(
             }
         }
 
-        // Floating top bar
-        FloatingTopBar(
-            title = "CCloud",
-            filterText = "Home",
-            onSearchClick = {
-                navController?.navigate("search") {
-                    launchSingleTop = true
-                    restoreState = true
+        // Home no longer shows a genre/filter bar - just a floating search
+        // icon in the top-right corner.
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .zIndex(10f)
+                .padding(top = 40.dp, end = 16.dp),
+            contentAlignment = Alignment.TopEnd
+        ) {
+            GlassIconButton(
+                icon = Icons.Default.Search,
+                contentDescription = "Search",
+                onClick = {
+                    navController?.navigate("search") {
+                        launchSingleTop = true
+                        restoreState = true
+                    }
                 }
-            },
-            onFilterClick = { /* No-op on home */ },
-            modifier = Modifier.padding(top = 40.dp)
-        )
+            )
+        }
     }
 }
 

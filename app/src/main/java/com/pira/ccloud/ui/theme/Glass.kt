@@ -23,7 +23,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.luminance
@@ -46,18 +45,19 @@ object GlassCorners {
 }
 
 /**
- * Liquid-glass ("glassmorphism") styling shared across the app.
+ * Frosted matte-glass styling shared across the app.
  *
  * Note on limits: true backdrop blur-of-what's-behind-this-element requires
  * Android 12+ (RenderEffect, API 31). Since this app supports API 24+, we
- * approximate the "glass" look everywhere with a translucent tinted surface,
- * a soft diagonal light-catch gradient, and a hairline edge highlight - the
- * same technique most glassmorphism UIs use for broad device compatibility.
+ * approximate the "frosted glass" look everywhere with a flat, fairly opaque
+ * tinted surface and a soft hairline edge - deliberately *without* the
+ * diagonal shine/gradient a clear "liquid glass" surface would have. Matte
+ * glass reads as a solid, slightly translucent panel, not a glossy bubble.
  *
  * Two intensities are used across the app, deliberately:
  *  - [glassSurface] (this one): for UI *chrome* - search bar, bottom nav,
- *    modal sheets, filter chips, dialogs. These are allowed to read as
- *    visibly translucent glass.
+ *    modal sheets, filter chips, dialogs. These are allowed to read as a
+ *    visibly frosted, matte panel.
  *  - [subtleGlassSurface]: for regular *content* cards (movie/series
  *    posters). These stay close to a clean, opaque surface with only a
  *    faint frosted hint, so poster art stays vibrant and readable instead
@@ -66,30 +66,17 @@ object GlassCorners {
 fun Modifier.glassSurface(
     shape: Shape = RoundedCornerShape(GlassCorners.Card),
     tint: Color = Color.White,
-    // Spec range: glass opacity 18%-28%, border ~rgba(255,255,255,0.22).
-    // Kept deliberately restrained - glass is a material for chrome, not a
-    // decorative identity, so it should never read as a bright, glowing
-    // "bubble" surface.
-    tintAlpha: Float = 0.22f,
-    borderAlpha: Float = 0.22f
+    // Matte/frosted range: flat opacity 45%-60%, hairline border ~14%-18%.
+    // Deliberately flat (no gradient) - glass is a material for chrome, not
+    // a decorative identity, so it should never read as a shiny/wet surface.
+    tintAlpha: Float = 0.55f,
+    borderAlpha: Float = 0.16f
 ): Modifier = this
     .clip(shape)
-    .background(
-        brush = Brush.linearGradient(
-            colors = listOf(
-                tint.copy(alpha = (tintAlpha * 1.15f).coerceAtMost(1f)),
-                tint.copy(alpha = (tintAlpha * 0.82f).coerceAtMost(1f))
-            )
-        )
-    )
+    .background(color = tint.copy(alpha = tintAlpha.coerceIn(0f, 1f)))
     .border(
         width = 1.dp,
-        brush = Brush.linearGradient(
-            colors = listOf(
-                tint.copy(alpha = borderAlpha),
-                tint.copy(alpha = borderAlpha * 0.5f)
-            )
-        ),
+        color = tint.copy(alpha = borderAlpha.coerceIn(0f, 1f)),
         shape = shape
     )
 
