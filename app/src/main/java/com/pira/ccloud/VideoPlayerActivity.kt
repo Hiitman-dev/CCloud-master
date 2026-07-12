@@ -677,7 +677,6 @@ fun VideoPlayerScreen(
                 detectTapGestures(
                     onDoubleTap = { offset ->
                         if (isLocked) return@detectTapGestures
-<<<<<<< HEAD
                         // Keep a dead zone around the center (40%-60% of width) so double taps
                         // near the middle of the screen (close to the play/pause controls) don't
                         // accidentally trigger a seek. Only taps clearly on the left or right
@@ -707,23 +706,6 @@ fun VideoPlayerScreen(
                                     // to be an intentional seek gesture.
                                     if (player.isPlaying) player.pause() else player.play()
                                 }
-=======
-                        val half = size.width / 2
-                        val seekMs = 10_000L
-                        exoPlayer?.let { player ->
-                            if (offset.x < half) {
-                                // Rewind 10s
-                                val newPos = (player.currentPosition - seekMs).coerceAtLeast(0L)
-                                player.seekTo(newPos)
-                                currentPosition = newPos
-                                doubleTapSide = -1
-                            } else {
-                                // Forward 10s
-                                val newPos = (player.currentPosition + seekMs).coerceAtMost(player.duration)
-                                player.seekTo(newPos)
-                                currentPosition = newPos
-                                doubleTapSide = 1
->>>>>>> b37905b39637561788e731dede0e9b4306cad5e0
                             }
                         }
                     },
