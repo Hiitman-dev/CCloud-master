@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -111,6 +112,14 @@ fun MainScreen(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        // Scaffold normally paints a solid MaterialTheme.colorScheme.background
+        // rectangle behind the bottomBar slot. Since BottomNavigationBar is a
+        // small floating glass pill (not an edge-to-edge bar), that solid
+        // rectangle used to show through as a flat "page" behind and around
+        // it. Making the Scaffold itself transparent removes that backing
+        // panel so only the app content - visible through the glass - sits
+        // behind the bar.
+        containerColor = Color.Transparent,
         bottomBar = {
             if (!isTv && currentScreen.showBottomBar && currentRoute != AppScreens.Splash.route) {
                 BottomNavigationBar(navController)
@@ -133,7 +142,19 @@ fun MainScreen(
                 }
             }
         } else {
-            Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
+            // Deliberately only consume the top inset here, not the bottom
+            // one Scaffold reserves for the bottomBar. That lets each
+            // screen's own scrollable content extend all the way to the
+            // real bottom of the screen and scroll underneath the floating
+            // glass nav bar, instead of stopping short in a hard rectangle
+            // above it. Screens that show the bottom bar reserve their own
+            // bottom content padding so their last item still ends up fully
+            // visible once scrolled past the bar.
+            Box(
+                modifier = Modifier
+                    .padding(top = innerPadding.calculateTopPadding())
+                    .fillMaxSize()
+            ) {
                 AppNavigation(navController, onThemeSettingsChanged, onFontSettingsChanged)
             }
         }

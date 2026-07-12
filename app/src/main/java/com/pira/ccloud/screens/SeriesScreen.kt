@@ -43,6 +43,15 @@ import com.pira.ccloud.utils.StorageUtils
  */
 private val TOP_BAR_CLEARANCE = 96.dp
 
+/**
+ * Extra bottom space added to the grid's content padding so the last row of
+ * posters can scroll up past the floating glass bottom nav bar instead of
+ * ending up permanently stuck underneath it (the bar overlays content
+ * directly now, with no solid backing panel of its own). Matches the
+ * clearance already used on the Home screen for the same reason.
+ */
+private val BOTTOM_BAR_CLEARANCE = 100.dp
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SeriesScreen(
@@ -147,7 +156,12 @@ fun SeriesScreen(
                         state = gridState,
                         columns = GridCells.Fixed(columns),
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                        contentPadding = PaddingValues(
+                            start = 16.dp,
+                            end = 16.dp,
+                            top = 12.dp,
+                            bottom = 12.dp + BOTTOM_BAR_CLEARANCE
+                        ),
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
