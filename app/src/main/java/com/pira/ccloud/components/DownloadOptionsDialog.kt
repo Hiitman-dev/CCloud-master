@@ -409,6 +409,7 @@ fun CopySelectedLinksDialog(
 /**
  * "Copy Season Links" button — gathers links for all episodes in a season.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CopySeasonLinksButton(
     episodes: List<com.pira.ccloud.data.model.Episode>,
