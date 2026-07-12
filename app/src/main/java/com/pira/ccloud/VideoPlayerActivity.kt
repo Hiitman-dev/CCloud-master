@@ -317,6 +317,11 @@ class VideoPlayerActivity : ComponentActivity() {
 }
 
 // ──────────────────────────────────────────────────────────────
+// Aspect mode enum (must be outside composable for K2 compiler)
+// ──────────────────────────────────────────────────────────────
+enum class AspectMode { FIT, FILL, CROP, WIDE_16_9 }
+
+// ──────────────────────────────────────────────────────────────
 // Main composable
 // ──────────────────────────────────────────────────────────────
 @Composable
@@ -351,7 +356,6 @@ fun VideoPlayerScreen(
     var hasMarkedAsWatched by remember { mutableStateOf(false) }
 
     // ── Aspect ratio ──
-    enum class AspectMode { FIT, FILL, CROP, WIDE_16_9 }
     var aspectMode by remember { mutableStateOf(AspectMode.FIT) }
     val aspectModeIndex by remember(aspectMode) { mutableStateOf(aspectMode.ordinal) }
 
