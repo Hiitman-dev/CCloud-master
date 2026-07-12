@@ -24,6 +24,7 @@ import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.widget.FrameLayout
 import android.widget.Toast
+import com.pira.ccloud.utils.ViewHistoryManager
 import java.io.File
 import java.io.FileOutputStream
 import kotlin.math.roundToInt
@@ -432,7 +433,7 @@ fun VideoPlayerScreen(
     }
 
     // ── Resume position ──
-    val savedPosition = remember {
+    val savedPosition: Long = remember {
         val id = seriesId ?: 0
         val type = if (seriesId != null) "series" else "movie"
         val epId = episodeId ?: -1
@@ -787,17 +788,17 @@ fun VideoPlayerScreen(
         AndroidView(
             factory = { ctx ->
                 try {
-                    PlayerView(ctx).apply {
-                        player = exoPlayer
-                        useController = false
-                        layoutParams = FrameLayout.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.MATCH_PARENT
-                        )
-                        resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
-                        setSubtitleTextSize(subtitleSettings.textSize)
-                        setSubtitleColors(subtitleSettings, customTypeface, showBackground, showBorder)
-                    }
+                    val pv = PlayerView(ctx)
+                    pv.player = exoPlayer
+                    pv.useController = false
+                    pv.layoutParams = FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                    )
+                    pv.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+                    pv.setSubtitleTextSize(subtitleSettings.textSize)
+                    pv.setSubtitleColors(subtitleSettings, customTypeface, showBackground, showBorder)
+                    pv
                 } catch (_: Exception) {
                     View(ctx).apply { setBackgroundColor(android.graphics.Color.BLACK) }
                 }
@@ -1156,8 +1157,9 @@ fun VideoPlayerScreen(
                                                     )
                                                 },
                                                 onClick = {
-                                                    trackSelector?.setParameters(
-                                                        trackSelector.buildUponParameters()
+                                                    val ts = trackSelector
+                                                    ts?.setParameters(
+                                                        ts.buildUponParameters()
                                                             .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, false)
                                                             .setOverrideForType(
                                                                 TrackSelectionOverride(trackGroup.mediaTrackGroup, i)
@@ -1427,8 +1429,9 @@ fun VideoPlayerScreen(
                 subtitlesEnabled = subtitlesEnabled,
                 onSubtitleToggle = { enabled ->
                     subtitlesEnabled = enabled
-                    trackSelector?.setParameters(
-                        trackSelector.buildUponParameters()
+                    val ts = trackSelector
+                    ts?.setParameters(
+                        ts.buildUponParameters()
                             .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, !enabled)
                     )
                 },

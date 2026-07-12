@@ -158,7 +158,7 @@ fun HomeScreen(
 
             // Recently Viewed
             val recentlyViewed: List<FavoriteItem> = viewModel.recentlyViewed
-            if (recentlyViewed.isNotEmpty() && recentlyWatched.isEmpty()) {
+            if (recentlyViewed.isNotEmpty() && continueWatching.isEmpty()) {
                 item {
                     Spacer(modifier = Modifier.height(28.dp))
                     ContentCarousel(

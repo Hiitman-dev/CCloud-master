@@ -18,6 +18,7 @@ import com.pira.ccloud.screens.SettingsScreen
 import com.pira.ccloud.screens.SingleMovieScreen
 import com.pira.ccloud.screens.SingleSeriesScreen
 import com.pira.ccloud.screens.SplashScreen
+import com.pira.ccloud.screens.WatchAnalyticsScreen
 import com.pira.ccloud.ui.country.CountryViewModel
 import com.pira.ccloud.ui.home.HomeViewModel
 import com.pira.ccloud.ui.movies.MoviesViewModel
