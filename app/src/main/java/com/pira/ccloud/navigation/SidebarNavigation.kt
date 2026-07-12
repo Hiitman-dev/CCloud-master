@@ -1,10 +1,9 @@
 package com.pira.ccloud.navigation
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -16,11 +15,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.NavigationRailItemDefaults
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -45,7 +42,7 @@ fun SidebarNavigation(navController: NavController) {
             .fillMaxHeight()
             .width(100.dp)
             .padding(top = 24.dp, bottom = 24.dp),
-        containerColor = MaterialTheme.colorScheme.surface,
+        containerColor = androidx.compose.material3.MaterialTheme.colorScheme.surface,
         header = {
             Spacer(modifier = Modifier.height(16.dp))
         }
@@ -55,29 +52,31 @@ fun SidebarNavigation(navController: NavController) {
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Column(
-                verticalArrangement = Arrangement.spacedBy(20.dp)
+                verticalArrangement = Arrangement.spacedBy(28.dp)
             ) {
-                AppScreens.screens.filter { it.showSidebar }.forEach { screen ->
+                AppScreens.bottomNavScreens.forEach { screen ->
                     val isSelected = currentRoute == screen.route
                     val scale by animateFloatAsState(
-                        targetValue = if (isSelected) 1.06f else 1f,
-                        animationSpec = spring(),
+                        targetValue = if (isSelected) 1.1f else 1f,
+                        animationSpec = tween(durationMillis = 200),
                         label = "scale"
                     )
+
                     val iconColor by animateColorAsState(
                         targetValue = if (isSelected)
-                            MaterialTheme.colorScheme.primary
+                            androidx.compose.material3.MaterialTheme.colorScheme.primary
                         else
-                            MaterialTheme.colorScheme.onSurfaceVariant,
-                        animationSpec = tween(durationMillis = 220),
+                            androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
+                        animationSpec = tween(durationMillis = 200),
                         label = "iconColor"
                     )
+
                     val textColor by animateColorAsState(
                         targetValue = if (isSelected)
-                            MaterialTheme.colorScheme.primary
+                            androidx.compose.material3.MaterialTheme.colorScheme.primary
                         else
-                            MaterialTheme.colorScheme.onSurfaceVariant,
-                        animationSpec = tween(durationMillis = 220),
+                            androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
+                        animationSpec = tween(durationMillis = 200),
                         label = "textColor"
                     )
 
@@ -85,33 +84,33 @@ fun SidebarNavigation(navController: NavController) {
                         icon = {
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier.padding(horizontal = 20.dp)
+                                modifier = Modifier.padding(horizontal = 22.dp)
                             ) {
-                                Box(
+                                androidx.compose.foundation.layout.Box(
                                     modifier = Modifier
-                                        .size(56.dp)
+                                        .size(64.dp)
                                         .scale(scale),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     if (isSelected) {
-                                        Surface(
-                                            modifier = Modifier.size(44.dp),
+                                        androidx.compose.material3.Surface(
+                                            modifier = Modifier.size(48.dp),
                                             shape = CircleShape,
-                                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
+                                            color = androidx.compose.material3.MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                                         ) {}
                                     }
                                     Icon(
                                         imageVector = screen.icon ?: Icons.Default.Movie,
                                         contentDescription = stringResource(screen.resourceId),
                                         tint = iconColor,
-                                        modifier = Modifier.size(26.dp)
+                                        modifier = Modifier.size(32.dp)
                                     )
                                 }
                                 Text(
                                     text = stringResource(screen.resourceId),
                                     color = textColor,
-                                    fontSize = MaterialTheme.typography.labelSmall.fontSize,
-                                    fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Light,
+                                    fontSize = androidx.compose.material3.MaterialTheme.typography.labelMedium.fontSize,
+                                    fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal,
                                     maxLines = 1
                                 )
                             }
@@ -130,10 +129,10 @@ fun SidebarNavigation(navController: NavController) {
                             }
                         },
                         colors = NavigationRailItemDefaults.colors(
-                            selectedIconColor = MaterialTheme.colorScheme.primary,
-                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            selectedTextColor = MaterialTheme.colorScheme.primary,
-                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            selectedIconColor = androidx.compose.material3.MaterialTheme.colorScheme.primary,
+                            unselectedIconColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
+                            selectedTextColor = androidx.compose.material3.MaterialTheme.colorScheme.primary,
+                            unselectedTextColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                             indicatorColor = Color.Transparent
                         )
                     )

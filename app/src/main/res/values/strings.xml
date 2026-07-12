@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">CCloud</string>
+    <string name="home">Home</string>
     <string name="movies">Movies</string>
     <string name="series">Series</string>
     <string name="search">Search</string>
@@ -10,4 +11,5 @@
     <string name="video_player">Video Player</string>
     <string name="favorites">Favorites</string>
     <string name="country">Country</string>
+    <string name="watch_analytics">Watch Analytics</string>
 </resources>

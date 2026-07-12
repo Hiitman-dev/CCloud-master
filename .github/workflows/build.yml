@@ -1,19 +1,16 @@
-name: Build and Release CCloud
+name: Build CCloud
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
   workflow_dispatch:
-    inputs:
-      tag:
-        description: 'Tag to create release for (e.g., v1.0.0)'
-        required: true
-        default: 'v1.0.0'
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -38,22 +35,18 @@ jobs:
         continue-on-error: true
         timeout-minutes: 5
 
-      - name: Retry Gradle Wrapper Validation (if needed)
+      - name: Check and fix Gradle Wrapper if needed
         run: |
-          echo "Checking if Gradle wrapper validation is needed..."
           if [ ! -f "gradle/wrapper/gradle-wrapper.jar.sha256" ]; then
             echo "Gradle wrapper checksum missing, generating new one..."
             ./scripts/fix-gradle-wrapper.sh
-          else
-            echo "Gradle wrapper checksum already exists, continuing..."
           fi
         continue-on-error: true
 
-      - name: Check Gradle Wrapper Validation Result
+      - name: Ensure Gradle Wrapper Checksum
         run: |
-          if [ ! -f "gradle/wrapper/gradle-wrapper.jar.sha256" ]; then
-            echo "Gradle wrapper checksum missing, generating new one..."
-            cd gradle/wrapper
+          cd gradle/wrapper
+          if [ ! -f "gradle-wrapper.jar.sha256" ]; then
             sha256sum gradle-wrapper.jar > gradle-wrapper.jar.sha256
           fi
 
@@ -62,6 +55,40 @@ jobs:
 
       - name: Clean build
         run: ./gradlew clean
+
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug --stacktrace -x lint
+
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: CCloud-debug
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+  build-release:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Decode Keystore
         run: echo "${{ secrets.KEY_STORE }}" | base64 --decode > app/keystore.jks
@@ -75,24 +102,12 @@ jobs:
           echo "storeFile=keystore.jks" >> key.properties
         continue-on-error: true
 
-      - name: Build APK
+      - name: Build Release APK
         run: ./gradlew assembleRelease --stacktrace -x lint
-
-      - name: Rename APK
-        run: |
-          mkdir -p release
-          cp app/build/outputs/apk/release/app-universal-release.apk release/CCloud-universal.apk
 
       - name: Get tag name
         id: get_tag
-        run: |
-          if [[ $GITHUB_EVENT_NAME == 'workflow_dispatch' ]]; then
-            TAG_NAME=${{ github.event.inputs.tag }}
-          else
-            TAG_NAME=${GITHUB_REF#refs/tags/}
-          fi
-          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
-          echo "Tag name: $TAG_NAME"
+        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
@@ -102,20 +117,11 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            release/CCloud-universal.apk
+            app/build/outputs/apk/release/*.apk
           body: |
             ## CCloud Release ${{ env.TAG_NAME }}
-            
+
             ### What's New
             - Modernized UI with enhanced user experience
             - Improved performance and stability
             - New features and bug fixes
-            
-            ### Download Options
-            - [Universal APK (all architectures)](https://github.com/${{ github.repository }}/releases/download/${{ env.TAG_NAME }}/CCloud-universal.apk) - Compatible with all devices
-
-            ### Installation
-            1. Download the appropriate APK file for your device
-            2. Enable "Install from unknown sources" in your device settings
-            3. Open and install the APK
-            4. Launch CCloud and enjoy your movies!

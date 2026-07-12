@@ -18,38 +18,6 @@ import java.util.Date
 object StorageUtils {
     private const val TAG = "StorageUtils"
     
-    // Recently Viewed - separate from Favorites; records whatever the user opens
-    // (movie or series detail screen), regardless of whether they favorite it.
-    // Used to power the "Continue Watching" row on the home screen.
-    fun saveRecentlyViewed(context: Context, item: FavoriteItem) {
-        try {
-            val recent = loadRecentlyViewed(context).toMutableList()
-            recent.removeAll { it.id == item.id && it.type == item.type }
-            recent.add(0, item)
-            val capped = recent.take(15)
-            val jsonString = Json.encodeToString(capped)
-            val file = File(context.filesDir, "recently_viewed.json")
-            file.writeText(jsonString)
-        } catch (e: Exception) {
-            Log.e(TAG, "Error saving recently viewed", e)
-        }
-    }
-
-    fun loadRecentlyViewed(context: Context): List<FavoriteItem> {
-        return try {
-            val file = File(context.filesDir, "recently_viewed.json")
-            if (file.exists()) {
-                val jsonString = file.readText()
-                Json.decodeFromString<List<FavoriteItem>>(jsonString)
-            } else {
-                emptyList()
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error loading recently viewed", e)
-            emptyList()
-        }
-    }
-
     // Favorites functions - using a single JSON file for all favorites
     fun saveFavorite(context: Context, favorite: FavoriteItem) {
         try {
@@ -174,9 +142,6 @@ object StorageUtils {
     
     fun saveMovieToFile(context: Context, movie: Movie) {
         try {
-            // Clear all existing movie files first
-            clearAllMovies(context)
-            
             val jsonString = Json.encodeToString(movie)
             val fileName = "movie_${movie.id}.json"
             val file = File(context.filesDir, fileName)
@@ -225,9 +190,6 @@ object StorageUtils {
     // Series functions
     fun saveSeriesToFile(context: Context, series: Series) {
         try {
-            // Clear all existing series files first
-            clearAllSeries(context)
-            
             val jsonString = Json.encodeToString(series)
             val fileName = "series_${series.id}.json"
             val file = File(context.filesDir, fileName)
@@ -627,6 +589,38 @@ object StorageUtils {
         }
     }
     
+    // Recently Viewed functions - powers the "Continue Watching / Recently Viewed"
+    // row on the home (Movies) screen. Stores a capped, most-recent-first list of
+    // whichever movies/series the user actually opened the details screen for.
+    private const val MAX_RECENTLY_VIEWED = 20
+
+    fun saveRecentlyViewed(context: Context, item: FavoriteItem) {
+        try {
+            val items = loadRecentlyViewed(context).toMutableList()
+            items.removeAll { it.id == item.id && it.type == item.type }
+            items.add(0, item)
+            val capped = items.take(MAX_RECENTLY_VIEWED)
+            val jsonString = Json.encodeToString(capped)
+            File(context.filesDir, "recently_viewed.json").writeText(jsonString)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error saving recently viewed item", e)
+        }
+    }
+
+    fun loadRecentlyViewed(context: Context): List<FavoriteItem> {
+        return try {
+            val file = File(context.filesDir, "recently_viewed.json")
+            if (file.exists()) {
+                Json.decodeFromString<List<FavoriteItem>>(file.readText())
+            } else {
+                emptyList()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error loading recently viewed items", e)
+            emptyList()
+        }
+    }
+
     fun clearAllWatchedEpisodes(context: Context) {
         try {
             val file = File(context.filesDir, "watched_episodes.json")

@@ -1,9 +1,11 @@
 package com.pira.ccloud
 
 import android.app.Activity
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.graphics.Bitmap
 import android.graphics.Typeface
 import android.media.AudioManager
 import android.net.Uri
@@ -11,18 +13,30 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.Environment
+import android.provider.MediaStore
 import android.provider.Settings
 import android.util.TypedValue
-import android.view.GestureDetector
-import android.view.MotionEvent
+import android.view.PixelCopy
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.widget.FrameLayout
-import kotlin.math.abs
+import android.widget.Toast
+import com.pira.ccloud.utils.ViewHistoryManager
+import java.io.File
+import java.io.FileOutputStream
+import kotlin.math.roundToInt
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -34,10 +48,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
@@ -52,31 +70,48 @@ import androidx.compose.material.icons.filled.Replay
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.LockOpen
+import androidx.compose.material.icons.filled.Crop
+import androidx.compose.material.icons.filled.CropPortrait
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Subtitles
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import com.pira.ccloud.ui.theme.GlassAlertDialog
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -99,34 +134,29 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
 
 // Extension function to set subtitle text size on PlayerView
 fun PlayerView.setSubtitleTextSize(spSize: Float) {
-    // Convert sp to pixels
     val displayMetrics = context.resources.displayMetrics
     val pixels = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, spSize, displayMetrics)
-    
-    // Set the subtitle text size
     subtitleView?.setFixedTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, pixels)
 }
 
 // Extension function to set subtitle colors and font
-fun PlayerView.setSubtitleColors(settings: SubtitleSettings, typeface: Typeface? = null) {
-    // Create a custom CaptionStyleCompat with the typeface
-    // Use transparent background as default
+fun PlayerView.setSubtitleColors(settings: SubtitleSettings, typeface: Typeface? = null, showBackground: Boolean = false, showBorder: Boolean = true) {
+    val bgColor = if (showBackground) android.graphics.Color.argb(180, 0, 0, 0) else android.graphics.Color.TRANSPARENT
+    val edgeType = if (showBorder) CaptionStyleCompat.EDGE_TYPE_OUTLINE else CaptionStyleCompat.EDGE_TYPE_NONE
     val style = CaptionStyleCompat(
         settings.textColor,
-        android.graphics.Color.TRANSPARENT, // Always use transparent background
+        bgColor,
         settings.borderColor,
-        CaptionStyleCompat.EDGE_TYPE_OUTLINE,
+        edgeType,
         settings.borderColor,
         typeface
     )
     subtitleView?.setStyle(style)
-    
-    // Note: ExoPlayer's subtitle rendering has limited support for custom fonts.
-    // The font may not be applied to all subtitle formats or on all Android versions.
-    // This is a known limitation of ExoPlayer's subtitle rendering system.
 }
 
 class VideoPlayerActivity : ComponentActivity() {
@@ -135,15 +165,20 @@ class VideoPlayerActivity : ComponentActivity() {
         const val EXTRA_SERIES_ID = "series_id"
         const val EXTRA_SEASON_ID = "season_id"
         const val EXTRA_EPISODE_ID = "episode_id"
+        const val EXTRA_TITLE = "title"
+        const val EXTRA_SUBTITLE_URLS = "subtitle_urls"
+        const val EXTRA_QUALITY_URLS = "quality_urls"
+        const val EXTRA_QUALITY_LABELS = "quality_labels"
         const val REQUEST_WRITE_SETTINGS = 1001
-        
-        fun start(context: Context, videoUrl: String) {
+
+        fun start(context: Context, videoUrl: String, title: String? = null) {
             val intent = Intent(context, VideoPlayerActivity::class.java).apply {
                 putExtra(EXTRA_VIDEO_URL, videoUrl)
+                title?.let { putExtra(EXTRA_TITLE, it) }
             }
             context.startActivity(intent)
         }
-        
+
         fun startWithEpisodeInfo(context: Context, videoUrl: String, seriesId: Int, seasonId: Int, episodeId: Int) {
             val intent = Intent(context, VideoPlayerActivity::class.java).apply {
                 putExtra(EXTRA_VIDEO_URL, videoUrl)
@@ -154,37 +189,35 @@ class VideoPlayerActivity : ComponentActivity() {
             context.startActivity(intent)
         }
     }
-    
+
     private var exoPlayer: ExoPlayer? = null
     private var videoUrl: String? = null
+    private var videoTitle: String? = null
     private var seriesId: Int? = null
     private var seasonId: Int? = null
     private var episodeId: Int? = null
     private var playerInitialized = false
     private var isActivityResumed = false
     private var hasMarkedAsWatched = false
-    
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
-        // Set fullscreen landscape mode
+
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-        
-        // Enable immersive full-screen mode
         enableFullScreenMode()
-        
-        // Keep screen on while in video player
         window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        
+
         videoUrl = intent.getStringExtra(EXTRA_VIDEO_URL)
+        videoTitle = intent.getStringExtra(EXTRA_TITLE)
         seriesId = intent.getIntExtra(EXTRA_SERIES_ID, -1).takeIf { it != -1 }
         seasonId = intent.getIntExtra(EXTRA_SEASON_ID, -1).takeIf { it != -1 }
         episodeId = intent.getIntExtra(EXTRA_EPISODE_ID, -1).takeIf { it != -1 }
-        
+
         if (videoUrl != null) {
             setContent {
                 VideoPlayerScreen(
-                    videoUrl = videoUrl!!, 
+                    videoUrl = videoUrl!!,
+                    videoTitle = videoTitle ?: "",
                     seriesId = seriesId,
                     seasonId = seasonId,
                     episodeId = episodeId,
@@ -198,8 +231,7 @@ class VideoPlayerActivity : ComponentActivity() {
             finish()
         }
     }
-    
-    // Handle TV remote control key events
+
     override fun onKeyDown(keyCode: Int, event: android.view.KeyEvent?): Boolean {
         try {
             exoPlayer?.let { player ->
@@ -218,12 +250,12 @@ class VideoPlayerActivity : ComponentActivity() {
                         return true
                     }
                     android.view.KeyEvent.KEYCODE_DPAD_LEFT -> {
-                        val newPosition = (player.currentPosition - 10000).coerceAtLeast(0L) // Rewind 10 seconds
+                        val newPosition = (player.currentPosition - 10000).coerceAtLeast(0L)
                         player.seekTo(newPosition)
                         return true
                     }
                     android.view.KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                        val newPosition = (player.currentPosition + 10000).coerceAtMost(player.duration) // Forward 10 seconds
+                        val newPosition = (player.currentPosition + 10000).coerceAtMost(player.duration)
                         player.seekTo(newPosition)
                         return true
                     }
@@ -233,22 +265,18 @@ class VideoPlayerActivity : ComponentActivity() {
                     }
                 }
             }
-        } catch (e: Exception) {
-            // Ignore key event errors
-        }
+        } catch (_: Exception) {}
         return super.onKeyDown(keyCode, event)
     }
-    
+
     private fun enableFullScreenMode() {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                // For Android 11 and above
                 window.insetsController?.let { controller ->
                     controller.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
                     controller.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
                 }
             } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                // For Android 4.4 to Android 10
                 @Suppress("DEPRECATION")
                 window.decorView.systemUiVisibility = (
                     View.SYSTEM_UI_FLAG_FULLSCREEN
@@ -259,80 +287,48 @@ class VideoPlayerActivity : ComponentActivity() {
                     or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                 )
             } else {
-                // For even older versions
                 @Suppress("DEPRECATION")
                 window.addFlags(android.view.WindowManager.LayoutParams.FLAG_FULLSCREEN)
             }
-        } catch (e: Exception) {
-            // Fallback to basic fullscreen if there's an issue
-            try {
-                @Suppress("DEPRECATION")
-                window.addFlags(android.view.WindowManager.LayoutParams.FLAG_FULLSCREEN)
-            } catch (e2: Exception) {
-                // Ignore fullscreen errors
-            }
+        } catch (_: Exception) {
+            @Suppress("DEPRECATION")
+            try { window.addFlags(android.view.WindowManager.LayoutParams.FLAG_FULLSCREEN) } catch (_: Exception) {}
         }
     }
-    
+
     override fun onDestroy() {
         super.onDestroy()
-        try {
-            exoPlayer?.release()
-        } catch (e: Exception) {
-            // Ignore any exceptions during release
-        }
+        try { exoPlayer?.release() } catch (_: Exception) {}
         exoPlayer = null
         playerInitialized = false
-        
-        // Remove keep screen on flag to conserve battery
-        try {
-            window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        } catch (e: Exception) {
-            // Ignore flag clear errors
-        }
+        try { window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) } catch (_: Exception) {}
     }
-    
+
     override fun onResume() {
         super.onResume()
         isActivityResumed = true
-        // Re-enable full-screen mode when resuming
-        try {
-            enableFullScreenMode()
-        } catch (e: Exception) {
-            // Ignore fullscreen errors
-        }
-        
-        // Player will remain paused until user manually starts it
-        try {
-            if (playerInitialized && exoPlayer != null) {
-                // Keep player paused - let user manually start playback
-                exoPlayer?.playWhenReady = false
-            }
-        } catch (e: Exception) {
-            // Ignore player state errors
-        }
+        try { enableFullScreenMode() } catch (_: Exception) {}
     }
-    
+
     override fun onPause() {
         super.onPause()
         isActivityResumed = false
-        
-        // Stop player completely when activity pauses (app switch or screen off)
-        try {
-            if (playerInitialized && exoPlayer != null) {
-                exoPlayer?.playWhenReady = false
-                // Note: currentPosition is managed in the Composable scope
-                // Player will remain paused until user manually starts it
-            }
-        } catch (e: Exception) {
-            // Ignore player stop errors
-        }
+        try { exoPlayer?.playWhenReady = false } catch (_: Exception) {}
     }
 }
 
+// ──────────────────────────────────────────────────────────────
+// Aspect mode enum (must be outside composable for K2 compiler)
+// ──────────────────────────────────────────────────────────────
+enum class AspectMode { FIT, FILL, CROP, WIDE_16_9 }
+
+// ──────────────────────────────────────────────────────────────
+// Main composable
+// ──────────────────────────────────────────────────────────────
 @Composable
 fun VideoPlayerScreen(
     videoUrl: String,
+    videoTitle: String,
     seriesId: Int?,
     seasonId: Int?,
     episodeId: Int?,
@@ -340,677 +336,902 @@ fun VideoPlayerScreen(
     onPlayerReady: (ExoPlayer) -> Unit
 ) {
     val context = LocalContext.current
-    var isPlaying by remember { mutableStateOf(true) }
-    var currentPosition by remember { mutableStateOf(0L) }
-    var duration by remember { mutableStateOf(0L) }
-    var showControls by remember { mutableStateOf(true) }
-    var isSeeking by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+
+    // ── Player state ──
+    var isPlaying by remember { mutableStateOf(false) }
+    var currentPosition by remember { mutableLongStateOf(0L) }
+    var duration by remember { mutableLongStateOf(0L) }
+    var isBuffering by remember { mutableStateOf(false) }
     var playerError by remember { mutableStateOf<String?>(null) }
     var isRetrying by remember { mutableStateOf(false) }
-    var showForwardIndicator by remember { mutableStateOf(false) }
-    var showRewindIndicator by remember { mutableStateOf(false) }
-    var wasPlayingBeforeSeek by remember { mutableStateOf(false) }
-    var playbackSpeed by remember { mutableStateOf(1.0f) }
+
+    // ── UI state ──
+    var showControls by remember { mutableStateOf(true) }
+    var controlsAlpha by remember { mutableFloatStateOf(1f) }
+    var isLocked by remember { mutableStateOf(false) }
     var showSpeedDropdown by remember { mutableStateOf(false) }
-    var playerInitialized by remember { mutableStateOf(false) }
-    var hasMarkedAsWatched by remember { mutableStateOf(false) }
-    
-    // Track selection state
     var showTrackSelectionDialog by remember { mutableStateOf(false) }
+    var showSubtitleToggle by remember { mutableStateOf(false) }
+    var playbackSpeed by remember { mutableFloatStateOf(1.0f) }
+    var hasMarkedAsWatched by remember { mutableStateOf(false) }
+
+    // ── Aspect ratio ──
+    var aspectMode by remember { mutableStateOf(AspectMode.FIT) }
+    val aspectModeIndex by remember(aspectMode) { mutableStateOf(aspectMode.ordinal) }
+
+    // ── Track selection ──
     var currentTracks by remember { mutableStateOf(Tracks.EMPTY) }
     var trackSelector by remember { mutableStateOf<DefaultTrackSelector?>(null) }
-    
-    // Predefined playback speed options
-    val speedOptions = remember {
-        listOf(0.25f, 0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f, 2.5f, 3.0f, 3.5f)
+    var subtitlesEnabled by remember { mutableStateOf(true) }
+    var showSubtitlePanel by remember { mutableStateOf(false) }
+    var showAudioDropdown by remember { mutableStateOf(false) }
+    var showBackground by remember { mutableStateOf(false) }
+    var showBorder by remember { mutableStateOf(true) }
+
+    // ── Gesture state ──
+    var seekGestureActive by remember { mutableStateOf(false) }
+    var seekGestureDelta by remember { mutableFloatStateOf(0f) }
+    var brightnessGestureActive by remember { mutableStateOf(false) }
+    var brightnessGestureDelta by remember { mutableFloatStateOf(0f) }
+    var volumeGestureActive by remember { mutableStateOf(false) }
+    var volumeGestureDelta by remember { mutableFloatStateOf(0f) }
+    var gestureInitialPosition by remember { mutableLongStateOf(0L) }
+    var gestureInitialBrightness by remember { mutableFloatStateOf(0f) }
+    var gestureInitialVolume by remember { mutableFloatStateOf(0f) }
+
+    // ── Double-tap state ──
+    var doubleTapSide by remember { mutableStateOf(0) } // 0=none, -1=left, 1=right
+    var doubleTapAlpha by remember { mutableFloatStateOf(0f) }
+
+    // ── Screenshot state ──
+    var showScreenshotFlash by remember { mutableStateOf(false) }
+
+    // ── Speed options ──
+    val speedOptions = listOf(0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f, 2.5f, 3.0f)
+
+    // ── Aspect mode labels ──
+    val aspectModeLabels = listOf("FIT", "FILL", "CROP", "16:9")
+
+    // ── Audio manager for volume ──
+    val audioManager = remember(context) {
+        context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     }
-    
-    // Load font settings
+    val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+
+    // ── Settings ──
+    val videoPlayerSettings = remember(context) {
+        try { StorageUtils.loadVideoPlayerSettings(context) } catch (_: Exception) { VideoPlayerSettings.DEFAULT }
+    }
+    var subtitleSettings by remember(context) {
+        mutableStateOf(
+            try { StorageUtils.loadSubtitleSettings(context) } catch (_: Exception) { SubtitleSettings.getDefaultSettings(context) }
+        )
+    }
     val fontSettings = remember(context) {
-        try {
-            StorageUtils.loadFontSettings(context)
-        } catch (e: Exception) {
-            com.pira.ccloud.data.model.FontSettings.DEFAULT
-        }
+        try { StorageUtils.loadFontSettings(context) } catch (_: Exception) { FontSettings.DEFAULT }
     }
-    
-    // Load custom font typeface
     val customTypeface = remember(fontSettings.fontType) {
         try {
             when (fontSettings.fontType) {
                 com.pira.ccloud.data.model.FontType.DEFAULT -> null
                 com.pira.ccloud.data.model.FontType.VAZIRMATN -> {
-                    try {
-                        // Load the Vazirmatn font from assets
-                        Typeface.createFromAsset(context.assets, "font/vazirmatn_regular.ttf")
-                    } catch (e: Exception) {
-                        null
-                    }
+                    try { Typeface.createFromAsset(context.assets, "font/vazirmatn_regular.ttf") } catch (_: Exception) { null }
                 }
                 com.pira.ccloud.data.model.FontType.YEKAN_BAKH -> {
-                    try {
-                        // Load the Yekan Bakh font from res/font (not assets)
-                        androidx.core.content.res.ResourcesCompat.getFont(
-                            context,
-                            com.pira.ccloud.R.font.yekan_bakh_regular
-                        )
-                    } catch (e: Exception) {
-                        null
-                    }
+                    try { androidx.core.content.res.ResourcesCompat.getFont(context, com.pira.ccloud.R.font.yekan_bakh_regular) } catch (_: Exception) { null }
                 }
             }
-        } catch (e: Exception) {
-            null
-        }
+        } catch (_: Exception) { null }
     }
-    
-    // Load video player settings (without affecting playback speed)
-    val videoPlayerSettings = remember(context) {
+
+    // ── System brightness ──
+    val initialBrightness = remember {
         try {
-            StorageUtils.loadVideoPlayerSettings(context)
-        } catch (e: Exception) {
-            com.pira.ccloud.data.model.VideoPlayerSettings.DEFAULT
-        }
+            Settings.System.getInt(context.contentResolver, Settings.System.SCREEN_BRIGHTNESS) / 255f
+        } catch (_: Exception) { 0.5f }
     }
-    
-    // Load subtitle settings
-    val subtitleSettings = remember(context) {
-        try {
-            StorageUtils.loadSubtitleSettings(context)
-        } catch (e: Exception) {
-            SubtitleSettings.getDefaultSettings(context)
-        }
+
+    // ── Resume position ──
+    val savedPosition: Long = remember {
+        val id = seriesId ?: 0
+        val type = if (seriesId != null) "series" else "movie"
+        val epId = episodeId ?: -1
+        ViewHistoryManager.getLastPosition(context, id, type, epId)
     }
-    
+    var showResumeDialog by remember { mutableStateOf(savedPosition > 10_000L) }
+    var hasResumed by remember { mutableStateOf(false) }
+
+    // ── ExoPlayer setup ──
     val exoPlayer = remember(context) {
         try {
-            // Create track selector for track selection
-            val selector = DefaultTrackSelector(context)
+            val selector = DefaultTrackSelector(context).apply {
+                setParameters(buildUponParameters().setMaxVideoSizeSd())
+            }
             trackSelector = selector
-            
+
             ExoPlayer.Builder(context)
                 .setTrackSelector(selector)
                 .build().apply {
                     try {
                         setMediaItem(MediaItem.fromUri(Uri.parse(videoUrl)))
                         prepare()
-                        // If we're retrying, seek to the current position
-                        if (isRetrying && currentPosition > 0) {
-                            seekTo(currentPosition)
-                        }
-                        playWhenReady = isPlaying // Start with current play state
-                        // Set initial playback speed
+                        playWhenReady = false
                         setPlaybackSpeed(playbackSpeed)
-                    } catch (e: Exception) {
-                        // Don't show error, just mark as retrying
-                        isRetrying = true
-                    }
+                    } catch (_: Exception) {}
                 }
-        } catch (e: Exception) {
-            // Don't show error, just mark as retrying
-            isRetrying = true
-            null
-        }
+        } catch (_: Exception) { null }
     }
-    
-    // Listen to track changes
+
+    // ── Track listener ──
     val trackListener = remember(exoPlayer) {
         object : Player.Listener {
-            override fun onTracksChanged(tracks: Tracks) {
-                currentTracks = tracks
-            }
+            override fun onTracksChanged(tracks: Tracks) { currentTracks = tracks }
         }
     }
-    
-    LaunchedEffect(exoPlayer) {
-        if (exoPlayer == null) return@LaunchedEffect
-        
-        try {
-            exoPlayer.addListener(trackListener)
-        } catch (e: Exception) {
-            // Ignore listener errors
-        }
-    }
-    
-    DisposableEffect(exoPlayer) {
-        onDispose {
-            try {
-                exoPlayer?.removeListener(trackListener)
-            } catch (e: Exception) {
-                // Ignore listener removal errors
-            }
-        }
-    }
-    
-    // Notify activity of player reference
-    LaunchedEffect(Unit) {
-        try {
-            exoPlayer?.let { onPlayerReady(it) }
-            playerInitialized = true
-        } catch (e: Exception) {
-            // Ignore callback errors
-        }
-    }
-    
-    // Update player state and mark episode as watched
-    LaunchedEffect(isPlaying, exoPlayer) {
-        try {
-            exoPlayer?.playWhenReady = isPlaying
-            
-            // Mark episode as watched when playback starts (only once)
-            if (isPlaying && !hasMarkedAsWatched && seriesId != null && seasonId != null && episodeId != null) {
-                try {
-                    val watchedEpisode = WatchedEpisode(
-                        seriesId = seriesId!!,
-                        seasonId = seasonId!!,
-                        episodeId = episodeId!!
-                    )
-                    StorageUtils.saveWatchedEpisode(context, watchedEpisode)
-                    hasMarkedAsWatched = true
-                } catch (e: Exception) {
-                    // Ignore storage errors
-                }
-            }
-        } catch (e: Exception) {
-            // Ignore player state errors
-        }
-    }
-    
-    // Update playback speed when it changes
-    LaunchedEffect(playbackSpeed, exoPlayer) {
-        try {
-            exoPlayer?.setPlaybackSpeed(playbackSpeed)
-        } catch (e: Exception) {
-            // Ignore playback speed errors
-        }
-    }
-    
-    // Listen to player events and handle cleanup
+    LaunchedEffect(exoPlayer) { exoPlayer?.addListener(trackListener) }
+    DisposableEffect(exoPlayer) { onDispose { exoPlayer?.removeListener(trackListener) } }
+
+    // ── Player state listener ──
     val playerListener = remember(exoPlayer) {
         object : Player.Listener {
             override fun onIsPlayingChanged(playing: Boolean) {
-                // Only update isPlaying if we're not currently seeking
-                if (!isSeeking) {
-                    isPlaying = playing
-                }
+                isPlaying = playing
             }
-            
             override fun onPlaybackStateChanged(playbackState: Int) {
-                try {
-                    if (playbackState == Player.STATE_READY) {
+                when (playbackState) {
+                    Player.STATE_READY -> {
                         duration = exoPlayer?.duration ?: 0L
-                        
-                        // After the player is ready (especially after a retry), 
-                        // ensure the playWhenReady state is consistent with our UI state
-                        if (exoPlayer != null && !isRetrying) {
-                            exoPlayer?.playWhenReady = isPlaying
-                        }
-                    } else if (playbackState == Player.STATE_ENDED) {
-                        // Video ended, pause the player
-                        isPlaying = false
+                        isBuffering = false
+                        isRetrying = false
+                        playerError = null
+                        if (!isRetrying) exoPlayer?.playWhenReady = isPlaying
                     }
-                } catch (e: Exception) {
-                    // Ignore duration errors
+                    Player.STATE_BUFFERING -> isBuffering = true
+                    Player.STATE_ENDED -> isPlaying = false
+                    Player.STATE_IDLE -> {}
                 }
             }
-            
-            override fun onPositionDiscontinuity(
-                oldPosition: Player.PositionInfo,
-                newPosition: Player.PositionInfo,
-                reason: Int
-            ) {
-                try {
-                    if (!isSeeking) {
-                        currentPosition = exoPlayer?.currentPosition ?: 0L
-                    }
-                } catch (e: Exception) {
-                    // Ignore position errors
-                }
+            override fun onPositionDiscontinuity(oldPosition: Player.PositionInfo, newPosition: Player.PositionInfo, reason: Int) {
+                currentPosition = exoPlayer?.currentPosition ?: 0L
             }
-            
             override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
-                // Don't show error message, just mark as retrying
                 isRetrying = true
                 playerError = error.message
-                
-                // Store current position before retrying
-                val retryPosition = currentPosition
-                val wasPlaying = isPlaying // Store whether it was playing before the error
-                
-                // Attempt to retry after a delay
+                val retryPos = currentPosition
+                val wasPlaying = isPlaying
                 CoroutineScope(Dispatchers.Main).launch {
-                    delay(3000) // Wait 3 seconds before retrying
+                    delay(3000)
                     try {
                         exoPlayer?.let { player ->
-                            // Retry loading the media
                             player.setMediaItem(MediaItem.fromUri(Uri.parse(videoUrl)))
                             player.prepare()
-                            // Seek to the stored position after preparing
-                            player.seekTo(retryPosition)
-                            
-                            // Resume playback if it was playing before the error
+                            player.seekTo(retryPos)
                             player.playWhenReady = wasPlaying
-                            
-                            // Update the UI state to match the player state
                             isPlaying = wasPlaying
                             isRetrying = false
                             playerError = null
                         }
-                    } catch (e: Exception) {
-                        // If retry fails, keep isRetrying true
-                    }
+                    } catch (_: Exception) {}
                 }
             }
         }
     }
-    
-    LaunchedEffect(exoPlayer) {
-        if (exoPlayer == null) return@LaunchedEffect
-        
-        try {
-            exoPlayer.addListener(playerListener)
-        } catch (e: Exception) {
-            // Ignore listener errors
-        }
-    }
-    
-    DisposableEffect(exoPlayer) {
-        onDispose {
-            try {
-                exoPlayer?.removeListener(playerListener)
-            } catch (e: Exception) {
-                // Ignore listener removal errors
+    LaunchedEffect(exoPlayer) { exoPlayer?.addListener(playerListener) }
+    DisposableEffect(exoPlayer) { onDispose { exoPlayer?.removeListener(playerListener) } }
+
+    // ── Resume dialog ──
+    if (showResumeDialog && !hasResumed) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showResumeDialog = false },
+            title = { Text("Resume Playback") },
+            text = {
+                Text("You left off at ${formatTime(savedPosition)}. Resume from where you stopped?")
+            },
+            confirmButton = {
+                androidx.compose.material3.Button(
+                    onClick = {
+                        exoPlayer?.seekTo(savedPosition)
+                        currentPosition = savedPosition
+                        isPlaying = true
+                        hasResumed = true
+                        showResumeDialog = false
+                    }
+                ) {
+                    Text("Resume")
+                }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(
+                    onClick = {
+                        isPlaying = true
+                        hasResumed = true
+                        showResumeDialog = false
+                    }
+                ) {
+                    Text("Play from Beginning")
+                }
             }
+        )
+    }
+
+    // ── Mark as watching when playback starts ──
+    LaunchedEffect(isPlaying) {
+        if (isPlaying) {
+            val id = seriesId ?: 0
+            val type = if (seriesId != null) "series" else "movie"
+            val epId = episodeId ?: -1
+            ViewHistoryManager.markAsWatching(context, id, type, epId)
         }
     }
-    
-    // Periodically update the current position for real-time progress tracking
+
+    // ── Periodic position save ──
+    LaunchedEffect(isPlaying, currentPosition) {
+        if (isPlaying && currentPosition > 0) {
+            kotlinx.coroutines.delay(10_000) // Save every 10 seconds
+            val id = seriesId ?: 0
+            val type = if (seriesId != null) "series" else "movie"
+            val epId = episodeId ?: -1
+            ViewHistoryManager.updateProgress(context, id, type, currentPosition, duration, currentPosition, epId)
+        }
+    }
+
+    // ── Notify activity ──
+    LaunchedEffect(Unit) {
+        try { exoPlayer?.let { onPlayerReady(it) } } catch (_: Exception) {}
+    }
+
+    // ── Play state sync ──
+    LaunchedEffect(isPlaying, exoPlayer) {
+        try {
+            exoPlayer?.playWhenReady = isPlaying
+            if (isPlaying && !hasMarkedAsWatched && seriesId != null && seasonId != null && episodeId != null) {
+                try {
+                    StorageUtils.saveWatchedEpisode(
+                        context,
+                        WatchedEpisode(seriesId = seriesId, seasonId = seasonId, episodeId = episodeId)
+                    )
+                    hasMarkedAsWatched = true
+                } catch (_: Exception) {}
+            }
+        } catch (_: Exception) {}
+    }
+
+    // ── Speed sync ──
+    LaunchedEffect(playbackSpeed, exoPlayer) {
+        try { exoPlayer?.setPlaybackSpeed(playbackSpeed) } catch (_: Exception) {}
+    }
+
+    // ── Position polling ──
     LaunchedEffect(exoPlayer, isPlaying) {
-        if (exoPlayer == null) return@LaunchedEffect
-        
-        try {
-            while (true) {
-                delay(100) // Update every 100ms for smooth progress tracking
-                if (isPlaying && !isSeeking) {
-                    try {
-                        exoPlayer?.let { player ->
-                            if (player.isPlaying) {
-                                currentPosition = player.currentPosition
-                                duration = player.duration
-                            }
-                        }
-                    } catch (e: Exception) {
-                        // Ignore position/duration errors
+        while (true) {
+            delay(200)
+            try {
+                exoPlayer?.let { player ->
+                    if (player.isPlaying) {
+                        currentPosition = player.currentPosition
+                        duration = player.duration
                     }
                 }
-            }
-        } catch (e: Exception) {
-            // Ignore coroutine errors
+            } catch (_: Exception) {}
         }
     }
-    
-    // Hide controls after a delay
+
+    // ── Auto-hide controls ──
     LaunchedEffect(showControls, isPlaying) {
-        try {
-            if (showControls && isPlaying) {
-                delay(3000) // Hide controls after 3 seconds
-                showControls = false
-            }
-        } catch (e: Exception) {
-            // Ignore delay errors
+        if (showControls && isPlaying) {
+            delay(3000)
+            showControls = false
         }
     }
-    
-    // Hide forward/rewind indicators after a delay
-    LaunchedEffect(showForwardIndicator) {
-        try {
-            if (showForwardIndicator) {
-                delay(500) // Hide after 500ms
-                showForwardIndicator = false
-            }
-        } catch (e: Exception) {
-            // Ignore delay errors
+
+    // ── Double-tap fade out ──
+    LaunchedEffect(doubleTapSide) {
+        if (doubleTapSide != 0) {
+            doubleTapAlpha = 1f
+            delay(600)
+            doubleTapAlpha = 0f
+            delay(200)
+            doubleTapSide = 0
         }
     }
-    
-    LaunchedEffect(showRewindIndicator) {
-        try {
-            if (showRewindIndicator) {
-                delay(500) // Hide after 500ms
-                showRewindIndicator = false
-            }
-        } catch (e: Exception) {
-            // Ignore delay errors
+
+    // ── Screenshot flash ──
+    LaunchedEffect(showScreenshotFlash) {
+        if (showScreenshotFlash) {
+            delay(200)
+            showScreenshotFlash = false
         }
     }
-    
-    // Clean up player
+
+    // ── Cleanup ──
     DisposableEffect(exoPlayer) {
         onDispose {
-            try {
-                exoPlayer?.release()
-            } catch (e: Exception) {
-                // Ignore release errors
-            }
+            try { exoPlayer?.release() } catch (_: Exception) {}
         }
     }
-    
+
+    // ── Controls alpha animation ──
+    val animatedControlsAlpha by animateFloatAsState(
+        targetValue = if (showControls) 1f else 0f,
+        animationSpec = tween(durationMillis = 250),
+        label = "controlsAlpha"
+    )
+
+    // ── Aspect ratio for PlayerView ──
+    val resizeMode = when (aspectMode) {
+        AspectMode.FIT -> AspectRatioFrameLayout.RESIZE_MODE_FIT
+        AspectMode.FILL -> AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+        AspectMode.CROP -> AspectRatioFrameLayout.RESIZE_MODE_FIXED_WIDTH
+        AspectMode.WIDE_16_9 -> AspectRatioFrameLayout.RESIZE_MODE_FIT
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // UI
+    // ═══════════════════════════════════════════════════════════
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
             .pointerInput(Unit) {
-                try {
-                    detectTapGestures(
-                        onDoubleTap = { offset -> 
-                            // Calculate if the tap is on the left or right side
-                            val screenWidth = size.width
-                            val tapX = offset.x
-                            
-                            // Store the playing state before seeking
-                            wasPlayingBeforeSeek = isPlaying
-                            isSeeking = true
-                            
-                            if (tapX < screenWidth / 2) {
-                                // Left side - rewind specified seconds
-                                try {
-                                    exoPlayer?.let { player ->
-                                        val seekTimeMs = videoPlayerSettings.seekTimeSeconds * 1000L
-                                        val newPosition = (player.currentPosition - seekTimeMs).coerceAtLeast(0L)
-                                        player.seekTo(newPosition)
-                                        currentPosition = newPosition
-                                        showRewindIndicator = true
-                                        // Keep the player playing during seeking if it was playing before
-                                        if (wasPlayingBeforeSeek) {
-                                            player.playWhenReady = true
-                                        }
-                                    }
-                                } catch (e: Exception) {
-                                    // Ignore seek errors
+                detectTapGestures(
+                    onDoubleTap = { offset ->
+                        if (isLocked) return@detectTapGestures
+                        // Keep a dead zone around the center (40%-60% of width) so double taps
+                        // near the middle of the screen (close to the play/pause controls) don't
+                        // accidentally trigger a seek. Only taps clearly on the left or right
+                        // portions of the screen will rewind/forward.
+                        val leftZoneEnd = size.width * 0.4f
+                        val rightZoneStart = size.width * 0.6f
+                        val seekMs = 10_000L
+                        exoPlayer?.let { player ->
+                            when {
+                                offset.x < leftZoneEnd -> {
+                                    // Rewind 10s
+                                    val newPos = (player.currentPosition - seekMs).coerceAtLeast(0L)
+                                    player.seekTo(newPos)
+                                    currentPosition = newPos
+                                    doubleTapSide = -1
                                 }
-                            } else {
-                                // Right side - forward specified seconds
-                                try {
-                                    exoPlayer?.let { player ->
-                                        val seekTimeMs = videoPlayerSettings.seekTimeSeconds * 1000L
-                                        val newPosition = (player.currentPosition + seekTimeMs).coerceAtMost(player.duration)
-                                        player.seekTo(newPosition)
-                                        currentPosition = newPosition
-                                        showForwardIndicator = true
-                                        // Keep the player playing during seeking if it was playing before
-                                        if (wasPlayingBeforeSeek) {
-                                            player.playWhenReady = true
-                                        }
-                                    }
-                                } catch (e: Exception) {
-                                    // Ignore seek errors
+                                offset.x > rightZoneStart -> {
+                                    // Forward 10s
+                                    val newPos = (player.currentPosition + seekMs).coerceAtMost(player.duration)
+                                    player.seekTo(newPos)
+                                    currentPosition = newPos
+                                    doubleTapSide = 1
                                 }
-                            }
-                            
-                            // Reset seeking state after a short delay using a coroutine scope
-                            CoroutineScope(Dispatchers.Main).launch {
-                                try {
-                                    delay(500) // Reset after 500ms
-                                    isSeeking = false
-                                    // Restore the playing state after seeking is finished
-                                    try {
-                                        exoPlayer?.playWhenReady = wasPlayingBeforeSeek
-                                        // Update isPlaying state to match the player's actual state
-                                        isPlaying = wasPlayingBeforeSeek
-                                    } catch (e: Exception) {
-                                        // Ignore errors
-                                    }
-                                } catch (e: Exception) {
-                                    // Ignore delay errors
+                                else -> {
+                                    // Center dead zone: double tap here just toggles play/pause
+                                    // instead of seeking, since it's too close to the center
+                                    // to be an intentional seek gesture.
+                                    if (player.isPlaying) player.pause() else player.play()
                                 }
-                            }
-                        },
-                        onTap = {
-                            showControls = !showControls
-                            // Reset the auto-hide timer when controls are shown
-                            if (showControls && isPlaying) {
-                                // The LaunchedEffect above will handle the auto-hide
                             }
                         }
-                    )
-                } catch (e: Exception) {
-                    // Ignore gesture detection errors
-                }
+                    },
+                    onTap = {
+                        if (!isLocked) {
+                            showControls = !showControls
+                        }
+                    }
+                )
+            }
+            .pointerInput(isLocked) {
+                if (isLocked) return@pointerInput
+                detectDragGestures(
+                    onDragStart = { offset ->
+                        val halfWidth = size.width / 3
+                        gestureInitialPosition = exoPlayer?.currentPosition ?: 0L
+                        gestureInitialBrightness = try {
+                            Settings.System.getInt(context.contentResolver, Settings.System.SCREEN_BRIGHTNESS) / 255f
+                        } catch (_: Exception) { 0.5f }
+                        gestureInitialVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC).toFloat()
+                    },
+                    onDrag = { change, dragAmount ->
+                        change.consume()
+                        val halfWidth = size.width / 3
+                        val startX = change.position.x - dragAmount.x
+
+                        when {
+                            // Left third: brightness
+                            startX < halfWidth -> {
+                                if (!brightnessGestureActive) {
+                                    brightnessGestureActive = true
+                                    seekGestureActive = false
+                                    volumeGestureActive = false
+                                }
+                                brightnessGestureDelta += -dragAmount.y / size.height
+                                val newBrightness = (gestureInitialBrightness + brightnessGestureDelta).coerceIn(0.01f, 1f)
+                                try {
+                                    Settings.System.putInt(
+                                        context.contentResolver,
+                                        Settings.System.SCREEN_BRIGHTNESS,
+                                        (newBrightness * 255).roundToInt()
+                                    )
+                                } catch (_: Exception) {}
+                            }
+                            // Right third: volume
+                            startX > size.width - halfWidth -> {
+                                if (!volumeGestureActive) {
+                                    volumeGestureActive = true
+                                    seekGestureActive = false
+                                    brightnessGestureActive = false
+                                }
+                                volumeGestureDelta += -dragAmount.y / size.height
+                                val volumeDelta = (volumeGestureDelta * maxVolume).roundToInt()
+                                val currentVol = gestureInitialVolume.toInt()
+                                val newVol = (currentVol + volumeDelta).coerceIn(0, maxVolume)
+                                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newVol, 0)
+                            }
+                            // Middle third: seek
+                            else -> {
+                                if (!seekGestureActive) {
+                                    seekGestureActive = true
+                                    brightnessGestureActive = false
+                                    volumeGestureActive = false
+                                }
+                                seekGestureDelta = dragAmount.x / size.width
+                                val seekDeltaMs = (seekGestureDelta * 120_000).toLong() // 120s max swipe
+                                val newPos = (gestureInitialPosition + seekDeltaMs).coerceIn(0L, duration)
+                                currentPosition = newPos
+                            }
+                        }
+                    },
+                    onDragEnd = {
+                        if (seekGestureActive) {
+                            exoPlayer?.seekTo(currentPosition)
+                        }
+                        seekGestureActive = false
+                        brightnessGestureActive = false
+                        volumeGestureActive = false
+                        seekGestureDelta = 0f
+                        brightnessGestureDelta = 0f
+                        volumeGestureDelta = 0f
+                    }
+                )
             }
     ) {
-        // Check if player is initialized
+        // ── PlayerView ──
         if (exoPlayer == null) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("Initializing player...", color = Color.White)
+            }
+            return@Box
+        }
+
+        AndroidView(
+            factory = { ctx ->
+                try {
+                    val pv = PlayerView(ctx)
+                    pv.player = exoPlayer
+                    pv.useController = false
+                    pv.layoutParams = FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                    )
+                    pv.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+                    pv.setSubtitleTextSize(subtitleSettings.textSize)
+                    pv.setSubtitleColors(subtitleSettings, customTypeface, showBackground, showBorder)
+                    pv
+                } catch (_: Exception) {
+                    View(ctx).apply { setBackgroundColor(android.graphics.Color.BLACK) }
+                }
+            },
+            modifier = Modifier.fillMaxSize(),
+            update = { pv ->
+                if (pv is PlayerView) {
+                    pv.player = exoPlayer
+                    pv.resizeMode = resizeMode
+                    pv.setSubtitleTextSize(subtitleSettings.textSize)
+                    pv.setSubtitleColors(subtitleSettings, customTypeface, showBackground, showBorder)
+                }
+            }
+        )
+
+        // ── Gesture indicator overlays ──
+
+        // Seek gesture indicator
+        if (seekGestureActive) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "Initializing player...",
-                    color = Color.White,
-                    modifier = Modifier.padding(16.dp)
-                )
-            }
-            return@Box
-        }
-        
-        // Video player
-        AndroidView(
-            factory = { ctx ->
-                try {
-                    PlayerView(ctx).apply {
-                        player = exoPlayer
-                        useController = false // We're using our own controls
-                        layoutParams = FrameLayout.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.MATCH_PARENT
-                        )
-                        // Make the player view fill the entire screen
-                        resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
-                        
-                        // Apply subtitle settings to the player view
-                        // Set subtitle styling with custom font
-                        setSubtitleTextSize(subtitleSettings.textSize)
-                        setSubtitleColors(subtitleSettings, customTypeface)
-                    }
-                } catch (e: Exception) {
-                    // Return a simple view if PlayerView fails to initialize
-                    View(ctx).apply {
-                        setBackgroundColor(android.graphics.Color.BLACK)
-                    }
-                }
-            },
-            modifier = Modifier.fillMaxSize(),
-            update = { playerView ->
-                try {
-                    // Update the player view when subtitle settings change
-                    // Update subtitle styling when settings change
-                    if (playerView is PlayerView) {
-                        playerView.setSubtitleTextSize(subtitleSettings.textSize)
-                        playerView.setSubtitleColors(subtitleSettings, customTypeface)
-                    }
-                } catch (e: Exception) {
-                    // Ignore update errors
-                }
-            }
-        )
-        
-        // Rewind indicator
-        if (showRewindIndicator) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(32.dp),
-                contentAlignment = Alignment.CenterStart
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Replay,
-                        contentDescription = "Rewind ${videoPlayerSettings.seekTimeSeconds} seconds",
-                        tint = Color.White,
-                        modifier = Modifier.size(64.dp)
-                    )
-                    Text(
-                        text = "${videoPlayerSettings.seekTimeSeconds}s",
-                        color = Color.White,
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
-                }
-            }
-        }
-        
-        // Forward indicator
-        if (showForwardIndicator) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(32.dp),
-                contentAlignment = Alignment.CenterEnd
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Forward,
-                        contentDescription = "Forward ${videoPlayerSettings.seekTimeSeconds} seconds",
-                        tint = Color.White,
-                        modifier = Modifier.size(64.dp)
-                    )
-                    Text(
-                        text = "${videoPlayerSettings.seekTimeSeconds}s",
-                        color = Color.White,
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
-                }
-            }
-        }
-        
-        // Custom controls overlay
-        if (showControls) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.5f))
-            ) {
-                // Top bar with back button and settings
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color.Black.copy(alpha = 0.75f))
+                        .padding(horizontal = 24.dp, vertical = 16.dp)
                 ) {
-                    IconButton(
-                        onClick = onBack,
-                        modifier = Modifier
-                            .size(48.dp)
-                            .background(
-                                color = Color.Black.copy(alpha = 0.7f),
-                                shape = androidx.compose.foundation.shape.CircleShape
-                            )
-                    ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        val deltaMs = seekGestureDelta * 120_000
+                        val sign = if (deltaMs >= 0) "+" else ""
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = Color.White
-                        )
-                    }
-                    
-                    // Settings button in top right corner
-                    IconButton(
-                        onClick = { showTrackSelectionDialog = true },
-                        modifier = Modifier
-                            .size(48.dp)
-                            .background(
-                                color = Color.Black.copy(alpha = 0.7f),
-                                shape = androidx.compose.foundation.shape.CircleShape
-                            )
-                            .align(Alignment.TopEnd)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = "Settings",
-                            tint = Color.White
-                        )
-                    }
-                }
-                
-                // Middle play/pause button
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .weight(1f),
-                    contentAlignment = Alignment.Center
-                ) {
-                    IconButton(
-                        onClick = { isPlaying = !isPlaying },
-                        modifier = Modifier
-                            .size(64.dp)
-                            .background(
-                                color = Color.Black.copy(alpha = 0.7f),
-                                shape = androidx.compose.foundation.shape.CircleShape
-                            )
-                    ) {
-                        Icon(
-                            imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                            contentDescription = if (isPlaying) "Pause" else "Play",
+                            imageVector = if (deltaMs >= 0) Icons.Default.Forward else Icons.Default.Replay,
+                            contentDescription = null,
                             tint = Color.White,
                             modifier = Modifier.size(32.dp)
                         )
+                        Text(
+                            text = "${sign}${formatTime(deltaMs.toLong())}",
+                            color = Color.White,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                        Text(
+                            text = "${formatTime(currentPosition)} / ${formatTime(duration)}",
+                            color = Color.White.copy(alpha = 0.7f),
+                            fontSize = 14.sp
+                        )
                     }
                 }
-                
-                // Bottom controls
+            }
+        }
+
+        // Brightness gesture indicator
+        if (brightnessGestureActive) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                Box(
+                    modifier = Modifier
+                        .padding(start = 48.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color.Black.copy(alpha = 0.75f))
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = Icons.Default.BrightnessMedium,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(28.dp)
+                        )
+                        val brightness = (gestureInitialBrightness + brightnessGestureDelta).coerceIn(0.01f, 1f)
+                        LinearProgressIndicator(
+                            progress = { brightness },
+                            modifier = Modifier
+                                .width(120.dp)
+                                .padding(top = 8.dp)
+                                .height(4.dp)
+                                .clip(RoundedCornerShape(2.dp)),
+                            color = Color(0xFFFFD700),
+                            trackColor = Color.White.copy(alpha = 0.3f)
+                        )
+                        Text(
+                            text = "${(brightness * 100).toInt()}%",
+                            color = Color.White,
+                            fontSize = 14.sp,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
+                }
+            }
+        }
+
+        // Volume gesture indicator
+        if (volumeGestureActive) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                Box(
+                    modifier = Modifier
+                        .padding(end = 48.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color.Black.copy(alpha = 0.75f))
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = Icons.Default.VolumeUp,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(28.dp)
+                        )
+                        val volDelta = (volumeGestureDelta * maxVolume).roundToInt()
+                        val currentVol = (gestureInitialVolume.toInt() + volDelta).coerceIn(0, maxVolume)
+                        LinearProgressIndicator(
+                            progress = { currentVol.toFloat() / maxVolume },
+                            modifier = Modifier
+                                .width(120.dp)
+                                .padding(top = 8.dp)
+                                .height(4.dp)
+                                .clip(RoundedCornerShape(2.dp)),
+                            color = Color.White,
+                            trackColor = Color.White.copy(alpha = 0.3f)
+                        )
+                        Text(
+                            text = "${(currentVol.toFloat() / maxVolume * 100).toInt()}%",
+                            color = Color.White,
+                            fontSize = 14.sp,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
+                }
+            }
+        }
+
+        // ── Double-tap seek indicators ──
+        if (doubleTapSide != 0) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = if (doubleTapSide < 0) Alignment.CenterStart else Alignment.CenterEnd
+            ) {
+                Box(
+                    modifier = Modifier
+                        .alpha(doubleTapAlpha)
+                        .padding(horizontal = 48.dp)
+                        .size(80.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.2f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = if (doubleTapSide < 0) Icons.Default.Replay else Icons.Default.Forward,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(36.dp)
+                        )
+                        Text(
+                            text = if (doubleTapSide < 0) "-10s" else "+10s",
+                            color = Color.White,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+        }
+
+        // ── Center play/pause (shown when paused) ──
+        AnimatedVisibility(
+            visible = !isPlaying && showControls,
+            enter = fadeIn(tween(200)),
+            exit = fadeOut(tween(200)),
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                IconButton(
+                    onClick = { isPlaying = true },
+                    modifier = Modifier
+                        .size(64.dp)
+                        .alpha(0.7f)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.15f))
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.PlayArrow,
+                        contentDescription = "Play",
+                        tint = Color.White,
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
+            }
+        }
+
+        // ── Buffering indicator ──
+        if (isBuffering && !isRetrying) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                LinearProgressIndicator(
+                    modifier = Modifier
+                        .width(120.dp)
+                        .height(3.dp)
+                        .clip(RoundedCornerShape(2.dp)),
+                    color = Color.White,
+                    trackColor = Color.White.copy(alpha = 0.3f)
+                )
+            }
+        }
+
+        // ── Top control bar ──
+        AnimatedVisibility(
+            visible = showControls && !isLocked,
+            enter = fadeIn(tween(250)),
+            exit = fadeOut(tween(250)),
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                // Top bar
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.Black.copy(alpha = 0.6f))
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Back button — save position before exiting
+                        IconButton(onClick = {
+                            val pos = currentPosition
+                            val dur = duration
+                            val id = seriesId ?: 0
+                            val type = if (seriesId != null) "series" else "movie"
+                            val epId = episodeId ?: -1
+                            ViewHistoryManager.updateProgress(context, id, type, pos, dur, pos, epId)
+                            onBack()
+                        }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = Color.White
+                            )
+                        }
+
+                        // Title
+                        Text(
+                            text = videoTitle.ifEmpty { "Playing" },
+                            color = Color.White,
+                            style = MaterialTheme.typography.titleMedium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(horizontal = 8.dp)
+                        )
+
+                        // Subtitle customization panel toggle
+                        IconButton(onClick = {
+                            showSubtitlePanel = !showSubtitlePanel
+                            showAudioDropdown = false
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Subtitles,
+                                contentDescription = "Subtitles",
+                                tint = if (subtitlesEnabled) Color.White else Color.White.copy(alpha = 0.4f)
+                            )
+                        }
+
+                        // Quality / track selection
+                        IconButton(onClick = { showTrackSelectionDialog = true }) {
+                            Icon(
+                                imageVector = Icons.Default.Settings,
+                                contentDescription = "Settings",
+                                tint = Color.White
+                            )
+                        }
+
+                        // Speed selector
+                        Box {
+                            IconButton(onClick = { showSpeedDropdown = true }) {
+                                Text(
+                                    text = "${playbackSpeed}x",
+                                    color = Color.White,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                            DropdownMenu(
+                                expanded = showSpeedDropdown,
+                                onDismissRequest = { showSpeedDropdown = false },
+                                modifier = Modifier.background(Color(0xFF1A1A1A))
+                            ) {
+                                speedOptions.forEach { speed ->
+                                    DropdownMenuItem(
+                                        text = {
+                                            Text(
+                                                text = "${speed}x",
+                                                color = if (speed == playbackSpeed) Color(0xFF00BFFF) else Color.White,
+                                                fontWeight = if (speed == playbackSpeed) FontWeight.Bold else FontWeight.Normal
+                                            )
+                                        },
+                                        onClick = {
+                                            playbackSpeed = speed
+                                            showSpeedDropdown = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+
+                        // Audio track selector
+                        Box {
+                            IconButton(onClick = {
+                                showAudioDropdown = !showAudioDropdown
+                                showSubtitlePanel = false
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.VolumeUp,
+                                    contentDescription = "Audio Track",
+                                    tint = Color.White
+                                )
+                            }
+                            DropdownMenu(
+                                expanded = showAudioDropdown,
+                                onDismissRequest = { showAudioDropdown = false },
+                                modifier = Modifier.background(Color(0xFF1A1A1A))
+                            ) {
+                                val audioTrackGroups = currentTracks.groups.filter { it.type == C.TRACK_TYPE_AUDIO }
+                                if (audioTrackGroups.isEmpty()) {
+                                    DropdownMenuItem(
+                                        text = { Text("No audio tracks", color = Color.White.copy(alpha = 0.5f)) },
+                                        onClick = { showAudioDropdown = false }
+                                    )
+                                } else {
+                                    audioTrackGroups.forEachIndexed { groupIndex, trackGroup ->
+                                        for (i in 0 until trackGroup.length) {
+                                            val format = trackGroup.getTrackFormat(i)
+                                            val trackName = format.language?.let {
+                                                if (it.isNotEmpty()) it else format.label ?: "Track ${groupIndex + 1}.${i + 1}"
+                                            } ?: format.label ?: "Track ${groupIndex + 1}.${i + 1}"
+                                            val isSelected = trackGroup.isTrackSelected(i)
+                                            DropdownMenuItem(
+                                                text = {
+                                                    Text(
+                                                        text = trackName,
+                                                        color = if (isSelected) Color(0xFF00BFFF) else Color.White,
+                                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                                    )
+                                                },
+                                                onClick = {
+                                                    val ts = trackSelector
+                                                    ts?.setParameters(
+                                                        ts.buildUponParameters()
+                                                            .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, false)
+                                                            .setOverrideForType(
+                                                                TrackSelectionOverride(trackGroup.mediaTrackGroup, i)
+                                                            )
+                                                    )
+                                                    showAudioDropdown = false
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                // ── Bottom control bar ──
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(Color.Black.copy(alpha = 0.7f))
-                        .padding(16.dp)
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
-                    // Progress slider with retry animation
+                    // Progress bar
                     if (isRetrying) {
-                        // Show animated progress bar when retrying
-                        androidx.compose.material3.LinearProgressIndicator(
+                        LinearProgressIndicator(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 8.dp)
+                                .height(3.dp)
+                                .clip(RoundedCornerShape(2.dp)),
+                            color = Color.White
                         )
                     } else {
                         Slider(
                             value = if (duration > 0) currentPosition.toFloat() / duration.toFloat() else 0f,
                             onValueChange = { progress ->
-                                // Store the playing state before seeking
-                                if (!isSeeking) {
-                                    wasPlayingBeforeSeek = isPlaying
-                                }
-                                isSeeking = true
-                                val newPosition = (progress * duration).toLong()
-                                try {
-                                    exoPlayer?.seekTo(newPosition)
-                                    currentPosition = newPosition
-                                    // Keep the player playing during seeking if it was playing before
-                                    if (wasPlayingBeforeSeek) {
-                                        exoPlayer?.playWhenReady = true
-                                    }
-                                } catch (e: Exception) {
-                                    // Ignore seek errors
-                                }
+                                val newPos = (progress * duration).toLong()
+                                currentPosition = newPos
+                                exoPlayer?.seekTo(newPos)
                             },
                             onValueChangeFinished = {
-                                isSeeking = false
-                                // Restore the playing state after seeking is finished
-                                try {
-                                    exoPlayer?.playWhenReady = wasPlayingBeforeSeek
-                                    // Update isPlaying state to match the player's actual state
-                                    isPlaying = wasPlayingBeforeSeek
-                                } catch (e: Exception) {
-                                    // Ignore errors
-                                }
+                                exoPlayer?.seekTo(currentPosition)
                             },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(24.dp),
+                            colors = SliderDefaults.colors(
+                                thumbColor = Color.White,
+                                activeTrackColor = Color(0xFF00BFFF),
+                                inactiveTrackColor = Color.White.copy(alpha = 0.3f)
+                            )
                         )
                     }
-                    
-                    // Time and controls row
+
+                    // Time + controls row
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
@@ -1018,127 +1239,235 @@ fun VideoPlayerScreen(
                         Text(
                             text = formatTime(currentPosition),
                             color = Color.White,
-                            style = MaterialTheme.typography.bodySmall,
-                            fontFamily = FontManager.loadFontFamily(context, fontSettings.fontType)
+                            fontSize = 13.sp
                         )
-                        
-                        Spacer(modifier = Modifier.weight(1f))
-                        
-                        // Retry button when there's an error
-                        if (isRetrying) {
-                            Text(
-                                text = "Retrying...",
-                                color = Color.White,
-                                style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier
-                                    .clickable { 
-                                        // Manual retry
-                                        try {
-                                            exoPlayer?.let { player ->
-                                                // Store current position and playback state before retrying
-                                                val retryPosition = currentPosition
-                                                val wasPlaying = isPlaying // Store whether it was playing before the retry
-                                                player.setMediaItem(MediaItem.fromUri(Uri.parse(videoUrl)))
-                                                player.prepare()
-                                                // Seek to the stored position after preparing
-                                                player.seekTo(retryPosition)
-                                                // Resume playback if it was playing before the retry
-                                                player.playWhenReady = wasPlaying
-                                                // Update the UI state to match the player state
-                                                isPlaying = wasPlaying
-                                                isRetrying = false
-                                                playerError = null
-                                            }
-                                        } catch (e: Exception) {
-                                            // If manual retry fails, keep isRetrying true
-                                        }
-                                    }
-                                    .padding(horizontal = 8.dp)
-                            )
-                        }
-                        
-                        // Video speed controls
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(16.dp))
-                                .background(Color.Black.copy(alpha = 0.6f))
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                        ) {
-                            Box {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier
-                                        .clickable { showSpeedDropdown = true }
-                                        .padding(4.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Speed,
-                                        contentDescription = "Playback speed",
-                                        tint = Color.White,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                    
-                                    Text(
-                                        text = String.format("%.2fx", playbackSpeed),
-                                        color = Color.White,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        fontWeight = FontWeight.Bold,
-                                        modifier = Modifier.padding(horizontal = 4.dp),
-                                        fontFamily = FontManager.loadFontFamily(context, fontSettings.fontType)
-                                    )
-                                }
-                                
-                                DropdownMenu(
-                                    expanded = showSpeedDropdown,
-                                    onDismissRequest = { showSpeedDropdown = false },
-                                    modifier = Modifier.background(Color.Black)
-                                ) {
-                                    speedOptions.forEach { speed ->
-                                        DropdownMenuItem(
-                                            text = {
-                                                Text(
-                                                    text = String.format("%.2fx", speed),
-                                                    color = if (speed == playbackSpeed) MaterialTheme.colorScheme.primary else Color.White,
-                                                    fontFamily = FontManager.loadFontFamily(context, fontSettings.fontType)
-                                                )
-                                            },
-                                            onClick = {
-                                                playbackSpeed = speed
-                                                showSpeedDropdown = false
-                                            }
-                                        )
-                                    }
-                                }
-                            }
-                            
-                            Spacer(modifier = Modifier.width(4.dp))
-                            
-                            // Normal speed button
-                            Text(
-                                text = "Normal",
-                                color = if (playbackSpeed == 1.0f) MaterialTheme.colorScheme.primary else Color.White,
-                                style = MaterialTheme.typography.bodySmall,
-                                fontWeight = if (playbackSpeed == 1.0f) FontWeight.Bold else FontWeight.Normal,
-                                modifier = Modifier
-                                    .clickable { playbackSpeed = 1.0f }
-                                    .padding(4.dp),
-                                fontFamily = FontManager.loadFontFamily(context, fontSettings.fontType)
-                            )
-                        }
-                        
+
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(text = "/", color = Color.White.copy(alpha = 0.5f), fontSize = 13.sp)
+                        Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = formatTime(duration),
-                            color = Color.White,
-                            style = MaterialTheme.typography.bodySmall,
-                            fontFamily = FontManager.loadFontFamily(context, fontSettings.fontType)
+                            color = Color.White.copy(alpha = 0.7f),
+                            fontSize = 13.sp
                         )
+
+                        Spacer(modifier = Modifier.weight(1f))
+
+                        // Skip back 10s
+                        IconButton(onClick = {
+                            val newPos = ((exoPlayer?.currentPosition ?: 0L) - 10_000L).coerceAtLeast(0L)
+                            exoPlayer?.seekTo(newPos)
+                            currentPosition = newPos
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Replay,
+                                contentDescription = "Rewind 10s",
+                                tint = Color.White,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+
+                        // Play / Pause
+                        IconButton(onClick = { isPlaying = !isPlaying }) {
+                            Icon(
+                                imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                contentDescription = if (isPlaying) "Pause" else "Play",
+                                tint = Color.White,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
+
+                        // Skip forward 10s
+                        IconButton(onClick = {
+                            val newPos = ((exoPlayer?.currentPosition ?: 0L) + 10_000L).coerceAtMost(duration)
+                            exoPlayer?.seekTo(newPos)
+                            currentPosition = newPos
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Forward,
+                                contentDescription = "Forward 10s",
+                                tint = Color.White,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(4.dp))
+
+                        // Aspect ratio toggle
+                        IconButton(onClick = {
+                            aspectMode = when (aspectMode) {
+                                AspectMode.FIT -> AspectMode.FILL
+                                AspectMode.FILL -> AspectMode.CROP
+                                AspectMode.CROP -> AspectMode.WIDE_16_9
+                                AspectMode.WIDE_16_9 -> AspectMode.FIT
+                            }
+                        }) {
+                            Text(
+                                text = aspectModeLabels[aspectModeIndex],
+                                color = Color.White,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+
+                        // Lock rotation
+                        IconButton(onClick = { isLocked = !isLocked }) {
+                            Icon(
+                                imageVector = if (isLocked) Icons.Default.Lock else Icons.Default.LockOpen,
+                                contentDescription = if (isLocked) "Unlock" else "Lock",
+                                tint = Color.White,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
+
+                        // Screenshot
+                        IconButton(onClick = {
+                            showScreenshotFlash = true
+                            val activity = context as? Activity ?: return@IconButton
+                            val rootView = activity.window.decorView.findViewById<View>(android.R.id.content)
+                            val bitmap = Bitmap.createBitmap(rootView.width, rootView.height, Bitmap.Config.ARGB_8888)
+                            try {
+                                PixelCopy.request(activity.window, bitmap, { result ->
+                                    if (result == PixelCopy.SUCCESS) {
+                                        scope.launch(Dispatchers.IO) {
+                                            try {
+                                                val picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+                                                val screenshotsDir = File(picturesDir, "Screenshots")
+                                                if (!screenshotsDir.exists()) screenshotsDir.mkdirs()
+                                                val file = File(screenshotsDir, "screenshot_${System.currentTimeMillis()}.png")
+                                                FileOutputStream(file).use { fos ->
+                                                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos)
+                                                }
+                                                // Also add to MediaStore
+                                                val contentValues = ContentValues().apply {
+                                                    put(MediaStore.Images.Media.DISPLAY_NAME, file.name)
+                                                    put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+                                                    put(MediaStore.Images.Media.DATA, file.absolutePath)
+                                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                                        put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/Screenshots")
+                                                    }
+                                                }
+                                                context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+                                                withContext(Dispatchers.Main) {
+                                                    Toast.makeText(context, "Screenshot saved", Toast.LENGTH_SHORT).show()
+                                                }
+                                            } catch (_: Exception) {
+                                                withContext(Dispatchers.Main) {
+                                                    Toast.makeText(context, "Screenshot failed", Toast.LENGTH_SHORT).show()
+                                                }
+                                            }
+                                        }
+                                    }
+                                }, Handler(Looper.getMainLooper()))
+                            } catch (_: Exception) {
+                                Toast.makeText(context, "Screenshot failed", Toast.LENGTH_SHORT).show()
+                            }
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Image,
+                                contentDescription = "Screenshot",
+                                tint = Color.White,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
                     }
                 }
             }
         }
-        
-        // Track selection dialog
+
+        // ── Lock indicator (centered, fades in when locked) ──
+        val lockAlpha by animateFloatAsState(
+            targetValue = if (isLocked && showControls) 1f else 0f,
+            animationSpec = tween(durationMillis = 300),
+            label = "lockAlpha"
+        )
+        if (isLocked && showControls) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .alpha(lockAlpha)
+                        .size(56.dp)
+                        .clip(CircleShape)
+                        .background(Color.Black.copy(alpha = 0.5f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Lock,
+                        contentDescription = "Locked",
+                        tint = Color.White,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+            }
+        }
+
+        // ── Locked overlay hint ──
+        if (isLocked && !showControls) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onTap = {
+                                // Tap to show unlock button
+                                showControls = true
+                            }
+                        )
+                    }
+            )
+        }
+
+        // ── Screenshot flash ──
+        if (showScreenshotFlash) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White.copy(alpha = 0.4f))
+            )
+        }
+
+        // ── Subtitle customization panel (slides in from right) ──
+        if (showSubtitlePanel) {
+            // Dismiss backdrop
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pointerInput(Unit) {
+                        detectTapGestures { showSubtitlePanel = false }
+                    }
+            )
+            SubtitleCustomizationPanel(
+                subtitlesEnabled = subtitlesEnabled,
+                onSubtitleToggle = { enabled ->
+                    subtitlesEnabled = enabled
+                    val ts = trackSelector
+                    ts?.setParameters(
+                        ts.buildUponParameters()
+                            .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, !enabled)
+                    )
+                },
+                textSize = subtitleSettings.textSize,
+                onTextSizeChange = { newSize ->
+                    subtitleSettings = subtitleSettings.copy(textSize = newSize)
+                    try { StorageUtils.saveSubtitleSettings(context, subtitleSettings) } catch (_: Exception) {}
+                },
+                textColor = subtitleSettings.textColor,
+                onTextColorChange = { newColor ->
+                    subtitleSettings = subtitleSettings.copy(textColor = newColor)
+                    try { StorageUtils.saveSubtitleSettings(context, subtitleSettings) } catch (_: Exception) {}
+                },
+                showBackground = showBackground,
+                onBackgroundToggle = { showBackground = it },
+                showBorder = showBorder,
+                onBorderToggle = { showBorder = it },
+                onDismiss = { showSubtitlePanel = false }
+            )
+        }
+
+        // ── Track selection dialog ──
         if (showTrackSelectionDialog) {
             TrackSelectionDialog(
                 tracks = currentTracks,
@@ -1149,6 +1478,9 @@ fun VideoPlayerScreen(
     }
 }
 
+// ──────────────────────────────────────────────────────────────
+// Track selection dialog
+// ──────────────────────────────────────────────────────────────
 @Composable
 fun TrackSelectionDialog(
     tracks: Tracks,
@@ -1158,38 +1490,33 @@ fun TrackSelectionDialog(
     val audioTrackGroups = remember(tracks) {
         tracks.groups.filter { it.type == C.TRACK_TYPE_AUDIO }
     }
-    
     val textTrackGroups = remember(tracks) {
         tracks.groups.filter { it.type == C.TRACK_TYPE_TEXT }
     }
-    
-    // State for dropdown menus
+
     var showAudioDropdown by remember { mutableStateOf(false) }
     var showSubtitleDropdown by remember { mutableStateOf(false) }
-    
-    // Current selections
+
     val currentAudioSelection = remember(audioTrackGroups) {
         audioTrackGroups.firstOrNull { it.isSelected }?.let { group ->
             (0 until group.length).firstOrNull { group.isTrackSelected(it) }?.let { index ->
                 val format = group.getTrackFormat(index)
-                format.language?.let { 
-                    if (it.isNotEmpty()) it else format.label ?: "Track $index"
-                } ?: format.label ?: "Track $index"
+                format.language?.let { if (it.isNotEmpty()) it else format.label ?: "Track $index" }
+                    ?: format.label ?: "Track $index"
             }
         } ?: "None"
     }
-    
+
     val currentSubtitleSelection = remember(textTrackGroups) {
         textTrackGroups.firstOrNull { it.isSelected }?.let { group ->
             (0 until group.length).firstOrNull { group.isTrackSelected(it) }?.let { index ->
                 val format = group.getTrackFormat(index)
-                format.language?.let { 
-                    if (it.isNotEmpty()) it else format.label ?: "Subtitle $index"
-                } ?: format.label ?: "Subtitle $index"
+                format.language?.let { if (it.isNotEmpty()) it else format.label ?: "Subtitle $index" }
+                    ?: format.label ?: "Subtitle $index"
             }
         } ?: "None"
     }
-    
+
     GlassAlertDialog(
         onDismissRequest = onDismiss,
         title = {
@@ -1205,7 +1532,6 @@ fun TrackSelectionDialog(
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
             ) {
-                // Audio track selection
                 if (audioTrackGroups.isNotEmpty()) {
                     Text(
                         text = "Audio Tracks",
@@ -1213,8 +1539,7 @@ fun TrackSelectionDialog(
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
-                    
-                    // Audio dropdown
+
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -1241,13 +1566,12 @@ fun TrackSelectionDialog(
                                 tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
-                        
+
                         DropdownMenu(
                             expanded = showAudioDropdown,
                             onDismissRequest = { showAudioDropdown = false },
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            // None option
                             DropdownMenuItem(
                                 text = {
                                     Text(
@@ -1264,15 +1588,14 @@ fun TrackSelectionDialog(
                                     showAudioDropdown = false
                                 }
                             )
-                            
-                            // Audio track options
+
                             audioTrackGroups.forEachIndexed { groupIndex, trackGroup ->
                                 for (i in 0 until trackGroup.length) {
                                     val format = trackGroup.getTrackFormat(i)
-                                    val trackName = format.language?.let { 
+                                    val trackName = format.language?.let {
                                         if (it.isNotEmpty()) it else format.label ?: "Track ${groupIndex + 1}.${i + 1}"
                                     } ?: format.label ?: "Track ${groupIndex + 1}.${i + 1}"
-                                    
+
                                     DropdownMenuItem(
                                         text = {
                                             Text(
@@ -1297,10 +1620,9 @@ fun TrackSelectionDialog(
                         }
                     }
                 }
-                
+
                 Spacer(modifier = Modifier.height(16.dp))
-                
-                // Subtitle track selection
+
                 if (textTrackGroups.isNotEmpty()) {
                     Text(
                         text = "Subtitles",
@@ -1308,8 +1630,7 @@ fun TrackSelectionDialog(
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
-                    
-                    // Subtitle dropdown
+
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -1336,13 +1657,12 @@ fun TrackSelectionDialog(
                                 tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
-                        
+
                         DropdownMenu(
                             expanded = showSubtitleDropdown,
                             onDismissRequest = { showSubtitleDropdown = false },
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            // None option
                             DropdownMenuItem(
                                 text = {
                                     Text(
@@ -1359,15 +1679,14 @@ fun TrackSelectionDialog(
                                     showSubtitleDropdown = false
                                 }
                             )
-                            
-                            // Subtitle track options
+
                             textTrackGroups.forEachIndexed { groupIndex, trackGroup ->
                                 for (i in 0 until trackGroup.length) {
                                     val format = trackGroup.getTrackFormat(i)
-                                    val trackName = format.language?.let { 
+                                    val trackName = format.language?.let {
                                         if (it.isNotEmpty()) it else format.label ?: "Subtitle ${groupIndex + 1}.${i + 1}"
                                     } ?: format.label ?: "Subtitle ${groupIndex + 1}.${i + 1}"
-                                    
+
                                     DropdownMenuItem(
                                         text = {
                                             Text(
@@ -1408,16 +1727,214 @@ fun TrackSelectionDialog(
     )
 }
 
+// ──────────────────────────────────────────────────────────────
+// Subtitle customization panel (slide-in from right)
+// ──────────────────────────────────────────────────────────────
+@Composable
+private fun SubtitleCustomizationPanel(
+    subtitlesEnabled: Boolean,
+    onSubtitleToggle: (Boolean) -> Unit,
+    textSize: Float,
+    onTextSizeChange: (Float) -> Unit,
+    textColor: Int,
+    onTextColorChange: (Int) -> Unit,
+    showBackground: Boolean,
+    onBackgroundToggle: (Boolean) -> Unit,
+    showBorder: Boolean,
+    onBorderToggle: (Boolean) -> Unit,
+    onDismiss: () -> Unit
+) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.CenterEnd
+    ) {
+        AnimatedVisibility(
+            visible = true,
+            enter = slideInHorizontally(initialOffsetX = { it }),
+            exit = slideOutHorizontally(targetOffsetX = { it })
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(240.dp)
+                    .background(Color.Black.copy(alpha = 0.85f))
+                    .padding(16.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    // Header
+                    Text(
+                        text = "Subtitle Settings",
+                        color = Color.White,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+
+                    // ON/OFF Toggle
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Subtitles",
+                            color = Color.White,
+                            fontSize = 14.sp
+                        )
+                        Switch(
+                            checked = subtitlesEnabled,
+                            onCheckedChange = onSubtitleToggle,
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = Color(0xFF00BFFF),
+                                checkedTrackColor = Color(0xFF00BFFF).copy(alpha = 0.3f),
+                                uncheckedThumbColor = Color.White.copy(alpha = 0.5f),
+                                uncheckedTrackColor = Color.White.copy(alpha = 0.2f)
+                            )
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Text size slider
+                    Text(
+                        text = "Text Size: ${textSize.toInt()}sp",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+                    Slider(
+                        value = textSize,
+                        onValueChange = onTextSizeChange,
+                        valueRange = 12f..32f,
+                        steps = 19,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = SliderDefaults.colors(
+                            thumbColor = Color.White,
+                            activeTrackColor = Color(0xFF00BFFF),
+                            inactiveTrackColor = Color.White.copy(alpha = 0.3f)
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Text color picker
+                    Text(
+                        text = "Text Color",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        val colorPresets = listOf(
+                            android.graphics.Color.WHITE to "White",
+                            android.graphics.Color.YELLOW to "Yellow",
+                            android.graphics.Color.CYAN to "Cyan",
+                            android.graphics.Color.GREEN to "Green"
+                        )
+                        colorPresets.forEach { (colorInt, label) ->
+                            val isSelected = textColor == colorInt
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(colorInt))
+                                    .then(
+                                        if (isSelected) Modifier.padding(2.dp)
+                                        else Modifier
+                                    )
+                                    .clip(CircleShape)
+                                    .then(
+                                        if (isSelected) Modifier.background(Color.Black.copy(alpha = 0.3f))
+                                        else Modifier
+                                    )
+                                    .clickable { onTextColorChange(colorInt) },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (isSelected) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(28.dp)
+                                            .clip(CircleShape)
+                                            .background(Color(colorInt))
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Background toggle
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Dark Background",
+                            color = Color.White,
+                            fontSize = 14.sp
+                        )
+                        Switch(
+                            checked = showBackground,
+                            onCheckedChange = onBackgroundToggle,
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = Color(0xFF00BFFF),
+                                checkedTrackColor = Color(0xFF00BFFF).copy(alpha = 0.3f),
+                                uncheckedThumbColor = Color.White.copy(alpha = 0.5f),
+                                uncheckedTrackColor = Color.White.copy(alpha = 0.2f)
+                            )
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Border toggle
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Border / Outline",
+                            color = Color.White,
+                            fontSize = 14.sp
+                        )
+                        Switch(
+                            checked = showBorder,
+                            onCheckedChange = onBorderToggle,
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = Color(0xFF00BFFF),
+                                checkedTrackColor = Color(0xFF00BFFF).copy(alpha = 0.3f),
+                                uncheckedThumbColor = Color.White.copy(alpha = 0.5f),
+                                uncheckedTrackColor = Color.White.copy(alpha = 0.2f)
+                            )
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ──────────────────────────────────────────────────────────────
+// Utility
+// ──────────────────────────────────────────────────────────────
 fun formatTime(milliseconds: Long): String {
-    val seconds = (milliseconds / 1000).toInt()
-    val minutes = seconds / 60
-    val remainingSeconds = seconds % 60
-    val hours = minutes / 60
-    val remainingMinutes = minutes % 60
-    
+    val totalSeconds = (milliseconds / 1000).toInt()
+    val hours = totalSeconds / 3600
+    val minutes = (totalSeconds % 3600) / 60
+    val seconds = totalSeconds % 60
     return if (hours > 0) {
-        String.format("%02d:%02d:%02d", hours, remainingMinutes, remainingSeconds)
+        String.format("%02d:%02d:%02d", hours, minutes, seconds)
     } else {
-        String.format("%02d:%02d", remainingMinutes, remainingSeconds)
+        String.format("%02d:%02d", minutes, seconds)
     }
 }

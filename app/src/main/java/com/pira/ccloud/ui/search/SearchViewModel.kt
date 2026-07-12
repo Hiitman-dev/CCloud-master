@@ -38,7 +38,10 @@ class SearchViewModel : ViewModel() {
     
     // New state to track if a search has been performed
     var hasSearched by mutableStateOf(false)
-        private set
+
+    // Advanced search filters
+    var selectedTypeFilter by mutableStateOf("All")
+    var minRatingFilter by mutableStateOf(0f)
     
     private var searchJob: Job? = null
     

@@ -38,13 +38,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pira.ccloud.data.model.FilterType
 import com.pira.ccloud.data.model.Genre
-import com.pira.ccloud.ui.theme.GlassCorners
 import com.pira.ccloud.ui.theme.glassSurface
 import com.pira.ccloud.ui.theme.rememberGlassTint
 
 /**
  * Compact "Filters" trigger. Tapping it raises a glass-styled bottom sheet
- * popup with the sort type and genre pickers.
+ * popup with the sort type and genre pickers, instead of two wide always-open
+ * dropdown cards taking up permanent space on the screen.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,13 +73,16 @@ fun GenreFilterSection(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 24.dp, end = 24.dp, top = 12.dp, bottom = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+            .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // Search icon comes first in reading order, with its own breathing
+        // room, then the filter trigger takes the remaining width - always a
+        // fixed, comfortable distance apart, never overlapping.
         if (onSearchClick != null) {
             com.pira.ccloud.ui.theme.GlassIconButton(
-                icon = Icons.Default.Search,
+                icon = androidx.compose.material.icons.Icons.Default.Search,
                 contentDescription = "Search",
                 onClick = onSearchClick
             )
@@ -88,10 +91,7 @@ fun GenreFilterSection(
         Row(
             modifier = Modifier
                 .weight(1f)
-                .glassSurface(
-                    shape = RoundedCornerShape(GlassCorners.Search),
-                    tint = glassTint
-                )
+                .glassSurface(shape = RoundedCornerShape(com.pira.ccloud.ui.theme.GlassCorners.Search), tint = glassTint)
                 .clickable { showFilterSheet = true }
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -105,7 +105,7 @@ fun GenreFilterSection(
                     imageVector = Icons.Default.Tune,
                     contentDescription = "Filters",
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.height(18.dp)
+                    modifier = Modifier.height(20.dp)
                 )
                 Text(
                     text = "Filters",
@@ -114,7 +114,7 @@ fun GenreFilterSection(
                 )
             }
             Text(
-                text = "$filterLabel  ·  $selectedGenreTitle",
+                text = "$filterLabel  •  $selectedGenreTitle",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1
@@ -141,6 +141,37 @@ fun GenreFilterSection(
     }
 }
 
+/**
+ * Standalone filter bottom sheet that can be triggered from any floating button.
+ * Used by the Home screen's floating glassmorphism bar.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun GenreFilterBottomSheet(
+    genres: List<Genre>,
+    selectedGenreId: Int,
+    selectedFilterType: FilterType,
+    onGenreSelected: (Int) -> Unit,
+    onFilterTypeSelected: (FilterType) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = Color.Transparent,
+        dragHandle = null
+    ) {
+        FilterSheetContent(
+            genres = genres,
+            selectedGenreId = selectedGenreId,
+            selectedFilterType = selectedFilterType,
+            onGenreSelected = onGenreSelected,
+            onFilterTypeSelected = onFilterTypeSelected
+        )
+    }
+}
+
 @Composable
 private fun FilterSheetContent(
     genres: List<Genre>,
@@ -155,14 +186,11 @@ private fun FilterSheetContent(
         modifier = Modifier
             .fillMaxWidth()
             .glassSurface(
-                shape = RoundedCornerShape(
-                    topStart = GlassCorners.BottomSheet,
-                    topEnd = GlassCorners.BottomSheet
-                ),
+                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
                 tint = glassTint
             )
             .navigationBarsPadding()
-            .padding(24.dp)
+            .padding(20.dp)
     ) {
         Text(
             text = "Sort By",
@@ -181,7 +209,7 @@ private fun FilterSheetContent(
                     selected = selectedFilterType == type,
                     onClick = { onFilterTypeSelected(type) },
                     label = { Text(label) },
-                    shape = RoundedCornerShape(GlassCorners.Tag),
+                    shape = RoundedCornerShape(com.pira.ccloud.ui.theme.GlassCorners.Tag),
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = MaterialTheme.colorScheme.primary,
                         selectedLabelColor = MaterialTheme.colorScheme.onPrimary
@@ -221,7 +249,7 @@ private fun FilterSheetContent(
                             maxLines = 1
                         )
                     },
-                    shape = RoundedCornerShape(GlassCorners.Tag),
+                    shape = RoundedCornerShape(com.pira.ccloud.ui.theme.GlassCorners.Tag),
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = MaterialTheme.colorScheme.secondary,
                         selectedLabelColor = MaterialTheme.colorScheme.onSecondary

@@ -2,7 +2,6 @@ package com.pira.ccloud.navigation
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -43,65 +42,59 @@ import com.pira.ccloud.ui.theme.GlassCorners
 import com.pira.ccloud.ui.theme.glassSurface
 import com.pira.ccloud.ui.theme.rememberGlassTint
 
-/**
- * Telegram-inspired floating pill navigation bar.
- *
- * Semi-opaque glass surface, rounded capsule (32px), soft ambient shadow,
- * thin 1px border. Height ~80dp. No heavy blur or liquid effects.
- */
 @Composable
 fun BottomNavigationBar(navController: NavController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+
     val glassTint = rememberGlassTint()
 
-    Surface(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(horizontal = 20.dp, vertical = 8.dp)
+            .padding(horizontal = 20.dp, vertical = 10.dp)
             .shadow(
                 elevation = 12.dp,
                 shape = RoundedCornerShape(GlassCorners.Navigation),
                 ambientColor = Color.Black.copy(alpha = 0.06f),
-                spotColor = Color.Black.copy(alpha = 0.04f)
+                spotColor = Color.Black.copy(alpha = 0.06f)
             )
             .glassSurface(
                 shape = RoundedCornerShape(GlassCorners.Navigation),
                 tint = glassTint,
-                tintAlpha = 0.42f,
-                borderAlpha = 0.28f
-            ),
-        shape = RoundedCornerShape(GlassCorners.Navigation),
-        color = Color.Transparent,
-        tonalElevation = 0.dp
+                tintAlpha = 0.94f,
+                borderAlpha = 0.22f
+            )
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 6.dp, vertical = 6.dp),
+                .padding(horizontal = 4.dp, vertical = 6.dp),
         ) {
-            AppScreens.screens.filter { it.showBottomBar }.forEach { screen ->
+            AppScreens.bottomNavScreens.forEach { screen ->
                 val isSelected = currentRoute == screen.route
                 val scale by animateFloatAsState(
-                    targetValue = if (isSelected) 1.08f else 1f,
-                    animationSpec = spring(),
+                    targetValue = if (isSelected) 1.1f else 1f,
+                    animationSpec = tween(durationMillis = 200),
                     label = "scale"
                 )
+
                 val iconColor by animateColorAsState(
                     targetValue = if (isSelected)
                         MaterialTheme.colorScheme.primary
                     else
                         MaterialTheme.colorScheme.onSurfaceVariant,
-                    animationSpec = tween(durationMillis = 220),
+                    animationSpec = tween(durationMillis = 200),
                     label = "iconColor"
                 )
+
                 val textColor by animateColorAsState(
                     targetValue = if (isSelected)
                         MaterialTheme.colorScheme.primary
                     else
                         MaterialTheme.colorScheme.onSurfaceVariant,
-                    animationSpec = tween(durationMillis = 220),
+                    animationSpec = tween(durationMillis = 200),
                     label = "textColor"
                 )
 
@@ -126,7 +119,7 @@ fun BottomNavigationBar(navController: NavController) {
                             role = Role.Tab
                             selected = isSelected
                         }
-                        .padding(vertical = 4.dp),
+                        .padding(vertical = 6.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Box(
@@ -137,23 +130,23 @@ fun BottomNavigationBar(navController: NavController) {
                     ) {
                         if (isSelected) {
                             Surface(
-                                modifier = Modifier.size(38.dp),
+                                modifier = Modifier.size(34.dp),
                                 shape = CircleShape,
-                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                             ) {}
                         }
                         Icon(
                             imageVector = screen.icon ?: Icons.Default.Movie,
                             contentDescription = stringResource(screen.resourceId),
                             tint = iconColor,
-                            modifier = Modifier.size(22.dp)
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                     Text(
                         text = stringResource(screen.resourceId),
                         color = textColor,
-                        fontSize = MaterialTheme.typography.labelSmall.fontSize,
-                        fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Light,
+                        fontSize = MaterialTheme.typography.labelMedium.fontSize,
+                        fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal,
                         maxLines = 1
                     )
                 }

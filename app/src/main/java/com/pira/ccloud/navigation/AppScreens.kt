@@ -3,7 +3,7 @@ package com.pira.ccloud.navigation
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
@@ -23,6 +23,12 @@ sealed class AppScreens(
         resourceId = R.string.app_name
     )
 
+    data object Home : AppScreens(
+        route = "home",
+        resourceId = R.string.home,
+        icon = Icons.Default.Home
+    )
+
     data object Movies : AppScreens(
         route = "movies",
         resourceId = R.string.movies,
@@ -39,7 +45,16 @@ sealed class AppScreens(
         route = "search",
         resourceId = R.string.search,
         icon = Icons.Default.Search,
-        showBottomBar = false // Search icon lives next to the filter row instead
+        showBottomBar = false,
+        showSidebar = false
+    )
+
+    data object Favorites : AppScreens(
+        route = "favorites",
+        resourceId = R.string.favorites,
+        icon = Icons.Default.Favorite,
+        showBottomBar = false,
+        showSidebar = false
     )
 
     data object Settings : AppScreens(
@@ -55,7 +70,7 @@ sealed class AppScreens(
         showBottomBar = false,
         showSidebar = false
     )
-    
+
     data object SingleSeries : AppScreens(
         route = "single_series/{seriesId}",
         resourceId = R.string.series_details,
@@ -64,22 +79,14 @@ sealed class AppScreens(
         showSidebar = false
     )
 
-    data object Favorites : AppScreens(
-        route = "favorites",
-        resourceId = R.string.favorites,
-        icon = Icons.Default.Favorite,
-        showBottomBar = true,
-        showSidebar = true
-    )
-
     data object About : AppScreens(
         route = "about",
         resourceId = R.string.about,
-        icon = Icons.Default.Info,
+        icon = Icons.Default.Settings,
         showBottomBar = false,
         showSidebar = false
     )
-    
+
     data object Country : AppScreens(
         route = "country/{countryId}",
         resourceId = R.string.country,
@@ -87,7 +94,15 @@ sealed class AppScreens(
         showSidebar = false
     )
 
+    data object WatchAnalytics : AppScreens(
+        route = "watch_analytics",
+        resourceId = R.string.watch_analytics,
+        showBottomBar = false,
+        showSidebar = false
+    )
+
     companion object {
-        val screens = listOf(Movies, Series, Search, Favorites, Settings)
+        val bottomNavScreens = listOf(Home, Movies, Series, Settings)
+        val allScreens = listOf(Home, Movies, Series, Search, Favorites, Settings)
     }
 }
