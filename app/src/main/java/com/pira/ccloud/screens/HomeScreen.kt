@@ -223,10 +223,13 @@ fun HomeScreen(
                             imdb = series.imdb,
                             subtitle = series.genres.firstOrNull()?.title,
                             onClick = {
+<<<<<<< HEAD
                                 // Persist the series so SingleSeriesScreen can
                                 // load it - without this the details screen
                                 // stays blank forever.
                                 StorageUtils.saveSeriesToFile(context, series)
+=======
+>>>>>>> b37905b39637561788e731dede0e9b4306cad5e0
                                 navController?.navigate("single_series/${series.id}")
                             }
                         )
