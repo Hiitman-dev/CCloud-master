@@ -9,21 +9,26 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * Every screen in the app used to build its ColorScheme by calling
- * `lightColorScheme(primary = ..., secondary = ..., ...)` / `darkColorScheme(...)`
- * while only overriding a handful of roles (primary/secondary/tertiary/
- * background/surface/surfaceVariant). Any role that wasn't explicitly passed
- * silently fell back to Material3's own baseline lilac/violet palette -
- * primaryContainer, secondaryContainer, outline, etc. That's why a random
- * purple kept showing up (e.g. in the download-quality buttons) no matter
- * which accent color the user picked, and why light mode looked like one
- * flat white slab: background/surface/surfaceVariant were all near-identical
- * off-whites and nothing else was tuned.
+ * Builds a full, internally-consistent Material3 [ColorScheme] from one seed
+ * color. Every role — including container, outline, and surface-container
+ * roles — is derived algorithmically so nothing silently falls back to
+ * Material3's default lilac/violet palette.
  *
- * This file derives *every* role from a single brand/seed color so the whole
- * app - containers included - always matches the chosen accent, and light
- * mode gets real tonal separation between background/surface/cards.
+ * Two completely independent palettes are produced:
+ *
+ *  - **Light ("Clean Premium Elegance")**: warm off-whites with real tonal
+ *    separation between background / surface / surfaceVariant, soft shadows,
+ *    and an airy, refined feel.
+ *
+ *  - **Dark ("Deep Premium Depth")**: deep neutral backgrounds (never pure
+ *    black), layered surfaces with clear elevation steps, soft overlays,
+ *    and premium contrast designed for reduced eye strain.
+ *
+ * The two themes are not inversions — each has its own carefully crafted
+ * luminance spread, saturation levels, and contrast targets.
  */
+
+// ─── HSL utilities ────────────────────────────────────────────
 
 private fun Color.toHsl(): FloatArray {
     val r = red
@@ -65,7 +70,7 @@ private fun hslToColor(h: Float, s: Float, l: Float, alpha: Float = 1f): Color {
     return Color(r.coerceIn(0f, 1f), g.coerceIn(0f, 1f), b.coerceIn(0f, 1f), alpha)
 }
 
-/** Returns a tone of [seed]'s hue at the requested saturation/lightness. */
+/** Returns a tone of [seed]'s hue at the requested saturation / lightness. */
 private fun Color.tone(saturation: Float, lightness: Float): Color {
     val hsl = toHsl()
     return hslToColor(hsl[0], saturation.coerceIn(0f, 1f), lightness.coerceIn(0f, 1f))
@@ -76,83 +81,117 @@ private fun Color.shiftHue(degrees: Float, saturation: Float, lightness: Float):
     return hslToColor(hsl[0] + degrees, saturation.coerceIn(0f, 1f), lightness.coerceIn(0f, 1f))
 }
 
-/**
- * Builds a full, internally-consistent Material3 [ColorScheme] from one seed
- * color so every role - including the container/outline roles screens forget
- * to set - stays on-brand instead of quietly falling back to Material's
- * default purple.
- */
+// ─── Color scheme builder ─────────────────────────────────────
+
 fun buildAppColorScheme(seed: Color, dark: Boolean): ColorScheme {
     val hsl = seed.toHsl()
     val hue = hsl[0]
-    // Capped (not just floored) so a vivid user-picked accent still resolves
-    // to a soft, desaturated tone - the whole interface stays "mostly
-    // monochromatic" per the design system, with color used only as a quiet
-    // accent rather than a dominant hue.
+    // Capped so a vivid user-picked accent still resolves to a soft,
+    // desaturated tone — the interface stays "mostly monochromatic" with
+    // color used only as a quiet accent.
     val baseSat = hsl[1].coerceIn(0.14f, 0.30f)
-    val seedColor = hslToColor(hue, baseSat, if (dark) 0.72f else 0.42f)
+    val seedColor = hslToColor(hue, baseSat, if (dark) 0.74f else 0.42f)
 
-    return if (dark) {
-        darkColorScheme(
-            primary = seedColor,
-            onPrimary = hslToColor(hue, baseSat, 0.12f),
-            primaryContainer = hslToColor(hue, baseSat * 0.75f, 0.24f),
-            onPrimaryContainer = hslToColor(hue, baseSat * 0.6f, 0.90f),
-            secondary = hslToColor(hue, baseSat * 0.45f, 0.78f),
-            onSecondary = hslToColor(hue, baseSat * 0.4f, 0.16f),
-            secondaryContainer = hslToColor(hue, baseSat * 0.35f, 0.22f),
-            onSecondaryContainer = hslToColor(hue, baseSat * 0.3f, 0.88f),
-            tertiary = seedColor.shiftHue(24f, baseSat * 0.5f, 0.76f),
-            onTertiary = hslToColor(hue + 24f, baseSat * 0.5f, 0.16f),
-            tertiaryContainer = seedColor.shiftHue(24f, baseSat * 0.35f, 0.24f),
-            onTertiaryContainer = hslToColor(hue + 24f, baseSat * 0.4f, 0.88f),
-            // Near-neutral warm-black background/surface - depth comes from
-            // luminance steps, not from hue or saturation.
-            background = hslToColor(hue, 0.03f, 0.07f),
-            onBackground = hslToColor(hue, 0.02f, 0.95f),
-            surface = hslToColor(hue, 0.035f, 0.105f),
-            onSurface = hslToColor(hue, 0.02f, 0.95f),
-            surfaceVariant = hslToColor(hue, 0.05f, 0.185f),
-            onSurfaceVariant = hslToColor(hue, 0.03f, 0.80f),
-            surfaceTint = seedColor,
-            inverseSurface = hslToColor(hue, 0.03f, 0.92f),
-            inverseOnSurface = hslToColor(hue, 0.04f, 0.16f),
-            inversePrimary = hslToColor(hue, baseSat, 0.36f),
-            outline = hslToColor(hue, 0.05f, 0.46f),
-            outlineVariant = hslToColor(hue, 0.05f, 0.28f),
-            scrim = Color.Black
-        )
-    } else {
-        lightColorScheme(
-            primary = seedColor,
-            onPrimary = Color.White,
-            primaryContainer = hslToColor(hue, baseSat * 0.55f, 0.88f),
-            onPrimaryContainer = hslToColor(hue, baseSat, 0.20f),
-            secondary = hslToColor(hue, baseSat * 0.4f, 0.38f),
-            onSecondary = Color.White,
-            secondaryContainer = hslToColor(hue, baseSat * 0.35f, 0.90f),
-            onSecondaryContainer = hslToColor(hue, baseSat * 0.4f, 0.20f),
-            tertiary = seedColor.shiftHue(24f, baseSat * 0.45f, 0.40f),
-            onTertiary = Color.White,
-            tertiaryContainer = seedColor.shiftHue(24f, baseSat * 0.3f, 0.90f),
-            onTertiaryContainer = hslToColor(hue + 24f, baseSat * 0.5f, 0.20f),
-            // Warm White / Soft Ivory / Light Silver tonal steps - never a
-            // flat single off-white slab.
-            background = hslToColor(hue, 0.06f, 0.975f),
-            onBackground = hslToColor(hue, 0.06f, 0.14f),
-            surface = hslToColor(hue, 0.04f, 0.99f),
-            onSurface = hslToColor(hue, 0.06f, 0.14f),
-            surfaceVariant = hslToColor(hue, 0.07f, 0.905f),
-            onSurfaceVariant = hslToColor(hue, 0.05f, 0.34f),
-            surfaceTint = seedColor,
-            inverseSurface = hslToColor(hue, 0.04f, 0.18f),
-            inverseOnSurface = hslToColor(hue, 0.03f, 0.96f),
-            inversePrimary = hslToColor(hue, baseSat, 0.78f),
-            outline = hslToColor(hue, 0.05f, 0.58f),
-            outlineVariant = hslToColor(hue, 0.06f, 0.84f),
-            scrim = Color.Black
-        )
-    }
+    return if (dark) buildDarkScheme(hue, baseSat, seedColor)
+    else buildLightScheme(hue, baseSat, seedColor)
+}
+
+// ───────────────────────────────────────────────────────────────
+//  DARK — "Deep Premium Depth"
+//
+//  Deep charcoal base (never pure black), three distinct surface
+//  tiers with clear luminance steps, premium contrast.
+// ───────────────────────────────────────────────────────────────
+private fun buildDarkScheme(hue: Float, baseSat: Float, seedColor: Color): ColorScheme {
+    return darkColorScheme(
+        primary = seedColor,
+        onPrimary = hslToColor(hue, baseSat, 0.12f),
+        primaryContainer = hslToColor(hue, baseSat * 0.70f, 0.22f),
+        onPrimaryContainer = hslToColor(hue, baseSat * 0.5f, 0.90f),
+
+        secondary = hslToColor(hue, baseSat * 0.35f, 0.80f),
+        onSecondary = hslToColor(hue, baseSat * 0.30f, 0.14f),
+        secondaryContainer = hslToColor(hue, baseSat * 0.28f, 0.20f),
+        onSecondaryContainer = hslToColor(hue, baseSat * 0.30f, 0.88f),
+
+        tertiary = seedColor.shiftHue(24f, baseSat * 0.40f, 0.78f),
+        onTertiary = hslToColor(hue + 24f, baseSat * 0.40f, 0.14f),
+        tertiaryContainer = seedColor.shiftHue(24f, baseSat * 0.28f, 0.22f),
+        onTertiaryContainer = hslToColor(hue + 24f, baseSat * 0.40f, 0.88f),
+
+        // ── Surface hierarchy (3 tiers) ──
+        // Tier 0: page background — deepest, near-black
+        background = hslToColor(hue, 0.02f, 0.065f),
+        onBackground = hslToColor(hue, 0.02f, 0.95f),
+
+        // Tier 1: base surface — cards, list items
+        surface = hslToColor(hue, 0.03f, 0.100f),
+        onSurface = hslToColor(hue, 0.02f, 0.95f),
+
+        // Tier 2: elevated surface — panels, chips, raised cards
+        surfaceVariant = hslToColor(hue, 0.04f, 0.185f),
+        onSurfaceVariant = hslToColor(hue, 0.03f, 0.82f),
+
+        surfaceTint = seedColor,
+        inverseSurface = hslToColor(hue, 0.03f, 0.92f),
+        inverseOnSurface = hslToColor(hue, 0.04f, 0.16f),
+        inversePrimary = hslToColor(hue, baseSat, 0.36f),
+
+        // Borders — visible but not harsh
+        outline = hslToColor(hue, 0.04f, 0.44f),
+        outlineVariant = hslToColor(hue, 0.04f, 0.26f),
+
+        scrim = Color.Black
+    )
+}
+
+// ───────────────────────────────────────────────────────────────
+//  LIGHT — "Clean Premium Elegance"
+//
+//  Warm off-whites with real tonal separation between background /
+//  surface / surfaceVariant, airy and refined.
+// ───────────────────────────────────────────────────────────────
+private fun buildLightScheme(hue: Float, baseSat: Float, seedColor: Color): ColorScheme {
+    return lightColorScheme(
+        primary = seedColor,
+        onPrimary = Color.White,
+        primaryContainer = hslToColor(hue, baseSat * 0.55f, 0.90f),
+        onPrimaryContainer = hslToColor(hue, baseSat, 0.18f),
+
+        secondary = hslToColor(hue, baseSat * 0.40f, 0.42f),
+        onSecondary = Color.White,
+        secondaryContainer = hslToColor(hue, baseSat * 0.30f, 0.93f),
+        onSecondaryContainer = hslToColor(hue, baseSat * 0.40f, 0.18f),
+
+        tertiary = seedColor.shiftHue(24f, baseSat * 0.45f, 0.44f),
+        onTertiary = Color.White,
+        tertiaryContainer = seedColor.shiftHue(24f, baseSat * 0.30f, 0.92f),
+        onTertiaryContainer = hslToColor(hue + 24f, baseSat * 0.50f, 0.18f),
+
+        // ── Surface hierarchy (3 tiers with visible separation) ──
+        // Tier 0: page background — warm off-white
+        background = hslToColor(hue, 0.05f, 0.970f),
+        onBackground = hslToColor(hue, 0.06f, 0.14f),
+
+        // Tier 1: base surface — slightly lighter than background
+        surface = hslToColor(hue, 0.03f, 0.995f),
+        onSurface = hslToColor(hue, 0.06f, 0.14f),
+
+        // Tier 2: elevated surface — clear mid-tone step
+        surfaceVariant = hslToColor(hue, 0.06f, 0.930f),
+        onSurfaceVariant = hslToColor(hue, 0.05f, 0.34f),
+
+        surfaceTint = seedColor,
+        inverseSurface = hslToColor(hue, 0.04f, 0.18f),
+        inverseOnSurface = hslToColor(hue, 0.03f, 0.96f),
+        inversePrimary = hslToColor(hue, baseSat, 0.78f),
+
+        // Borders — warm, visible
+        outline = hslToColor(hue, 0.06f, 0.56f),
+        outlineVariant = hslToColor(hue, 0.05f, 0.83f),
+
+        scrim = Color.Black
+    )
 }
 
 private fun similar(a: Float, b: Float) = abs(a - b) < 0.01f

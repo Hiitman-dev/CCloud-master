@@ -52,6 +52,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pira.ccloud.data.model.Source
+import com.pira.ccloud.ui.theme.LocalAppColors
 import com.pira.ccloud.ui.theme.GlassCorners
 import com.pira.ccloud.ui.theme.glassSurface
 import com.pira.ccloud.ui.theme.rememberGlassTint
@@ -97,7 +98,7 @@ fun DownloadOptionsDialog(
                 )
                 .border(
                     width = 0.5.dp,
-                    color = Color.White.copy(alpha = if (isDark) 0.1f else 0.3f),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = if (isDark) 0.8f else 0.9f),
                     shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
                 )
                 .padding(horizontal = 24.dp)
@@ -142,19 +143,19 @@ fun DownloadOptionsDialog(
                     icon = Icons.Default.PlayArrow,
                     label = "VLC Player",
                     onClick = { onOpenInVLC(); onDismiss() },
-                    tint = Color(0xFFE65100)
+                    tint = LocalAppColors.current.actionOrange
                 )
                 GlassActionButton(
                     icon = Icons.Default.PlayArrow,
                     label = "MX Player",
                     onClick = { onOpenInMXPlayer(); onDismiss() },
-                    tint = Color(0xFF1565C0)
+                    tint = LocalAppColors.current.actionBlue
                 )
                 GlassActionButton(
                     icon = Icons.Default.PlayArrow,
                     label = "KM Player",
                     onClick = { onOpenInKMPlayer(); onDismiss() },
-                    tint = Color(0xFF2E7D32)
+                    tint = LocalAppColors.current.actionGreen
                 )
             }
 
@@ -183,7 +184,7 @@ fun DownloadOptionsDialog(
                     icon = Icons.Outlined.CloudDownload,
                     label = "ADM",
                     onClick = { onDownloadWithADM(); onDismiss() },
-                    tint = Color(0xFF6A1B9A)
+                    tint = LocalAppColors.current.actionPurple
                 )
             }
 
@@ -323,7 +324,7 @@ fun CopySelectedLinksDialog(
                 )
                 .border(
                     width = 0.5.dp,
-                    color = Color.White.copy(alpha = if (isDark) 0.1f else 0.3f),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = if (isDark) 0.8f else 0.9f),
                     shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
                 )
                 .padding(horizontal = 24.dp)
@@ -465,7 +466,7 @@ fun CopySeasonLinksButton(
                     )
                     .border(
                         width = 0.5.dp,
-                        color = Color.White.copy(alpha = if (isDark) 0.1f else 0.3f),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = if (isDark) 0.8f else 0.9f),
                         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
                     )
                     .padding(horizontal = 24.dp)

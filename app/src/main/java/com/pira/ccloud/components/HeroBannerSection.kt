@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.pira.ccloud.data.model.Movie
+import com.pira.ccloud.ui.theme.LocalAppColors
 import com.pira.ccloud.ui.theme.GlassCorners
 
 @Composable
@@ -129,7 +130,7 @@ fun HeroBannerSection(
                         text = "★ ${String.format("%.1f", movie.imdb)}",
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
-                        color = Color(0xFFFFD700)
+                        color = LocalAppColors.current.starGold
                     )
                 }
             }

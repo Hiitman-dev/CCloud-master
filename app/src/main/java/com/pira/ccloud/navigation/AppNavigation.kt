@@ -29,6 +29,7 @@ import com.pira.ccloud.ui.home.HomeViewModel
 import com.pira.ccloud.ui.movies.MoviesViewModel
 import com.pira.ccloud.ui.search.SearchViewModel
 import com.pira.ccloud.ui.series.SeriesViewModel
+import com.pira.ccloud.ui.theme.LocalAppColors
 import com.pira.ccloud.ui.theme.ThemeSettings
 import com.pira.ccloud.data.model.FontSettings
 
@@ -80,17 +81,13 @@ fun AppNavigation(
                 },
                 backgroundColor = when (themeSettings.themeMode) {
                     com.pira.ccloud.ui.theme.ThemeMode.DARK -> {
-                        androidx.compose.ui.graphics.Color(0xFF121212)
+                        LocalAppColors.current.splashBackground
                     }
                     com.pira.ccloud.ui.theme.ThemeMode.LIGHT -> {
-                        androidx.compose.ui.graphics.Color(0xFFFFFBFE)
+                        LocalAppColors.current.splashBackground
                     }
                     com.pira.ccloud.ui.theme.ThemeMode.SYSTEM -> {
-                        if (isSystemInDarkMode) {
-                            androidx.compose.ui.graphics.Color(0xFF121212)
-                        } else {
-                            androidx.compose.ui.graphics.Color(0xFFFFFBFE)
-                        }
+                        LocalAppColors.current.splashBackground
                     }
                 }
             )

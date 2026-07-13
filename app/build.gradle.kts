@@ -29,7 +29,7 @@ android {
     
     buildFeatures {
         compose = true
-        buildConfig = true // Add this line to enable BuildConfig generation
+        buildConfig = true
     }
 
     signingConfigs {
@@ -88,10 +88,6 @@ android {
     
     kotlinOptions {
         jvmTarget = "11"
-    }
-    
-    buildFeatures {
-        compose = true
     }
     
     // Add compatibility configurations for older Android versions
