@@ -80,7 +80,6 @@ import com.pira.ccloud.data.model.FontType
 import com.pira.ccloud.data.model.WatchedEpisode
 import com.pira.ccloud.ui.theme.ThemeMode
 import com.pira.ccloud.ui.theme.ThemeSettings
-import com.pira.ccloud.ui.theme.ThemeManager
 import com.pira.ccloud.ui.theme.colorOptions
 import com.pira.ccloud.ui.theme.defaultPrimaryColor
 import com.pira.ccloud.utils.StorageUtils
@@ -111,12 +110,11 @@ data class GitHubRelease(
 
 @Composable
 fun SettingsScreen(
+    themeSettings: ThemeSettings,
     onThemeSettingsChanged: (ThemeSettings) -> Unit = {},
     onFontSettingsChanged: (FontSettings) -> Unit = {}, // Add this parameter
     navController: NavController? = null
 ) {
-    val themeManager = ThemeManager(androidx.compose.ui.platform.LocalContext.current)
-    var themeSettings by remember { mutableStateOf(themeManager.loadThemeSettings()) }
     val context = LocalContext.current
     var subtitleSettings by remember { mutableStateOf(StorageUtils.loadSubtitleSettings(context)) }
     var videoPlayerSettings by remember { mutableStateOf(StorageUtils.loadVideoPlayerSettings(context)) }
@@ -154,11 +152,15 @@ fun SettingsScreen(
         }
     }
     
-    // Update parent when settings change
+    // Notify the parent (MainApp), which is the single source of truth that
+    // both persists theme settings and drives CCloudTheme's actual
+    // colorScheme/dark-mode state. This screen used to keep its own
+    // separate copy (loaded once from SharedPreferences on first
+    // composition) and write to disk directly here too - a second,
+    // easily-desynced source of truth that was part of why picking "Dark"
+    // didn't reliably take effect app-wide.
     fun updateThemeSettings(newSettings: ThemeSettings) {
-        themeSettings = newSettings
         onThemeSettingsChanged(newSettings)
-        themeManager.saveThemeSettings(newSettings)
     }
     
     // Update subtitle settings

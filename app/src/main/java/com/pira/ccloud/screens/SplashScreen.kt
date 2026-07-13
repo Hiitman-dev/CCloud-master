@@ -49,10 +49,10 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(
-    onTimeout: () -> Unit
+    onTimeout: () -> Unit,
+    backgroundColor: Color
 ) {
     val context = LocalContext.current
-    val backgroundColor = MaterialTheme.colorScheme.background
     var showWelcomeSlider by remember { mutableStateOf(!StorageUtils.isWelcomeCompleted(context)) }
     var currentSlide by remember { mutableStateOf(0) }
     

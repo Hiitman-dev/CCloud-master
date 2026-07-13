@@ -67,11 +67,13 @@ fun HomeScreen(
     val context = LocalContext.current
     var heroIndex by remember { mutableIntStateOf(0) }
     val watchStats = remember { ViewHistoryManager.getStats(context) }
+    var favorites by remember { mutableStateOf<List<FavoriteItem>>(emptyList()) }
 
     LaunchedEffect(Unit) {
         if (viewModel.todayMovies.isEmpty() && viewModel.todaySeries.isEmpty()) {
             viewModel.loadAllSections()
         }
+        favorites = StorageUtils.loadAllFavorites(context)
     }
 
     // Rotate hero every 5 seconds
@@ -121,6 +123,34 @@ fun HomeScreen(
                         },
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
+                }
+            }
+
+            // Favorites - the user's own curated picks get top billing,
+            // right after the hero.
+            if (favorites.isNotEmpty()) {
+                item {
+                    Spacer(modifier = Modifier.height(28.dp))
+                    ContentCarousel(
+                        title = "Favorites",
+                        items = favorites,
+                        seeAllText = "See All",
+                        onSeeAll = { navController?.navigate("favorites") }
+                    ) { item: FavoriteItem ->
+                        PosterCard(
+                            image = item.image,
+                            title = item.title,
+                            year = item.year,
+                            imdb = item.imdb,
+                            onClick = {
+                                if (item.type == "movie") {
+                                    navController?.navigate("single_movie/${item.id}")
+                                } else {
+                                    navController?.navigate("single_series/${item.id}")
+                                }
+                            }
+                        )
+                    }
                 }
             }
 
