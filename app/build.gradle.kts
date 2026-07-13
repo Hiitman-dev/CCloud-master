@@ -101,7 +101,7 @@ android {
     sourceSets {
         getByName("main") {
             res {
-                srcDirs("src/main/res", "src/main/res/values-television")
+                srcDirs("src/main/res")
             }
         }
     }
