@@ -53,7 +53,7 @@ fun BottomNavigationBar(navController: NavController) {
         modifier = Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(horizontal = 20.dp, vertical = 10.dp)
+            .padding(horizontal = 22.dp, vertical = 8.dp)
             .shadow(
                 elevation = 12.dp,
                 shape = RoundedCornerShape(GlassCorners.Navigation),
@@ -70,7 +70,7 @@ fun BottomNavigationBar(navController: NavController) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 4.dp, vertical = 6.dp),
+                .padding(horizontal = 4.dp, vertical = 4.dp),
         ) {
             AppScreens.bottomNavScreens.forEach { screen ->
                 val isSelected = currentRoute == screen.route
@@ -119,18 +119,18 @@ fun BottomNavigationBar(navController: NavController) {
                             role = Role.Tab
                             selected = isSelected
                         }
-                        .padding(vertical = 6.dp),
+                        .padding(vertical = 4.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(48.dp)
+                            .size(40.dp)
                             .scale(scale),
                         contentAlignment = Alignment.Center
                     ) {
                         if (isSelected) {
                             Surface(
-                                modifier = Modifier.size(34.dp),
+                                modifier = Modifier.size(28.dp),
                                 shape = CircleShape,
                                 color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                             ) {}
@@ -139,13 +139,13 @@ fun BottomNavigationBar(navController: NavController) {
                             imageVector = screen.icon ?: Icons.Default.Movie,
                             contentDescription = stringResource(screen.resourceId),
                             tint = iconColor,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                     Text(
                         text = stringResource(screen.resourceId),
                         color = textColor,
-                        fontSize = MaterialTheme.typography.labelMedium.fontSize,
+                        fontSize = MaterialTheme.typography.labelSmall.fontSize,
                         fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal,
                         maxLines = 1
                     )

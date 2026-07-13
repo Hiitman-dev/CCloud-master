@@ -44,9 +44,10 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import com.pira.ccloud.ui.theme.AppColors
 import com.pira.ccloud.ui.theme.glassSurface
 import com.pira.ccloud.ui.theme.subtleGlassSurface
-import com.pira.ccloud.ui.theme.rememberGlassTint
+import com.pira.ccloud.ui.theme.rememberCardTint
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -273,7 +274,7 @@ fun CountryShimmerPosterItem(
         end = Offset(x = translateAnim, y = translateAnim)
     )
     
-    val countryShimmerGlassTint = rememberGlassTint()
+    val countryShimmerGlassTint = rememberCardTint()
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -471,7 +472,7 @@ fun CountryPosterItem(
     poster: Poster,
     onClick: () -> Unit
 ) {
-    val countryPosterGlassTint = rememberGlassTint()
+    val countryPosterGlassTint = rememberCardTint()
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -523,7 +524,7 @@ fun CountryPosterItem(
                         Icon(
                             imageVector = Icons.Default.Star,
                             contentDescription = "Rating",
-                            tint = Color.Yellow,
+                            tint = AppColors.current.starGold,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))

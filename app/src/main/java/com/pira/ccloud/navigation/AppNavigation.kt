@@ -1,5 +1,10 @@
 package com.pira.ccloud.navigation
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -24,21 +29,17 @@ import com.pira.ccloud.ui.home.HomeViewModel
 import com.pira.ccloud.ui.movies.MoviesViewModel
 import com.pira.ccloud.ui.search.SearchViewModel
 import com.pira.ccloud.ui.series.SeriesViewModel
-import com.pira.ccloud.ui.theme.ThemeManager
+import com.pira.ccloud.ui.theme.AppColors
 import com.pira.ccloud.ui.theme.ThemeSettings
 import com.pira.ccloud.data.model.FontSettings
-import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun AppNavigation(
     navController: NavHostController,
+    themeSettings: ThemeSettings,
     onThemeSettingsChanged: (ThemeSettings) -> Unit = {},
     onFontSettingsChanged: (FontSettings) -> Unit = {}
 ) {
-    val context = LocalContext.current
-    val themeManager = ThemeManager(context)
-    val themeSettings = themeManager.loadThemeSettings()
-
     val homeViewModel = viewModel<HomeViewModel>()
     val moviesViewModel = viewModel<MoviesViewModel>()
     val seriesViewModel = viewModel<SeriesViewModel>()
@@ -47,7 +48,27 @@ fun AppNavigation(
 
     NavHost(
         navController = navController,
-        startDestination = AppScreens.Splash.route
+        startDestination = AppScreens.Splash.route,
+        // A gentle fade+slide instead of the default hard cut between
+        // screens. Kept short (220-260ms) and low-distance (a quarter of
+        // the screen width) so it reads as smooth/premium rather than
+        // slow or attention-grabbing.
+        enterTransition = {
+            fadeIn(animationSpec = tween(220)) +
+                slideInHorizontally(animationSpec = tween(260)) { fullWidth -> fullWidth / 4 }
+        },
+        exitTransition = {
+            fadeOut(animationSpec = tween(200)) +
+                slideOutHorizontally(animationSpec = tween(220)) { fullWidth -> -fullWidth / 6 }
+        },
+        popEnterTransition = {
+            fadeIn(animationSpec = tween(220)) +
+                slideInHorizontally(animationSpec = tween(260)) { fullWidth -> -fullWidth / 4 }
+        },
+        popExitTransition = {
+            fadeOut(animationSpec = tween(200)) +
+                slideOutHorizontally(animationSpec = tween(220)) { fullWidth -> fullWidth / 6 }
+        }
     ) {
         composable(route = AppScreens.Splash.route) {
             val isSystemInDarkMode = isSystemInDarkTheme()
@@ -60,17 +81,13 @@ fun AppNavigation(
                 },
                 backgroundColor = when (themeSettings.themeMode) {
                     com.pira.ccloud.ui.theme.ThemeMode.DARK -> {
-                        androidx.compose.ui.graphics.Color(0xFF121212)
+                        AppColors.current.splashBackground
                     }
                     com.pira.ccloud.ui.theme.ThemeMode.LIGHT -> {
-                        androidx.compose.ui.graphics.Color(0xFFFFFBFE)
+                        AppColors.current.splashBackground
                     }
                     com.pira.ccloud.ui.theme.ThemeMode.SYSTEM -> {
-                        if (isSystemInDarkMode) {
-                            androidx.compose.ui.graphics.Color(0xFF121212)
-                        } else {
-                            androidx.compose.ui.graphics.Color(0xFFFFFBFE)
-                        }
+                        AppColors.current.splashBackground
                     }
                 }
             )
@@ -93,7 +110,7 @@ fun AppNavigation(
         }
 
         composable(route = AppScreens.Settings.route) {
-            SettingsScreen(onThemeSettingsChanged, onFontSettingsChanged, navController)
+            SettingsScreen(themeSettings, onThemeSettingsChanged, onFontSettingsChanged, navController)
         }
 
         composable(route = AppScreens.Favorites.route) {

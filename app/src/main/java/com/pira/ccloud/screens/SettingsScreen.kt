@@ -18,6 +18,7 @@ import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -79,7 +80,6 @@ import com.pira.ccloud.data.model.FontType
 import com.pira.ccloud.data.model.WatchedEpisode
 import com.pira.ccloud.ui.theme.ThemeMode
 import com.pira.ccloud.ui.theme.ThemeSettings
-import com.pira.ccloud.ui.theme.ThemeManager
 import com.pira.ccloud.ui.theme.colorOptions
 import com.pira.ccloud.ui.theme.defaultPrimaryColor
 import com.pira.ccloud.utils.StorageUtils
@@ -110,12 +110,11 @@ data class GitHubRelease(
 
 @Composable
 fun SettingsScreen(
+    themeSettings: ThemeSettings,
     onThemeSettingsChanged: (ThemeSettings) -> Unit = {},
     onFontSettingsChanged: (FontSettings) -> Unit = {}, // Add this parameter
     navController: NavController? = null
 ) {
-    val themeManager = ThemeManager(androidx.compose.ui.platform.LocalContext.current)
-    var themeSettings by remember { mutableStateOf(themeManager.loadThemeSettings()) }
     val context = LocalContext.current
     var subtitleSettings by remember { mutableStateOf(StorageUtils.loadSubtitleSettings(context)) }
     var videoPlayerSettings by remember { mutableStateOf(StorageUtils.loadVideoPlayerSettings(context)) }
@@ -153,11 +152,15 @@ fun SettingsScreen(
         }
     }
     
-    // Update parent when settings change
+    // Notify the parent (MainApp), which is the single source of truth that
+    // both persists theme settings and drives CCloudTheme's actual
+    // colorScheme/dark-mode state. This screen used to keep its own
+    // separate copy (loaded once from SharedPreferences on first
+    // composition) and write to disk directly here too - a second,
+    // easily-desynced source of truth that was part of why picking "Dark"
+    // didn't reliably take effect app-wide.
     fun updateThemeSettings(newSettings: ThemeSettings) {
-        themeSettings = newSettings
         onThemeSettingsChanged(newSettings)
-        themeManager.saveThemeSettings(newSettings)
     }
     
     // Update subtitle settings
@@ -295,6 +298,11 @@ fun SettingsScreen(
             .padding(16.dp)
             .focusRequester(focusRequester)
             .focusable(),
+        // Extra bottom room so the last setting can scroll up past the
+        // floating glass bottom nav bar instead of staying stuck underneath
+        // it - the bar overlays content directly now, with no solid backing
+        // panel of its own.
+        contentPadding = PaddingValues(bottom = 100.dp),
     ) {
         item {
             AnimatedVisibility(

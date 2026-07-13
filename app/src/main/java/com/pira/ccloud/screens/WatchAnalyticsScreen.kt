@@ -55,6 +55,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.pira.ccloud.ui.theme.AppColors
 import com.pira.ccloud.ui.theme.rememberGlassTint
 import com.pira.ccloud.utils.ViewHistoryManager
 import com.pira.ccloud.utils.WatchStats
@@ -197,13 +198,13 @@ private fun StatsOverviewCard(
                     icon = Icons.Default.Movie,
                     value = "${stats.moviesWatched}",
                     label = "Movies",
-                    tint = Color(0xFFFF6B6B)
+                    tint = AppColors.current.statCoral
                 )
                 BigStatItem(
                     icon = Icons.Default.Tv,
                     value = "${stats.seriesWatched}",
                     label = "Series",
-                    tint = Color(0xFF4ECDC4)
+                    tint = AppColors.current.statTeal
                 )
             }
 
@@ -217,7 +218,7 @@ private fun StatsOverviewCard(
                 Icon(
                     imageVector = Icons.Default.BarChart,
                     contentDescription = null,
-                    tint = Color(0xFFFFC107),
+                    tint = AppColors.current.statAmber,
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(12.dp))
@@ -322,7 +323,7 @@ private fun HistoryItem(
                         .size(8.dp)
                         .clip(CircleShape)
                         .background(
-                            if (entry.type == "movie") Color(0xFFFF6B6B) else Color(0xFF4ECDC4)
+                            if (entry.type == "movie") AppColors.current.statCoral else AppColors.current.statTeal
                         )
                 )
                 Spacer(modifier = Modifier.width(8.dp))
@@ -349,7 +350,7 @@ private fun HistoryItem(
                     .fillMaxWidth()
                     .height(4.dp)
                     .clip(RoundedCornerShape(2.dp)),
-                color = if (entry.isFinished) Color(0xFF4CAF50) else MaterialTheme.colorScheme.primary,
+                color = if (entry.isFinished) AppColors.current.statGreen else MaterialTheme.colorScheme.primary,
                 trackColor = MaterialTheme.colorScheme.surfaceVariant
             )
 
@@ -367,7 +368,7 @@ private fun HistoryItem(
                 Text(
                     text = if (entry.isFinished) "Completed" else "In Progress",
                     style = MaterialTheme.typography.labelSmall,
-                    color = if (entry.isFinished) Color(0xFF4CAF50) else MaterialTheme.colorScheme.primary
+                    color = if (entry.isFinished) AppColors.current.statGreen else MaterialTheme.colorScheme.primary
                 )
             }
         }

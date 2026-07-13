@@ -677,21 +677,35 @@ fun VideoPlayerScreen(
                 detectTapGestures(
                     onDoubleTap = { offset ->
                         if (isLocked) return@detectTapGestures
-                        val half = size.width / 2
+                        // Keep a dead zone around the center (40%-60% of width) so double taps
+                        // near the middle of the screen (close to the play/pause controls) don't
+                        // accidentally trigger a seek. Only taps clearly on the left or right
+                        // portions of the screen will rewind/forward.
+                        val leftZoneEnd = size.width * 0.4f
+                        val rightZoneStart = size.width * 0.6f
                         val seekMs = 10_000L
                         exoPlayer?.let { player ->
-                            if (offset.x < half) {
-                                // Rewind 10s
-                                val newPos = (player.currentPosition - seekMs).coerceAtLeast(0L)
-                                player.seekTo(newPos)
-                                currentPosition = newPos
-                                doubleTapSide = -1
-                            } else {
-                                // Forward 10s
-                                val newPos = (player.currentPosition + seekMs).coerceAtMost(player.duration)
-                                player.seekTo(newPos)
-                                currentPosition = newPos
-                                doubleTapSide = 1
+                            when {
+                                offset.x < leftZoneEnd -> {
+                                    // Rewind 10s
+                                    val newPos = (player.currentPosition - seekMs).coerceAtLeast(0L)
+                                    player.seekTo(newPos)
+                                    currentPosition = newPos
+                                    doubleTapSide = -1
+                                }
+                                offset.x > rightZoneStart -> {
+                                    // Forward 10s
+                                    val newPos = (player.currentPosition + seekMs).coerceAtMost(player.duration)
+                                    player.seekTo(newPos)
+                                    currentPosition = newPos
+                                    doubleTapSide = 1
+                                }
+                                else -> {
+                                    // Center dead zone: double tap here just toggles play/pause
+                                    // instead of seeking, since it's too close to the center
+                                    // to be an intentional seek gesture.
+                                    if (player.isPlaying) player.pause() else player.play()
+                                }
                             }
                         }
                     },

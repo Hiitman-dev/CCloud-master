@@ -1,6 +1,5 @@
 package com.pira.ccloud.components
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,13 +14,9 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
@@ -31,20 +26,22 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pira.ccloud.data.model.FilterType
 import com.pira.ccloud.data.model.Genre
+import com.pira.ccloud.ui.theme.GlassCorners
 import com.pira.ccloud.ui.theme.glassSurface
 import com.pira.ccloud.ui.theme.rememberGlassTint
 
 /**
- * Compact "Filters" trigger. Tapping it raises a glass-styled bottom sheet
- * popup with the sort type and genre pickers, instead of two wide always-open
- * dropdown cards taking up permanent space on the screen.
+ * Premium filter trigger backed by [PremiumTopNav].
+ *
+ * Tapping the filter bar raises a glass-styled bottom sheet with sort
+ * type and genre pickers. The search button navigates via [onSearchClick].
+ *
+ * The two components (filter bar + search button) are completely separate
+ * floating elements — they share a layout row but are independent composables.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,7 +54,6 @@ fun GenreFilterSection(
     onSearchClick: (() -> Unit)? = null
 ) {
     var showFilterSheet by remember { mutableStateOf(false) }
-    val glassTint = rememberGlassTint()
 
     val selectedGenreTitle = if (selectedGenreId == 0) {
         "All Genres"
@@ -70,64 +66,19 @@ fun GenreFilterSection(
         FilterType.BY_IMDB -> "By IMDB"
     }
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(14.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Search icon comes first in reading order, with its own breathing
-        // room, then the filter trigger takes the remaining width - always a
-        // fixed, comfortable distance apart, never overlapping.
-        if (onSearchClick != null) {
-            com.pira.ccloud.ui.theme.GlassIconButton(
-                icon = androidx.compose.material.icons.Icons.Default.Search,
-                contentDescription = "Search",
-                onClick = onSearchClick
-            )
-        }
-
-        Row(
-            modifier = Modifier
-                .weight(1f)
-                .glassSurface(shape = RoundedCornerShape(com.pira.ccloud.ui.theme.GlassCorners.Search), tint = glassTint)
-                .clickable { showFilterSheet = true }
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Tune,
-                    contentDescription = "Filters",
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.height(20.dp)
-                )
-                Text(
-                    text = "Filters",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Medium
-                )
-            }
-            Text(
-                text = "$filterLabel  •  $selectedGenreTitle",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1
-            )
-        }
-    }
+    PremiumTopNav(
+        selectedFilterName = filterLabel,
+        selectedGenreName = selectedGenreTitle,
+        onFilterClick = { showFilterSheet = true },
+        onSearchClick = { onSearchClick?.invoke() }
+    )
 
     if (showFilterSheet) {
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ModalBottomSheet(
             onDismissRequest = { showFilterSheet = false },
             sheetState = sheetState,
-            containerColor = Color.Transparent,
+            containerColor = androidx.compose.ui.graphics.Color.Transparent,
             dragHandle = null
         ) {
             FilterSheetContent(
@@ -143,7 +94,6 @@ fun GenreFilterSection(
 
 /**
  * Standalone filter bottom sheet that can be triggered from any floating button.
- * Used by the Home screen's floating glassmorphism bar.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -159,7 +109,7 @@ fun GenreFilterBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = Color.Transparent,
+        containerColor = androidx.compose.ui.graphics.Color.Transparent,
         dragHandle = null
     ) {
         FilterSheetContent(
@@ -187,7 +137,9 @@ private fun FilterSheetContent(
             .fillMaxWidth()
             .glassSurface(
                 shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-                tint = glassTint
+                tint = glassTint,
+                tintAlpha = 0.96f,
+                borderAlpha = 0.24f
             )
             .navigationBarsPadding()
             .padding(20.dp)
@@ -195,7 +147,7 @@ private fun FilterSheetContent(
         Text(
             text = "Sort By",
             style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Medium
+            fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
         )
         Spacer(modifier = Modifier.height(12.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -209,8 +161,10 @@ private fun FilterSheetContent(
                     selected = selectedFilterType == type,
                     onClick = { onFilterTypeSelected(type) },
                     label = { Text(label) },
-                    shape = RoundedCornerShape(com.pira.ccloud.ui.theme.GlassCorners.Tag),
+                    shape = RoundedCornerShape(GlassCorners.Tag),
                     colors = FilterChipDefaults.filterChipColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         selectedContainerColor = MaterialTheme.colorScheme.primary,
                         selectedLabelColor = MaterialTheme.colorScheme.onPrimary
                     )
@@ -223,7 +177,7 @@ private fun FilterSheetContent(
         Text(
             text = "Genre",
             style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Medium
+            fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
         )
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -249,8 +203,10 @@ private fun FilterSheetContent(
                             maxLines = 1
                         )
                     },
-                    shape = RoundedCornerShape(com.pira.ccloud.ui.theme.GlassCorners.Tag),
+                    shape = RoundedCornerShape(GlassCorners.Tag),
                     colors = FilterChipDefaults.filterChipColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         selectedContainerColor = MaterialTheme.colorScheme.secondary,
                         selectedLabelColor = MaterialTheme.colorScheme.onSecondary
                     ),

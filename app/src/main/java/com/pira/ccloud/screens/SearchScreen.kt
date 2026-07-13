@@ -45,9 +45,11 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import com.pira.ccloud.ui.theme.AppColors
 import com.pira.ccloud.ui.theme.glassSurface
 import com.pira.ccloud.ui.theme.subtleGlassSurface
 import com.pira.ccloud.ui.theme.rememberGlassTint
+import com.pira.ccloud.ui.theme.rememberCardTint
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
@@ -305,11 +307,21 @@ fun SearchScreen(
                         )
                     }
                 } else {
-                    SearchResultsGrid(
-                        posters = filteredResults,
-                        navController = navController,
-                        context = context
-                    )
+                    // Keying on the query + active filters forces a fresh grid
+                    // state whenever any of them change, so results always
+                    // reopen scrolled to the top instead of wherever the
+                    // previous list happened to be scrolled to.
+                    androidx.compose.runtime.key(
+                        viewModel.searchQuery,
+                        viewModel.selectedTypeFilter,
+                        viewModel.minRatingFilter
+                    ) {
+                        SearchResultsGrid(
+                            posters = filteredResults,
+                            navController = navController,
+                            context = context
+                        )
+                    }
                 }
             }
             // Only show "No results found" after a search has been performed
@@ -550,7 +562,7 @@ fun PosterItem(
     poster: Poster,
     onClick: () -> Unit
 ) {
-    val posterCardGlassTint = rememberGlassTint()
+    val posterCardGlassTint = rememberCardTint()
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -602,7 +614,7 @@ fun PosterItem(
                         Icon(
                             imageVector = Icons.Default.Star,
                             contentDescription = "Rating",
-                            tint = Color.Yellow,
+                            tint = AppColors.current.starGold,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))

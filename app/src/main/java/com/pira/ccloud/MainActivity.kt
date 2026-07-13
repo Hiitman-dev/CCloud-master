@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -23,11 +24,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.pira.ccloud.navigation.AppNavigation
 import com.pira.ccloud.navigation.AppScreens
 import com.pira.ccloud.navigation.BottomNavigationBar
 import com.pira.ccloud.navigation.SidebarNavigation
+import com.pira.ccloud.components.AmbientBackground
 import com.pira.ccloud.ui.theme.CCloudTheme
 import com.pira.ccloud.ui.theme.ThemeManager
 import com.pira.ccloud.ui.theme.ThemeSettings
@@ -65,21 +66,24 @@ fun MainApp() {
     }
 
     CCloudTheme(themeSettings, fontSettings) {
-        MainScreen(
-            onThemeSettingsChanged = { themeSettings = it },
-            onFontSettingsChanged = { fontSettings = it }
-        )
+        Box(modifier = Modifier.fillMaxSize()) {
+            AmbientBackground(modifier = Modifier.fillMaxSize())
+            MainScreen(
+                themeSettings = themeSettings,
+                onThemeSettingsChanged = { themeSettings = it },
+                onFontSettingsChanged = { fontSettings = it }
+            )
+        }
     }
 }
 
 @Composable
 fun MainScreen(
+    themeSettings: ThemeSettings,
     onThemeSettingsChanged: (ThemeSettings) -> Unit = {},
     onFontSettingsChanged: (FontSettings) -> Unit = {}
 ) {
     val navController = rememberNavController()
-    val themeManager = ThemeManager(LocalContext.current)
-    val themeSettings = themeManager.loadThemeSettings()
     val isTv = DeviceUtils.isTv(LocalContext.current)
 
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
@@ -95,22 +99,26 @@ fun MainScreen(
         else -> AppScreens.bottomNavScreens.find { it.route == currentRoute } ?: AppScreens.Home
     }
 
-    val systemUiController = rememberSystemUiController()
-    val useDarkIcons = themeSettings.themeMode != com.pira.ccloud.ui.theme.ThemeMode.DARK
-
-    LaunchedEffect(themeSettings) {
-        systemUiController.setStatusBarColor(
-            color = androidx.compose.ui.graphics.Color.Transparent,
-            darkIcons = useDarkIcons
-        )
-        systemUiController.setNavigationBarColor(
-            color = androidx.compose.ui.graphics.Color.Transparent,
-            darkIcons = useDarkIcons
-        )
-    }
+    // Status/navigation bar icon appearance is already handled reactively,
+    // correctly (including resolving ThemeMode.SYSTEM against the real
+    // system setting), inside CCloudTheme's own SideEffect via
+    // WindowCompat's insets controller. A second, independent
+    // SystemUiController call here used to re-load its own stale copy of
+    // the theme settings and always assumed "not dark" for System Default
+    // mode - fighting with CCloudTheme's correct result and being the
+    // actual cause of dark mode "not applying"/looking wrong. Removed
+    // rather than duplicated.
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        // Scaffold normally paints a solid MaterialTheme.colorScheme.background
+        // rectangle behind the bottomBar slot. Since BottomNavigationBar is a
+        // small floating glass pill (not an edge-to-edge bar), that solid
+        // rectangle used to show through as a flat "page" behind and around
+        // it. Making the Scaffold itself transparent removes that backing
+        // panel so only the app content - visible through the glass - sits
+        // behind the bar.
+        containerColor = Color.Transparent,
         bottomBar = {
             if (!isTv && currentScreen.showBottomBar && currentRoute != AppScreens.Splash.route) {
                 BottomNavigationBar(navController)
@@ -129,12 +137,24 @@ fun MainScreen(
                         .weight(1f)
                         .padding(start = 16.dp, end = 24.dp, top = 24.dp, bottom = 24.dp)
                 ) {
-                    AppNavigation(navController, onThemeSettingsChanged, onFontSettingsChanged)
+                    AppNavigation(navController, themeSettings, onThemeSettingsChanged, onFontSettingsChanged)
                 }
             }
         } else {
-            Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
-                AppNavigation(navController, onThemeSettingsChanged, onFontSettingsChanged)
+            // Deliberately only consume the top inset here, not the bottom
+            // one Scaffold reserves for the bottomBar. That lets each
+            // screen's own scrollable content extend all the way to the
+            // real bottom of the screen and scroll underneath the floating
+            // glass nav bar, instead of stopping short in a hard rectangle
+            // above it. Screens that show the bottom bar reserve their own
+            // bottom content padding so their last item still ends up fully
+            // visible once scrolled past the bar.
+            Box(
+                modifier = Modifier
+                    .padding(top = innerPadding.calculateTopPadding())
+                    .fillMaxSize()
+            ) {
+                AppNavigation(navController, themeSettings, onThemeSettingsChanged, onFontSettingsChanged)
             }
         }
     }
@@ -147,6 +167,6 @@ fun MainScreenPreview() {
     val themeSettings = themeManager.loadThemeSettings()
 
     CCloudTheme(themeSettings) {
-        MainScreen()
+        MainScreen(themeSettings = themeSettings)
     }
 }

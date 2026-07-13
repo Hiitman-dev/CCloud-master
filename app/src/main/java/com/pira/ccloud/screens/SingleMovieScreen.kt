@@ -39,6 +39,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import com.pira.ccloud.ui.theme.AppColors
 import com.pira.ccloud.ui.theme.glassSurface
 import com.pira.ccloud.ui.theme.rememberGlassTint
 import androidx.compose.material3.Scaffold
@@ -67,6 +68,8 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.pira.ccloud.VideoPlayerActivity
 import com.pira.ccloud.components.DownloadOptionsDialog
+import com.pira.ccloud.components.DownloadBoxPanel
+import com.pira.ccloud.components.QualityDownloadRow
 import com.pira.ccloud.components.CopyLinksButton
 import com.pira.ccloud.components.ExpandableText
 import com.pira.ccloud.data.model.FavoriteItem
@@ -293,7 +296,7 @@ fun MovieDetailsContent(
                         Icon(
                             imageVector = Icons.Default.Star,
                             contentDescription = "Rating",
-                            tint = Color.Yellow,
+                            tint = AppColors.current.starGold,
                             modifier = Modifier.size(24.dp)
                         )
                         
@@ -477,57 +480,28 @@ fun MovieDetailsContent(
             )
         }
         
-        // Sources/Quality options
+        // Sources/Quality options - boxed "Download Box" panel matching the
+        // redesigned download layout, instead of a bare list of rows.
         if (movie.sources.isNotEmpty()) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 16.dp, top = 16.dp, end = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            DownloadBoxPanel(
+                modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp),
+                title = "Available Qualities",
+                headerAccessory = {
+                    // FEATURE: Copy Selected Links - lets the user multi-select
+                    // qualities and copy all their direct URLs to the clipboard.
+                    CopyLinksButton(sources = movie.sources)
+                }
             ) {
-                Text(
-                    text = "Available Qualities",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.weight(1f)
-                )
-
-                // FEATURE: Copy Selected Links - lets the user multi-select qualities
-                // and copy all their direct URLs to the clipboard at once.
-                CopyLinksButton(sources = movie.sources)
-            }
-            
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp)
-            ) {
-                val qualityGlassTint = rememberGlassTint()
-                movie.sources.forEach { source ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .glassSurface(shape = RoundedCornerShape(16.dp), tint = qualityGlassTint)
-                            .clickable {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    movie.sources.forEach { source ->
+                        QualityDownloadRow(
+                            quality = source.quality,
+                            type = source.type,
+                            linkCount = 1,
+                            onViewLinks = {
                                 selectedSource = source
                                 showSourceDialog = true
                             }
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = source.quality,
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-
-                        Icon(
-                            imageVector = Icons.Default.PlayArrow,
-                            contentDescription = "Play",
-                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 }

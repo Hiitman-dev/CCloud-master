@@ -6,45 +6,52 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.ScrollableTabRow
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRowDefaults
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.pira.ccloud.components.FloatingTopBar
+import com.pira.ccloud.components.GenreFilterSection
 import com.pira.ccloud.components.PosterCard
-import com.pira.ccloud.data.model.FilterType
 import com.pira.ccloud.data.model.Genre
 import com.pira.ccloud.data.model.Series
 import com.pira.ccloud.ui.series.SeriesViewModel
 import com.pira.ccloud.utils.DeviceUtils
+import com.pira.ccloud.utils.StorageUtils
+
+/**
+ * Small top breathing room above the filter row. The floating "Series"
+ * title chip that used to live here has been removed, so this is just a
+ * bit of spacing under the status bar rather than a full title-bar
+ * clearance - the system top inset itself is already consumed upstream by
+ * MainScreen's Scaffold.
+ */
+private val TOP_BAR_CLEARANCE = 8.dp
+
+/**
+ * Extra bottom space added to the grid's content padding so the last row of
+ * posters can scroll up past the floating glass bottom nav bar instead of
+ * ending up permanently stuck underneath it (the bar overlays content
+ * directly now, with no solid backing panel of its own). Matches the
+ * clearance already used on the Home screen for the same reason.
+ */
+private val BOTTOM_BAR_CLEARANCE = 100.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,10 +65,7 @@ fun SeriesScreen(
     val isLoadingMore: Boolean = viewModel.isLoadingMore
     val errorMessage: String? = viewModel.errorMessage
     val context = LocalContext.current
-    var showFilterSheet by remember { mutableStateOf(false) }
-    var selectedTab by remember { mutableIntStateOf(0) }
-
-    val filterTypes = listOf("Default", "By Year", "By IMDB")
+    val gridState = rememberLazyGridState()
 
     LaunchedEffect(Unit) {
         if (seriesList.isEmpty()) {
@@ -69,50 +73,50 @@ fun SeriesScreen(
         }
     }
 
+    // Whenever the genre or sort filter changes, jump back to the top of
+    // the grid instead of leaving the user scrolled into the middle of a
+    // now-different list.
+    LaunchedEffect(viewModel.selectedGenreId, viewModel.selectedFilterType) {
+        gridState.scrollToItem(0)
+    }
+
+    // Infinite scroll: request the next page once the user is close to the
+    // bottom of the currently loaded list.
+    val shouldLoadMore by remember {
+        derivedStateOf {
+            val layoutInfo = gridState.layoutInfo
+            val totalItems = layoutInfo.totalItemsCount
+            val lastVisible = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            totalItems > 0 && lastVisible >= totalItems - 6
+        }
+    }
+    LaunchedEffect(shouldLoadMore) {
+        if (shouldLoadMore) {
+            viewModel.loadMoreSeries()
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
-            Spacer(modifier = Modifier.height(70.dp))
+            // Small breathing room under the status bar - the floating
+            // "Series" title chip that used to sit here has been removed.
+            Spacer(modifier = Modifier.height(TOP_BAR_CLEARANCE))
 
-            // Filter chips row
-            ScrollableTabRow(
-                selectedTabIndex = selectedTab,
-                modifier = Modifier.fillMaxWidth(),
-                edgePadding = 16.dp,
-                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
-                contentColor = MaterialTheme.colorScheme.primary,
-                indicator = { tabPositions ->
-                    if (selectedTab < tabPositions.size) {
-                        TabRowDefaults.SecondaryIndicator(
-                            modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
-                            height = 3.dp,
-                            color = MaterialTheme.colorScheme.primary
-                        )
+            // Single, unified filter control (sort type + genre) that opens
+            // a bottom sheet - replaces the old overlapping tab row.
+            GenreFilterSection(
+                genres = genres,
+                selectedGenreId = viewModel.selectedGenreId,
+                selectedFilterType = viewModel.selectedFilterType,
+                onGenreSelected = { viewModel.selectGenre(it) },
+                onFilterTypeSelected = { viewModel.selectFilterType(it) },
+                onSearchClick = {
+                    navController?.navigate("search") {
+                        launchSingleTop = true
+                        restoreState = true
                     }
-                },
-                divider = {}
-            ) {
-                filterTypes.forEachIndexed { index, label ->
-                    Tab(
-                        selected = selectedTab == index,
-                        onClick = {
-                            selectedTab = index
-                            val filterType = when (index) {
-                                0 -> FilterType.DEFAULT
-                                1 -> FilterType.BY_YEAR
-                                2 -> FilterType.BY_IMDB
-                                else -> FilterType.DEFAULT
-                            }
-                            viewModel.selectFilterType(filterType)
-                        },
-                        text = {
-                            Text(
-                                text = label,
-                                fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal
-                            )
-                        }
-                    )
                 }
-            }
+            )
 
             // Series grid
             when {
@@ -135,12 +139,29 @@ fun SeriesScreen(
                         )
                     }
                 }
+                seriesList.isEmpty() -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No series found",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
                 else -> {
                     val columns = DeviceUtils.getGridColumns(context.resources)
                     LazyVerticalGrid(
+                        state = gridState,
                         columns = GridCells.Fixed(columns),
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                        contentPadding = PaddingValues(
+                            start = 16.dp,
+                            end = 16.dp,
+                            top = 12.dp,
+                            bottom = 12.dp + BOTTOM_BAR_CLEARANCE
+                        ),
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
@@ -155,93 +176,29 @@ fun SeriesScreen(
                                 imdb = series.imdb,
                                 subtitle = series.genres.firstOrNull()?.title,
                                 onClick = {
+                                    // Persist the series so SingleSeriesScreen can
+                                    // load it - without this the details screen
+                                    // stays blank forever.
+                                    StorageUtils.saveSeriesToFile(context, series)
                                     navController?.navigate("single_series/${series.id}")
                                 }
                             )
                         }
 
                         if (isLoadingMore) {
-                            item {
+                            item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
                                 Box(
                                     modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(16.dp),
+                                        .fillMaxSize(),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     CircularProgressIndicator(
                                         color = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.padding(16.dp)
+                                        modifier = Modifier
                                     )
                                 }
                             }
                         }
-                    }
-                }
-            }
-        }
-
-        // Floating top bar
-        val selectedGenreName = genres.find { it.id == viewModel.selectedGenreId }?.title ?: "All"
-        FloatingTopBar(
-            title = "Series",
-            filterText = selectedGenreName,
-            onSearchClick = {
-                navController?.navigate("search") {
-                    launchSingleTop = true
-                    restoreState = true
-                }
-            },
-            onFilterClick = { showFilterSheet = true },
-            modifier = Modifier.padding(top = 40.dp)
-        )
-    }
-
-    // Genre filter bottom sheet
-    if (showFilterSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showFilterSheet = false },
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-            containerColor = MaterialTheme.colorScheme.surface
-        ) {
-            Column(
-                modifier = Modifier.padding(20.dp)
-            ) {
-                Text(
-                    text = "Select Genre",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                FilterChip(
-                    selected = viewModel.selectedGenreId == 0,
-                    onClick = {
-                        viewModel.selectGenre(0)
-                        showFilterSheet = false
-                    },
-                    label = { Text("All Genres") },
-                    modifier = Modifier.padding(bottom = 8.dp),
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primary,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary
-                    )
-                )
-
-                genres.chunked(2).forEach { rowGenres ->
-                    rowGenres.forEach { genre ->
-                        FilterChip(
-                            selected = viewModel.selectedGenreId == genre.id,
-                            onClick = {
-                                viewModel.selectGenre(genre.id)
-                                showFilterSheet = false
-                            },
-                            label = { Text(genre.title) },
-                            modifier = Modifier.padding(bottom = 8.dp),
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary
-                            )
-                        )
                     }
                 }
             }

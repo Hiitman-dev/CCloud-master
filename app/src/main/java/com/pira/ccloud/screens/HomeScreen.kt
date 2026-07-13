@@ -44,9 +44,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.ui.zIndex
 import com.pira.ccloud.components.ContentCarousel
-import com.pira.ccloud.components.FloatingTopBar
 import com.pira.ccloud.components.HeroCard
+import com.pira.ccloud.components.PremiumSearchButton
+import com.pira.ccloud.ui.theme.AppColors
 import com.pira.ccloud.components.PosterCard
 import com.pira.ccloud.data.model.FavoriteItem
 import com.pira.ccloud.data.model.Movie
@@ -65,11 +68,13 @@ fun HomeScreen(
     val context = LocalContext.current
     var heroIndex by remember { mutableIntStateOf(0) }
     val watchStats = remember { ViewHistoryManager.getStats(context) }
+    var favorites by remember { mutableStateOf<List<FavoriteItem>>(emptyList()) }
 
     LaunchedEffect(Unit) {
         if (viewModel.todayMovies.isEmpty() && viewModel.todaySeries.isEmpty()) {
             viewModel.loadAllSections()
         }
+        favorites = StorageUtils.loadAllFavorites(context)
     }
 
     // Rotate hero every 5 seconds
@@ -119,6 +124,34 @@ fun HomeScreen(
                         },
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
+                }
+            }
+
+            // Favorites - the user's own curated picks get top billing,
+            // right after the hero.
+            if (favorites.isNotEmpty()) {
+                item {
+                    Spacer(modifier = Modifier.height(28.dp))
+                    ContentCarousel(
+                        title = "Favorites",
+                        items = favorites,
+                        seeAllText = "See All",
+                        onSeeAll = { navController?.navigate("favorites") }
+                    ) { item: FavoriteItem ->
+                        PosterCard(
+                            image = item.image,
+                            title = item.title,
+                            year = item.year,
+                            imdb = item.imdb,
+                            onClick = {
+                                if (item.type == "movie") {
+                                    navController?.navigate("single_movie/${item.id}")
+                                } else {
+                                    navController?.navigate("single_series/${item.id}")
+                                }
+                            }
+                        )
+                    }
                 }
             }
 
@@ -223,6 +256,10 @@ fun HomeScreen(
                             imdb = series.imdb,
                             subtitle = series.genres.firstOrNull()?.title,
                             onClick = {
+                                // Persist the series so SingleSeriesScreen can
+                                // load it - without this the details screen
+                                // stays blank forever.
+                                StorageUtils.saveSeriesToFile(context, series)
                                 navController?.navigate("single_series/${series.id}")
                             }
                         )
@@ -270,19 +307,23 @@ fun HomeScreen(
             }
         }
 
-        // Floating top bar
-        FloatingTopBar(
-            title = "CCloud",
-            filterText = "Home",
-            onSearchClick = {
-                navController?.navigate("search") {
-                    launchSingleTop = true
-                    restoreState = true
+        // Home shows a floating premium search button in the top-right corner.
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .zIndex(10f)
+                .padding(top = 40.dp, end = 16.dp),
+            contentAlignment = Alignment.TopEnd
+        ) {
+            PremiumSearchButton(
+                onClick = {
+                    navController?.navigate("search") {
+                        launchSingleTop = true
+                        restoreState = true
+                    }
                 }
-            },
-            onFilterClick = { /* No-op on home */ },
-            modifier = Modifier.padding(top = 40.dp)
-        )
+            )
+        }
     }
 }
 
@@ -335,19 +376,19 @@ private fun WatchAnalyticsCard(stats: WatchStats) {
                 icon = Icons.Default.Movie,
                 value = "${stats.moviesWatched}",
                 label = "Movies",
-                tint = Color(0xFFFF6B6B)
+                tint = AppColors.current.statCoral
             )
             StatItem(
                 icon = Icons.Default.Tv,
                 value = "${stats.seriesWatched}",
                 label = "Series",
-                tint = Color(0xFF4ECDC4)
+                tint = AppColors.current.statTeal
             )
             StatItem(
                 icon = Icons.Default.Star,
                 value = stats.formattedTotalTime,
                 label = "Total",
-                tint = Color(0xFFFFC107)
+                tint = AppColors.current.statAmber
             )
         }
         if (stats.topGenres.isNotEmpty()) {

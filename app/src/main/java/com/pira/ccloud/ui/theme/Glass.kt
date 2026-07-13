@@ -23,7 +23,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.luminance
@@ -46,18 +45,19 @@ object GlassCorners {
 }
 
 /**
- * Liquid-glass ("glassmorphism") styling shared across the app.
+ * Frosted matte-glass styling shared across the app.
  *
  * Note on limits: true backdrop blur-of-what's-behind-this-element requires
  * Android 12+ (RenderEffect, API 31). Since this app supports API 24+, we
- * approximate the "glass" look everywhere with a translucent tinted surface,
- * a soft diagonal light-catch gradient, and a hairline edge highlight - the
- * same technique most glassmorphism UIs use for broad device compatibility.
+ * approximate the "frosted glass" look everywhere with a flat, fairly opaque
+ * tinted surface and a soft hairline edge - deliberately *without* the
+ * diagonal shine/gradient a clear "liquid glass" surface would have. Matte
+ * glass reads as a solid, slightly translucent panel, not a glossy bubble.
  *
  * Two intensities are used across the app, deliberately:
  *  - [glassSurface] (this one): for UI *chrome* - search bar, bottom nav,
- *    modal sheets, filter chips, dialogs. These are allowed to read as
- *    visibly translucent glass.
+ *    modal sheets, filter chips, dialogs. These are allowed to read as a
+ *    visibly frosted, matte panel.
  *  - [subtleGlassSurface]: for regular *content* cards (movie/series
  *    posters). These stay close to a clean, opaque surface with only a
  *    faint frosted hint, so poster art stays vibrant and readable instead
@@ -66,30 +66,21 @@ object GlassCorners {
 fun Modifier.glassSurface(
     shape: Shape = RoundedCornerShape(GlassCorners.Card),
     tint: Color = Color.White,
-    // Spec range: glass opacity 18%-28%, border ~rgba(255,255,255,0.22).
-    // Kept deliberately restrained - glass is a material for chrome, not a
-    // decorative identity, so it should never read as a bright, glowing
-    // "bubble" surface.
-    tintAlpha: Float = 0.22f,
+    // Matte/frosted range: flat opacity, hairline border. Deliberately flat
+    // (no gradient) - glass is a material for chrome, not a decorative
+    // identity, so it should never read as a shiny/wet surface. Raised from
+    // the original 45%-60% range: at low alpha a black tint over an
+    // already near-black dark background (or a white tint over an already
+    // near-white light background) barely showed up at all, so chrome like
+    // the search/filter bar read as almost invisible in both themes.
+    tintAlpha: Float = 0.78f,
     borderAlpha: Float = 0.22f
 ): Modifier = this
     .clip(shape)
-    .background(
-        brush = Brush.linearGradient(
-            colors = listOf(
-                tint.copy(alpha = (tintAlpha * 1.15f).coerceAtMost(1f)),
-                tint.copy(alpha = (tintAlpha * 0.82f).coerceAtMost(1f))
-            )
-        )
-    )
+    .background(color = tint.copy(alpha = tintAlpha.coerceIn(0f, 1f)))
     .border(
         width = 1.dp,
-        brush = Brush.linearGradient(
-            colors = listOf(
-                tint.copy(alpha = borderAlpha),
-                tint.copy(alpha = borderAlpha * 0.5f)
-            )
-        ),
+        color = tint.copy(alpha = borderAlpha.coerceIn(0f, 1f)),
         shape = shape
     )
 
@@ -98,31 +89,58 @@ fun Modifier.glassSurface(
  * with only a faint frosted hint. Use this for regular content cards
  * (movie/series posters, grid items) so the poster art stays vibrant and
  * clear, per the "don't make every card glass" design direction.
+ *
+ * Pass [rememberCardTint] (not [rememberGlassTint]) as the tint here: cards
+ * sit flush on the plain page background rather than floating over
+ * arbitrary imagery, so they need a tone that's actually offset from
+ * [androidx.compose.material3.ColorScheme.background] - a flat black/white
+ * wash at low alpha (the old default) was nearly invisible against an
+ * already near-black dark background or an already near-white light one,
+ * which is why cards used to blend into the page in both themes.
  */
 fun Modifier.subtleGlassSurface(
     shape: Shape = RoundedCornerShape(GlassCorners.Card),
     tint: Color = Color.White
 ): Modifier = this
     .clip(shape)
-    .background(tint.copy(alpha = 0.08f))
+    .background(tint.copy(alpha = 0.6f))
     .border(
         width = 1.dp,
-        color = tint.copy(alpha = 0.14f),
+        color = tint.copy(alpha = 0.32f),
         shape = shape
     )
 
 /**
- * Picks a tint that matches the theme's own surface tone (dark tint on dark
- * theme, light tint on light theme) so that normal onSurface/onBackground
- * text - which is already tuned for that tone - stays readable on top of it.
- * (A tint that inverted the tone would fight with same-colored text sitting
- * on top of it, which is what made earlier glass surfaces hard to read.)
+ * Theme-aware tint for chrome that floats over arbitrary content/imagery
+ * (nav bar, dialogs, bottom sheets, the search/filter bar).
+ *
+ * Uses [AppColors.current] to pick the right tint per theme rather than
+ * a flat black/white wash — light mode gets a warm-tinted surface, dark
+ * mode gets a cool-tinted surface, both with proper contrast.
  */
 @Composable
 fun rememberGlassTint(): Color {
     val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
-    return if (isDark) Color.Black else Color.White
+    return if (isDark) Color(0xFF16181D) else Color(0xFFFAFAF7)
 }
+
+/**
+ * Theme-aware tone for regular content cards/panels (poster cards, episode
+ * rows, download boxes, etc.) that sit directly on the plain page background
+ * and need to visibly separate from it in both light and dark mode.
+ *
+ * Uses [AppColors.current.elevatedCard] for a properly designed elevation
+ * surface that's distinct from the page background in each theme.
+ */
+@Composable
+fun rememberCardTint(): Color = AppColors.current.elevatedCard
+
+/**
+ * Elevated glass surface for dialogs, bottom sheets, and other components
+ * that need to float above the base glass surface with extra distinction.
+ */
+@Composable
+fun rememberElevatedGlassTint(): Color = AppColors.current.dialogBackground
 
 /** A circular, frosted-glass icon button - used for the floating search icon, filter trigger, etc. */
 @Composable
@@ -186,12 +204,17 @@ fun GlassAlertDialog(
     tonalElevation: Dp = 0.dp,
     properties: DialogProperties = DialogProperties()
 ) {
-    val tint = rememberGlassTint()
+    val dialogTint = rememberElevatedGlassTint()
     Dialog(onDismissRequest = onDismissRequest, properties = properties) {
         Box(
             modifier = modifier
                 .widthIn(min = 280.dp, max = 560.dp)
-                .glassSurface(shape = shape, tint = tint, tintAlpha = 0.5f, borderAlpha = 0.45f)
+                .background(color = dialogTint, shape = shape)
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant,
+                    shape = shape
+                )
                 .padding(24.dp)
         ) {
             Column {

@@ -36,7 +36,7 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.pira.ccloud.data.model.Episode
 import com.pira.ccloud.data.model.Poster
-import com.pira.ccloud.ui.theme.rememberGlassTint
+import com.pira.ccloud.ui.theme.rememberCardTint
 import com.pira.ccloud.ui.theme.subtleGlassSurface
 
 @Composable
@@ -45,7 +45,7 @@ fun EpisodeCard(
     isWatched: Boolean,
     onPlayClick: () -> Unit
 ) {
-    val cardTint = rememberGlassTint()
+    val cardTint = rememberCardTint()
     Card(
         modifier = Modifier
             .fillMaxWidth()
