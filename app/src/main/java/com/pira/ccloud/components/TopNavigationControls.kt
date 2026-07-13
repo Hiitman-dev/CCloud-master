@@ -41,7 +41,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.pira.ccloud.ui.theme.AppColors
+import com.pira.ccloud.ui.theme.LocalAppColors
 import com.pira.ccloud.ui.theme.glassSurface
 import com.pira.ccloud.ui.theme.rememberGlassTint
 
@@ -117,7 +117,7 @@ fun PremiumFilterBar(
             Icon(
                 imageVector = Icons.Default.Tune,
                 contentDescription = "Filters",
-                tint = AppColors.current.filterBarAccent,
+                tint = LocalAppColors.current.filterBarAccent,
                 modifier = Modifier.size(24.dp)
             )
 

@@ -49,13 +49,12 @@ import androidx.compose.ui.zIndex
 import com.pira.ccloud.components.ContentCarousel
 import com.pira.ccloud.components.HeroCard
 import com.pira.ccloud.components.PremiumSearchButton
-import com.pira.ccloud.ui.theme.AppColors
+import com.pira.ccloud.ui.theme.LocalAppColors
 import com.pira.ccloud.components.PosterCard
 import com.pira.ccloud.data.model.FavoriteItem
 import com.pira.ccloud.data.model.Movie
 import com.pira.ccloud.data.model.Series
 import com.pira.ccloud.ui.home.HomeViewModel
-import com.pira.ccloud.ui.theme.GlassIconButton
 import com.pira.ccloud.ui.theme.rememberGlassTint
 import com.pira.ccloud.utils.StorageUtils
 import com.pira.ccloud.utils.ViewHistoryManager
@@ -308,12 +307,7 @@ fun HomeScreen(
             }
         }
 
-<<<<<<< HEAD
         // Home shows a floating premium search button in the top-right corner.
-=======
-        // Home no longer shows a genre/filter bar - just a floating search
-        // icon in the top-right corner.
->>>>>>> a3b2b8d4583bd1a3fccae41b6a62baf99ea7570c
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -321,13 +315,7 @@ fun HomeScreen(
                 .padding(top = 40.dp, end = 16.dp),
             contentAlignment = Alignment.TopEnd
         ) {
-<<<<<<< HEAD
             PremiumSearchButton(
-=======
-            GlassIconButton(
-                icon = Icons.Default.Search,
-                contentDescription = "Search",
->>>>>>> a3b2b8d4583bd1a3fccae41b6a62baf99ea7570c
                 onClick = {
                     navController?.navigate("search") {
                         launchSingleTop = true
@@ -388,19 +376,19 @@ private fun WatchAnalyticsCard(stats: WatchStats) {
                 icon = Icons.Default.Movie,
                 value = "${stats.moviesWatched}",
                 label = "Movies",
-                tint = AppColors.current.statCoral
+                tint = LocalAppColors.current.statCoral
             )
             StatItem(
                 icon = Icons.Default.Tv,
                 value = "${stats.seriesWatched}",
                 label = "Series",
-                tint = AppColors.current.statTeal
+                tint = LocalAppColors.current.statTeal
             )
             StatItem(
                 icon = Icons.Default.Star,
                 value = stats.formattedTotalTime,
                 label = "Total",
-                tint = AppColors.current.statAmber
+                tint = LocalAppColors.current.statAmber
             )
         }
         if (stats.topGenres.isNotEmpty()) {

@@ -43,7 +43,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import com.pira.ccloud.ui.theme.AppColors
+import com.pira.ccloud.ui.theme.LocalAppColors
 import com.pira.ccloud.ui.theme.glassSurface
 import com.pira.ccloud.ui.theme.rememberGlassTint
 import androidx.compose.material3.OutlinedTextField
@@ -895,7 +895,7 @@ fun FavoriteItemCard(
                         modifier = Modifier
                             .size(16.dp)
                             .padding(end = 4.dp),
-                        tint = AppColors.current.statusError
+                        tint = LocalAppColors.current.statusError
                     )
                     Text(
                         text = String.format("%.1f", favorite.imdb)

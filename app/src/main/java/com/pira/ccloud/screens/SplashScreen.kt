@@ -44,7 +44,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.pira.ccloud.BuildConfig
 import com.pira.ccloud.R
-import com.pira.ccloud.ui.theme.AppColors
+import com.pira.ccloud.ui.theme.LocalAppColors
 import com.pira.ccloud.utils.StorageUtils
 import kotlinx.coroutines.delay
 
@@ -172,8 +172,8 @@ fun WelcomeSliderScreen(
                             .size(12.dp)
                             .clip(CircleShape)
                             .background(
-                                if (index == currentSlide) AppColors.current.splashActiveIndicator
-                                else AppColors.current.splashInactiveIndicator.copy(alpha = 0.5f)
+                                if (index == currentSlide) LocalAppColors.current.splashActiveIndicator
+                                else LocalAppColors.current.splashInactiveIndicator.copy(alpha = 0.5f)
                             )
                     )
                 }
@@ -216,7 +216,7 @@ fun WelcomeSliderScreen(
                         }
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = AppColors.current.splashActiveIndicator
+                        containerColor = LocalAppColors.current.splashActiveIndicator
                     ),
                     shape = RoundedCornerShape(16.dp)
                 ) {
@@ -275,7 +275,7 @@ fun SlideItem(
             text = slide.title,
             style = MaterialTheme.typography.headlineLarge,
             fontWeight = FontWeight.Medium,
-            color = AppColors.current.splashActiveIndicator,
+            color = LocalAppColors.current.splashActiveIndicator,
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .align(Alignment.Center)

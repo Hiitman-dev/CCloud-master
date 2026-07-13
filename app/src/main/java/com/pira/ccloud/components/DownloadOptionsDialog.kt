@@ -52,7 +52,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pira.ccloud.data.model.Source
-import com.pira.ccloud.ui.theme.AppColors
+import com.pira.ccloud.ui.theme.LocalAppColors
 import com.pira.ccloud.ui.theme.GlassCorners
 import com.pira.ccloud.ui.theme.glassSurface
 import com.pira.ccloud.ui.theme.rememberGlassTint
@@ -143,19 +143,19 @@ fun DownloadOptionsDialog(
                     icon = Icons.Default.PlayArrow,
                     label = "VLC Player",
                     onClick = { onOpenInVLC(); onDismiss() },
-                    tint = AppColors.current.actionOrange
+                    tint = LocalAppColors.current.actionOrange
                 )
                 GlassActionButton(
                     icon = Icons.Default.PlayArrow,
                     label = "MX Player",
                     onClick = { onOpenInMXPlayer(); onDismiss() },
-                    tint = AppColors.current.actionBlue
+                    tint = LocalAppColors.current.actionBlue
                 )
                 GlassActionButton(
                     icon = Icons.Default.PlayArrow,
                     label = "KM Player",
                     onClick = { onOpenInKMPlayer(); onDismiss() },
-                    tint = AppColors.current.actionGreen
+                    tint = LocalAppColors.current.actionGreen
                 )
             }
 
@@ -184,7 +184,7 @@ fun DownloadOptionsDialog(
                     icon = Icons.Outlined.CloudDownload,
                     label = "ADM",
                     onClick = { onDownloadWithADM(); onDismiss() },
-                    tint = AppColors.current.actionPurple
+                    tint = LocalAppColors.current.actionPurple
                 )
             }
 
