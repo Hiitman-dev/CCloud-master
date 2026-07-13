@@ -91,7 +91,16 @@ fun GenreFilterSection(
         Row(
             modifier = Modifier
                 .weight(1f)
-                .glassSurface(shape = RoundedCornerShape(com.pira.ccloud.ui.theme.GlassCorners.Search), tint = glassTint)
+                // Noticeably more opaque/matte than the standard chrome glass
+                // so the "Filters" label and current selection stay legible
+                // no matter what's scrolling underneath, instead of reading
+                // as a faint, hard-to-read wash.
+                .glassSurface(
+                    shape = RoundedCornerShape(com.pira.ccloud.ui.theme.GlassCorners.Search),
+                    tint = glassTint,
+                    tintAlpha = 0.92f,
+                    borderAlpha = 0.28f
+                )
                 .clickable { showFilterSheet = true }
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -185,9 +194,14 @@ private fun FilterSheetContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            // Matte, near-opaque sheet backdrop - a faint glass wash here
+            // made the sort/genre labels hard to read against whatever was
+            // visible behind the sheet.
             .glassSurface(
                 shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-                tint = glassTint
+                tint = glassTint,
+                tintAlpha = 0.96f,
+                borderAlpha = 0.24f
             )
             .navigationBarsPadding()
             .padding(20.dp)
@@ -211,6 +225,8 @@ private fun FilterSheetContent(
                     label = { Text(label) },
                     shape = RoundedCornerShape(com.pira.ccloud.ui.theme.GlassCorners.Tag),
                     colors = FilterChipDefaults.filterChipColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         selectedContainerColor = MaterialTheme.colorScheme.primary,
                         selectedLabelColor = MaterialTheme.colorScheme.onPrimary
                     )
@@ -251,6 +267,8 @@ private fun FilterSheetContent(
                     },
                     shape = RoundedCornerShape(com.pira.ccloud.ui.theme.GlassCorners.Tag),
                     colors = FilterChipDefaults.filterChipColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         selectedContainerColor = MaterialTheme.colorScheme.secondary,
                         selectedLabelColor = MaterialTheme.colorScheme.onSecondary
                     ),

@@ -27,7 +27,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.pira.ccloud.components.FloatingTitleBar
 import com.pira.ccloud.components.GenreFilterSection
 import com.pira.ccloud.components.PosterCard
 import com.pira.ccloud.data.model.Genre
@@ -37,11 +36,13 @@ import com.pira.ccloud.utils.DeviceUtils
 import com.pira.ccloud.utils.StorageUtils
 
 /**
- * Height reserved above the scrollable content so it never sits underneath
- * the floating glass title bar. Must stay in sync with FloatingTitleBar's
- * real rendered height (see FloatingTopBar.kt) plus its top offset.
+ * Small top breathing room above the filter row. The floating "Movies"
+ * title chip that used to live here has been removed, so this is just a
+ * bit of spacing under the status bar rather than a full title-bar
+ * clearance - the system top inset itself is already consumed upstream by
+ * MainScreen's Scaffold.
  */
-private val TOP_BAR_CLEARANCE = 96.dp
+private val TOP_BAR_CLEARANCE = 8.dp
 
 /**
  * Extra bottom space added to the grid's content padding so the last row of
@@ -97,9 +98,8 @@ fun MoviesScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // Reserve space so the floating title bar never overlaps the
-            // filter row or the grid below it, and so nothing under it is
-            // accidentally untappable.
+            // Small breathing room under the status bar - the floating
+            // "Movies" title chip that used to sit here has been removed.
             Spacer(modifier = Modifier.height(TOP_BAR_CLEARANCE))
 
             // Single, unified filter control (sort type + genre) that opens
@@ -198,12 +198,5 @@ fun MoviesScreen(
                 }
             }
         }
-
-        // Floating title bar - purely branding/navigation, no filter logic
-        // baked in, so it never fights with the filter row below it.
-        FloatingTitleBar(
-            title = "Movies",
-            modifier = Modifier.padding(top = 20.dp)
-        )
     }
 }

@@ -48,6 +48,7 @@ import androidx.compose.material3.MaterialTheme
 import com.pira.ccloud.ui.theme.glassSurface
 import com.pira.ccloud.ui.theme.subtleGlassSurface
 import com.pira.ccloud.ui.theme.rememberGlassTint
+import com.pira.ccloud.ui.theme.rememberCardTint
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
@@ -560,7 +561,7 @@ fun PosterItem(
     poster: Poster,
     onClick: () -> Unit
 ) {
-    val posterCardGlassTint = rememberGlassTint()
+    val posterCardGlassTint = rememberCardTint()
     Card(
         modifier = Modifier
             .fillMaxWidth()

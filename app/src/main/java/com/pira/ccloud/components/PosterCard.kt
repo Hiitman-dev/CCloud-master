@@ -34,7 +34,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
-import com.pira.ccloud.ui.theme.rememberGlassTint
+import com.pira.ccloud.ui.theme.rememberCardTint
 import com.pira.ccloud.ui.theme.subtleGlassSurface
 
 @Composable
@@ -47,7 +47,7 @@ fun PosterCard(
     modifier: Modifier = Modifier,
     subtitle: String? = null
 ) {
-    val cardTint = rememberGlassTint()
+    val cardTint = rememberCardTint()
 
     Card(
         modifier = modifier

@@ -68,7 +68,7 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.pira.ccloud.VideoPlayerActivity
 import com.pira.ccloud.components.DownloadOptionsDialog
-import com.pira.ccloud.components.CopySeasonLinksButton
+import com.pira.ccloud.components.SeasonDownloadBox
 import com.pira.ccloud.components.ExpandableText
 import com.pira.ccloud.data.model.FavoriteItem
 import com.pira.ccloud.data.model.Episode
@@ -204,6 +204,21 @@ fun SingleSeriesScreen(
                         showDownloadMenu = true
                     }
                 }
+            },
+            onPlayEpisodeSource = { season, episode, source ->
+                // Used by the season Download Box's "Play" action, which
+                // already knows exactly which season/episode/quality was
+                // picked, so it plays that source directly.
+                com.pira.ccloud.utils.ViewHistoryManager.markAsWatching(
+                    context, series!!.id, "series", episode.id
+                )
+                VideoPlayerActivity.startWithEpisodeInfo(
+                    context,
+                    source.url,
+                    series!!.id,
+                    season.id,
+                    episode.id
+                )
             },
             modifier = Modifier.fillMaxSize()
         )
@@ -413,6 +428,7 @@ fun SeriesDetailsContent(
     onBackClick: () -> Unit,
     onEpisodeClick: (Episode) -> Unit,
     onDownloadClick: (Episode) -> Unit,
+    onPlayEpisodeSource: (Season, Episode, Source) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -829,28 +845,33 @@ fun SeriesDetailsContent(
             } else if (seasonsViewModel.seasons.isNotEmpty()) {
                 val selectedSeason = seasonsViewModel.seasons[selectedSeasonIndex]
                 Column {
-                    Row(
+                    Text(
+                        text = selectedSeason.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(start = 16.dp, top = 16.dp, end = 16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = selectedSeason.title,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.weight(1f)
-                        )
+                            .padding(start = 16.dp, top = 16.dp, end = 16.dp)
+                    )
 
-                        // FEATURE: Copy Season Links - gathers every episode's
-                        // links for this season, not just one episode's.
-                        if (selectedSeason.episodes.any { it.sources.isNotEmpty() }) {
-                            CopySeasonLinksButton(episodes = selectedSeason.episodes)
-                        }
+                    // Redesigned download section: a boxed, per-quality
+                    // download list for the whole season (replaces the old
+                    // "Copy Season Links" picker) - matches the reference
+                    // download-box layout with one row per quality and a
+                    // "View Links" action per row.
+                    if (selectedSeason.episodes.any { it.sources.isNotEmpty() }) {
+                        SeasonDownloadBox(
+                            season = selectedSeason,
+                            onPlayEpisodeSource = { episode, source ->
+                                onPlayEpisodeSource(selectedSeason, episode, source)
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 16.dp, top = 12.dp, end = 16.dp)
+                        )
                     }
-                    
+
                     selectedSeason.episodes.forEach { episode ->
                         val isEpisodeWatched = StorageUtils.isEpisodeWatched(context, series.id, selectedSeason.id, episode.id)
                         EpisodeItem(

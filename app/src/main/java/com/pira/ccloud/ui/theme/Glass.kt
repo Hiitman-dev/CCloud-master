@@ -66,11 +66,15 @@ object GlassCorners {
 fun Modifier.glassSurface(
     shape: Shape = RoundedCornerShape(GlassCorners.Card),
     tint: Color = Color.White,
-    // Matte/frosted range: flat opacity 45%-60%, hairline border ~14%-18%.
-    // Deliberately flat (no gradient) - glass is a material for chrome, not
-    // a decorative identity, so it should never read as a shiny/wet surface.
-    tintAlpha: Float = 0.55f,
-    borderAlpha: Float = 0.16f
+    // Matte/frosted range: flat opacity, hairline border. Deliberately flat
+    // (no gradient) - glass is a material for chrome, not a decorative
+    // identity, so it should never read as a shiny/wet surface. Raised from
+    // the original 45%-60% range: at low alpha a black tint over an
+    // already near-black dark background (or a white tint over an already
+    // near-white light background) barely showed up at all, so chrome like
+    // the search/filter bar read as almost invisible in both themes.
+    tintAlpha: Float = 0.78f,
+    borderAlpha: Float = 0.22f
 ): Modifier = this
     .clip(shape)
     .background(color = tint.copy(alpha = tintAlpha.coerceIn(0f, 1f)))
@@ -85,16 +89,24 @@ fun Modifier.glassSurface(
  * with only a faint frosted hint. Use this for regular content cards
  * (movie/series posters, grid items) so the poster art stays vibrant and
  * clear, per the "don't make every card glass" design direction.
+ *
+ * Pass [rememberCardTint] (not [rememberGlassTint]) as the tint here: cards
+ * sit flush on the plain page background rather than floating over
+ * arbitrary imagery, so they need a tone that's actually offset from
+ * [androidx.compose.material3.ColorScheme.background] - a flat black/white
+ * wash at low alpha (the old default) was nearly invisible against an
+ * already near-black dark background or an already near-white light one,
+ * which is why cards used to blend into the page in both themes.
  */
 fun Modifier.subtleGlassSurface(
     shape: Shape = RoundedCornerShape(GlassCorners.Card),
     tint: Color = Color.White
 ): Modifier = this
     .clip(shape)
-    .background(tint.copy(alpha = 0.08f))
+    .background(tint.copy(alpha = 0.6f))
     .border(
         width = 1.dp,
-        color = tint.copy(alpha = 0.14f),
+        color = tint.copy(alpha = 0.32f),
         shape = shape
     )
 
@@ -104,12 +116,34 @@ fun Modifier.subtleGlassSurface(
  * text - which is already tuned for that tone - stays readable on top of it.
  * (A tint that inverted the tone would fight with same-colored text sitting
  * on top of it, which is what made earlier glass surfaces hard to read.)
+ *
+ * This is for *chrome that floats over arbitrary content/imagery* (nav bar,
+ * dialogs, bottom sheets, the search/filter bar) where a universal
+ * black-in-dark / white-in-light scrim is the right call. For flat content
+ * cards sitting on the plain page background, use [rememberCardTint]
+ * instead - a pure black/white wash barely separates from an
+ * already-near-black or already-near-white page background.
  */
 @Composable
 fun rememberGlassTint(): Color {
     val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
     return if (isDark) Color.Black else Color.White
 }
+
+/**
+ * Tone for regular content cards/panels (poster cards, episode rows,
+ * download boxes, etc.) that sit directly on the plain page background and
+ * need to visibly separate from it in *both* light and dark mode.
+ *
+ * Unlike [rememberGlassTint]'s flat black/white wash, this derives from the
+ * theme's own `surfaceVariant` - which [buildAppColorScheme] already offsets
+ * from `background` by a real, deliberate lightness step in both themes -
+ * and against which `onSurface`/`onSurfaceVariant` text is already tuned to
+ * read cleanly, so cards gain real color separation without hurting text
+ * contrast.
+ */
+@Composable
+fun rememberCardTint(): Color = MaterialTheme.colorScheme.surfaceVariant
 
 /** A circular, frosted-glass icon button - used for the floating search icon, filter trigger, etc. */
 @Composable
