@@ -101,6 +101,20 @@ fun AmbientBackground(modifier: Modifier = Modifier) {
         }
     }
 
+    // The single opaque base fill for the *entire app*: every screen is
+    // deliberately transparent (see MainScreen's Scaffold containerColor)
+    // so this layer shows through everywhere. Previously this Canvas only
+    // drew the low-alpha glow blobs below and never painted a solid color
+    // first - so on top of nothing, the real "page" the user saw was
+    // whatever the native Android window background happened to be
+    // (Theme.CCloud, a light-only theme with no dark variant), regardless
+    // of the in-app theme. That's why dark mode showed dark chrome (cards,
+    // nav bar - which do read MaterialTheme.colorScheme correctly) floating
+    // over a page that stayed stuck in light mode. Filling with the live
+    // themed background color here first is what actually makes dark mode
+    // (and light mode) apply consistently everywhere.
+    val background = MaterialTheme.colorScheme.background
+
     Canvas(
         modifier = modifier
             .fillMaxSize()
@@ -119,6 +133,8 @@ fun AmbientBackground(modifier: Modifier = Modifier) {
                 }
             }
     ) {
+        drawRect(color = background)
+
         val w = size.width
         val h = size.height
         val base = min(w, h)
