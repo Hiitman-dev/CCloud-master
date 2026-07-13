@@ -1,6 +1,5 @@
 package com.pira.ccloud.navigation
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -24,10 +23,8 @@ import com.pira.ccloud.ui.home.HomeViewModel
 import com.pira.ccloud.ui.movies.MoviesViewModel
 import com.pira.ccloud.ui.search.SearchViewModel
 import com.pira.ccloud.ui.series.SeriesViewModel
-import com.pira.ccloud.ui.theme.ThemeManager
 import com.pira.ccloud.ui.theme.ThemeSettings
 import com.pira.ccloud.data.model.FontSettings
-import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun AppNavigation(
@@ -35,10 +32,6 @@ fun AppNavigation(
     onThemeSettingsChanged: (ThemeSettings) -> Unit = {},
     onFontSettingsChanged: (FontSettings) -> Unit = {}
 ) {
-    val context = LocalContext.current
-    val themeManager = ThemeManager(context)
-    val themeSettings = themeManager.loadThemeSettings()
-
     val homeViewModel = viewModel<HomeViewModel>()
     val moviesViewModel = viewModel<MoviesViewModel>()
     val seriesViewModel = viewModel<SeriesViewModel>()
@@ -50,27 +43,11 @@ fun AppNavigation(
         startDestination = AppScreens.Splash.route
     ) {
         composable(route = AppScreens.Splash.route) {
-            val isSystemInDarkMode = isSystemInDarkTheme()
             SplashScreen(
                 onTimeout = {
                     navController.popBackStack()
                     navController.navigate(AppScreens.Home.route) {
                         launchSingleTop = true
-                    }
-                },
-                backgroundColor = when (themeSettings.themeMode) {
-                    com.pira.ccloud.ui.theme.ThemeMode.DARK -> {
-                        androidx.compose.ui.graphics.Color(0xFF121212)
-                    }
-                    com.pira.ccloud.ui.theme.ThemeMode.LIGHT -> {
-                        androidx.compose.ui.graphics.Color(0xFFFFFBFE)
-                    }
-                    com.pira.ccloud.ui.theme.ThemeMode.SYSTEM -> {
-                        if (isSystemInDarkMode) {
-                            androidx.compose.ui.graphics.Color(0xFF121212)
-                        } else {
-                            androidx.compose.ui.graphics.Color(0xFFFFFBFE)
-                        }
                     }
                 }
             )
