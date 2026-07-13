@@ -1,7 +1,6 @@
 package com.pira.ccloud.components
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -91,17 +90,6 @@ fun GenreFilterSection(
             )
         }
     }
-}
-
-/** Thin hairline separator between segments of the filter bar. */
-@Composable
-private fun FilterBarDivider() {
-    Box(
-        modifier = Modifier
-            .width(1.dp)
-            .height(22.dp)
-            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f))
-    )
 }
 
 /**
