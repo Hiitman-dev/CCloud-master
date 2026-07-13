@@ -1,7 +1,9 @@
 package com.pira.ccloud.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -16,8 +18,8 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -33,11 +35,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pira.ccloud.data.model.FilterType
 import com.pira.ccloud.data.model.Genre
+import com.pira.ccloud.ui.theme.GlassCorners
 import com.pira.ccloud.ui.theme.glassSurface
 import com.pira.ccloud.ui.theme.rememberGlassTint
 
@@ -70,63 +75,95 @@ fun GenreFilterSection(
         FilterType.BY_IMDB -> "By IMDB"
     }
 
+    // One flat, near-opaque bar holding three segments - a solid "Search"
+    // pill, then "Sort" and "Genre" dropdown segments separated by hairline
+    // dividers - mirroring the reference site's single filter row instead of
+    // a lone "Filters" button. Kept at the same raised opacity already tuned
+    // for this bar (0.92/0.28) so labels stay legible over scrolling content.
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(14.dp),
+            .padding(horizontal = 16.dp, vertical = 10.dp)
+            .glassSurface(
+                shape = RoundedCornerShape(GlassCorners.Search),
+                tint = glassTint,
+                tintAlpha = 0.92f,
+                borderAlpha = 0.28f
+            )
+            .padding(6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Search icon comes first in reading order, with its own breathing
-        // room, then the filter trigger takes the remaining width - always a
-        // fixed, comfortable distance apart, never overlapping.
         if (onSearchClick != null) {
-            com.pira.ccloud.ui.theme.GlassIconButton(
-                icon = androidx.compose.material.icons.Icons.Default.Search,
-                contentDescription = "Search",
-                onClick = onSearchClick
-            )
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(GlassCorners.Tag))
+                    .background(MaterialTheme.colorScheme.primary)
+                    .clickable { onSearchClick() }
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "Search",
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.height(18.dp)
+                )
+                Text(
+                    text = "Search",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            }
+            FilterBarDivider()
         }
 
         Row(
             modifier = Modifier
                 .weight(1f)
-                // Noticeably more opaque/matte than the standard chrome glass
-                // so the "Filters" label and current selection stay legible
-                // no matter what's scrolling underneath, instead of reading
-                // as a faint, hard-to-read wash.
-                .glassSurface(
-                    shape = RoundedCornerShape(com.pira.ccloud.ui.theme.GlassCorners.Search),
-                    tint = glassTint,
-                    tintAlpha = 0.92f,
-                    borderAlpha = 0.28f
-                )
                 .clickable { showFilterSheet = true }
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = 12.dp, vertical = 10.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Tune,
-                    contentDescription = "Filters",
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.height(20.dp)
-                )
-                Text(
-                    text = "Filters",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Medium
-                )
-            }
             Text(
-                text = "$filterLabel  •  $selectedGenreTitle",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1
+                text = filterLabel,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Icon(
+                imageVector = Icons.Default.KeyboardArrowDown,
+                contentDescription = "Sort",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.height(18.dp)
+            )
+        }
+
+        FilterBarDivider()
+
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .clickable { showFilterSheet = true }
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = selectedGenreTitle,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Icon(
+                imageVector = Icons.Default.KeyboardArrowDown,
+                contentDescription = "Genre",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.height(18.dp)
             )
         }
     }
@@ -148,6 +185,17 @@ fun GenreFilterSection(
             )
         }
     }
+}
+
+/** Thin hairline separator between segments of the filter bar. */
+@Composable
+private fun FilterBarDivider() {
+    Box(
+        modifier = Modifier
+            .width(1.dp)
+            .height(22.dp)
+            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f))
+    )
 }
 
 /**
