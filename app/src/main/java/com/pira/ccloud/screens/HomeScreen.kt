@@ -55,6 +55,7 @@ import com.pira.ccloud.data.model.FavoriteItem
 import com.pira.ccloud.data.model.Movie
 import com.pira.ccloud.data.model.Series
 import com.pira.ccloud.ui.home.HomeViewModel
+import com.pira.ccloud.ui.theme.GlassIconButton
 import com.pira.ccloud.ui.theme.rememberGlassTint
 import com.pira.ccloud.utils.StorageUtils
 import com.pira.ccloud.utils.ViewHistoryManager
@@ -307,7 +308,12 @@ fun HomeScreen(
             }
         }
 
+<<<<<<< HEAD
         // Home shows a floating premium search button in the top-right corner.
+=======
+        // Home no longer shows a genre/filter bar - just a floating search
+        // icon in the top-right corner.
+>>>>>>> a3b2b8d4583bd1a3fccae41b6a62baf99ea7570c
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -315,7 +321,13 @@ fun HomeScreen(
                 .padding(top = 40.dp, end = 16.dp),
             contentAlignment = Alignment.TopEnd
         ) {
+<<<<<<< HEAD
             PremiumSearchButton(
+=======
+            GlassIconButton(
+                icon = Icons.Default.Search,
+                contentDescription = "Search",
+>>>>>>> a3b2b8d4583bd1a3fccae41b6a62baf99ea7570c
                 onClick = {
                     navController?.navigate("search") {
                         launchSingleTop = true

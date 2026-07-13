@@ -111,12 +111,27 @@ fun Modifier.subtleGlassSurface(
     )
 
 /**
+<<<<<<< HEAD
  * Theme-aware tint for chrome that floats over arbitrary content/imagery
  * (nav bar, dialogs, bottom sheets, the search/filter bar).
  *
  * Uses [AppColors.current] to pick the right tint per theme rather than
  * a flat black/white wash — light mode gets a warm-tinted surface, dark
  * mode gets a cool-tinted surface, both with proper contrast.
+=======
+ * Picks a tint that matches the theme's own surface tone (dark tint on dark
+ * theme, light tint on light theme) so that normal onSurface/onBackground
+ * text - which is already tuned for that tone - stays readable on top of it.
+ * (A tint that inverted the tone would fight with same-colored text sitting
+ * on top of it, which is what made earlier glass surfaces hard to read.)
+ *
+ * This is for *chrome that floats over arbitrary content/imagery* (nav bar,
+ * dialogs, bottom sheets, the search/filter bar) where a universal
+ * black-in-dark / white-in-light scrim is the right call. For flat content
+ * cards sitting on the plain page background, use [rememberCardTint]
+ * instead - a pure black/white wash barely separates from an
+ * already-near-black or already-near-white page background.
+>>>>>>> a3b2b8d4583bd1a3fccae41b6a62baf99ea7570c
  */
 @Composable
 fun rememberGlassTint(): Color {
@@ -125,6 +140,7 @@ fun rememberGlassTint(): Color {
 }
 
 /**
+<<<<<<< HEAD
  * Theme-aware tone for regular content cards/panels (poster cards, episode
  * rows, download boxes, etc.) that sit directly on the plain page background
  * and need to visibly separate from it in both light and dark mode.
@@ -141,6 +157,21 @@ fun rememberCardTint(): Color = AppColors.current.elevatedCard
  */
 @Composable
 fun rememberElevatedGlassTint(): Color = AppColors.current.dialogBackground
+=======
+ * Tone for regular content cards/panels (poster cards, episode rows,
+ * download boxes, etc.) that sit directly on the plain page background and
+ * need to visibly separate from it in *both* light and dark mode.
+ *
+ * Unlike [rememberGlassTint]'s flat black/white wash, this derives from the
+ * theme's own `surfaceVariant` - which [buildAppColorScheme] already offsets
+ * from `background` by a real, deliberate lightness step in both themes -
+ * and against which `onSurface`/`onSurfaceVariant` text is already tuned to
+ * read cleanly, so cards gain real color separation without hurting text
+ * contrast.
+ */
+@Composable
+fun rememberCardTint(): Color = MaterialTheme.colorScheme.surfaceVariant
+>>>>>>> a3b2b8d4583bd1a3fccae41b6a62baf99ea7570c
 
 /** A circular, frosted-glass icon button - used for the floating search icon, filter trigger, etc. */
 @Composable

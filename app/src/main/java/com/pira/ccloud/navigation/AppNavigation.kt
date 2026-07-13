@@ -29,7 +29,10 @@ import com.pira.ccloud.ui.home.HomeViewModel
 import com.pira.ccloud.ui.movies.MoviesViewModel
 import com.pira.ccloud.ui.search.SearchViewModel
 import com.pira.ccloud.ui.series.SeriesViewModel
+<<<<<<< HEAD
 import com.pira.ccloud.ui.theme.AppColors
+=======
+>>>>>>> a3b2b8d4583bd1a3fccae41b6a62baf99ea7570c
 import com.pira.ccloud.ui.theme.ThemeSettings
 import com.pira.ccloud.data.model.FontSettings
 
