@@ -34,7 +34,7 @@ android {
         //   CLOUD_API_BASE_URL=https://your-api-server.com
         //   CLOUD_FALLBACK_SERVER_1=https://fallback1.com
         //   CLOUD_FALLBACK_SERVER_2=https://fallback2.com
-        val localProps = java.util.Properties()
+        val localProps = Properties()
         val localPropsFile = rootProject.file("local.properties")
         if (localPropsFile.exists()) {
             localProps.load(localPropsFile.inputStream())
