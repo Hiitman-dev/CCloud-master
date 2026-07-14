@@ -53,15 +53,18 @@ fun FavoritesGroupSelector(
 ) {
     val glassTint = rememberGlassTint()
 
+    val focusRequester = remember { FocusRequester() }
+    val nextFocusRequester = remember { FocusRequester() }
+
     Card(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .glassSurface(shape = RoundedCornerShape(20.dp), tint = glassTint)
             .focusable()
-            .focusRequester(remember { FocusRequester() })
+            .focusRequester(focusRequester)
             .focusProperties {
-                down = remember { FocusRequester() }
+                down = nextFocusRequester
             },
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
