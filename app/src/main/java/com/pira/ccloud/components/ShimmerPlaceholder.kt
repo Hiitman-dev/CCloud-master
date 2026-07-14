@@ -7,9 +7,13 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -22,10 +26,6 @@ import androidx.compose.ui.unit.dp
 import com.pira.ccloud.ui.theme.GlassCorners
 import com.pira.ccloud.ui.theme.LocalAppColors
 
-/**
- * Shimmer loading placeholder with animated gradient.
- * Used for skeleton loading states.
- */
 @Composable
 fun ShimmerPlaceholder(
     modifier: Modifier = Modifier,
@@ -55,16 +55,13 @@ fun ShimmerPlaceholder(
 
     Box(
         modifier = modifier
-            .fillMaxWidth()
+            .width(150.dp)
             .height(height)
             .clip(RoundedCornerShape(cornerRadius))
             .background(brush)
     )
 }
 
-/**
- * Shimmer placeholder for hero card.
- */
 @Composable
 fun HeroShimmerPlaceholder(modifier: Modifier = Modifier) {
     ShimmerPlaceholder(
@@ -74,9 +71,6 @@ fun HeroShimmerPlaceholder(modifier: Modifier = Modifier) {
     )
 }
 
-/**
- * Shimmer placeholder for poster card.
- */
 @Composable
 fun PosterShimmerPlaceholder(modifier: Modifier = Modifier) {
     ShimmerPlaceholder(
@@ -86,18 +80,15 @@ fun PosterShimmerPlaceholder(modifier: Modifier = Modifier) {
     )
 }
 
-/**
- * Shimmer placeholder for carousel section.
- */
 @Composable
 fun CarouselShimmerPlaceholder(
     modifier: Modifier = Modifier,
     itemCount: Int = 5
 ) {
-    androidx.compose.foundation.lazy.LazyRow(
+    LazyRow(
         modifier = modifier,
-        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp)
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp)
     ) {
         items(itemCount) {
             PosterShimmerPlaceholder(

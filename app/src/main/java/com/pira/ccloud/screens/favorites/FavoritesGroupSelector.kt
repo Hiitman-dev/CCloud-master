@@ -2,13 +2,14 @@ package com.pira.ccloud.screens.favorites
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -32,6 +33,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
@@ -61,7 +63,7 @@ fun FavoritesGroupSelector(
             .focusProperties {
                 down = remember { FocusRequester() }
             },
-        colors = CardDefaults.cardColors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -86,10 +88,9 @@ fun FavoritesGroupSelector(
                 )
             }
 
-            // Display groups as selectable chips
             LazyRow(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(groups) { group ->
                     FavoritesGroupChip(
@@ -140,7 +141,7 @@ private fun FavoritesGroupChip(
         colors = if (isSelected) {
             CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
         } else {
-            CardDefaults.cardColors(containerColor = androidx.compose.ui.graphics.Color.Transparent)
+            CardDefaults.cardColors(containerColor = Color.Transparent)
         }
     ) {
         Row(
@@ -149,7 +150,6 @@ private fun FavoritesGroupChip(
         ) {
             Text(text = group.name)
 
-            // Show menu icon for non-default groups
             if (!group.isDefault) {
                 IconButton(
                     onClick = { showMenu = true },
@@ -164,7 +164,6 @@ private fun FavoritesGroupChip(
             }
         }
 
-        // Group menu for rename/delete options
         DropdownMenu(
             expanded = showMenu,
             onDismissRequest = { showMenu = false }
