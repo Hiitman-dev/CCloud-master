@@ -35,6 +35,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
+import com.pira.ccloud.ui.theme.GlassCorners
 import com.pira.ccloud.ui.theme.rememberCardTint
 import com.pira.ccloud.ui.theme.subtleGlassSurface
 
@@ -54,9 +55,9 @@ fun PosterCard(
         modifier = modifier
             .width(150.dp)
             .height(260.dp)
-            .subtleGlassSurface(shape = RoundedCornerShape(16.dp), tint = cardTint)
+            .subtleGlassSurface(shape = RoundedCornerShape(GlassCorners.Card), tint = cardTint)
             .clickable { onClick() },
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(GlassCorners.Card),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
@@ -73,7 +74,7 @@ fun PosterCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(185.dp)
-                        .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
+                        .clip(RoundedCornerShape(topStart = GlassCorners.Card, topEnd = GlassCorners.Card)),
                     contentScale = ContentScale.Crop
                 )
 

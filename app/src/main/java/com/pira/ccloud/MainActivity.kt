@@ -36,7 +36,9 @@ import com.pira.ccloud.utils.StorageUtils
 import com.pira.ccloud.data.model.FontSettings
 import com.pira.ccloud.utils.DeviceUtils
 import androidx.compose.ui.tooling.preview.Preview
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -3,6 +3,7 @@ package com.pira.ccloud.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,7 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.pira.ccloud.components.GenreFilterSection
 import com.pira.ccloud.components.PosterCard
@@ -56,7 +57,7 @@ private val BOTTOM_BAR_CLEARANCE = 100.dp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SeriesScreen(
-    viewModel: SeriesViewModel = viewModel(),
+    viewModel: SeriesViewModel = hiltViewModel(),
     navController: NavController? = null
 ) {
     val seriesList: List<Series> = viewModel.series
@@ -133,10 +134,22 @@ fun SeriesScreen(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = errorMessage,
-                            color = MaterialTheme.colorScheme.error
-                        )
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Text(
+                                text = errorMessage ?: "An error occurred",
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            androidx.compose.material3.Button(
+                                onClick = { viewModel.retry() },
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Text("Retry")
+                            }
+                        }
                     }
                 }
                 seriesList.isEmpty() -> {

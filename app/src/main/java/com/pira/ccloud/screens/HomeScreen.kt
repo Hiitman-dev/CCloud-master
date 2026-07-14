@@ -42,12 +42,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.ui.zIndex
 import com.pira.ccloud.components.ContentCarousel
 import com.pira.ccloud.components.HeroCard
+import com.pira.ccloud.components.HeroShimmerPlaceholder
 import com.pira.ccloud.components.PremiumSearchButton
 import com.pira.ccloud.ui.theme.LocalAppColors
 import com.pira.ccloud.components.PosterCard
@@ -62,7 +63,7 @@ import com.pira.ccloud.utils.WatchStats
 
 @Composable
 fun HomeScreen(
-    viewModel: HomeViewModel = viewModel(),
+    viewModel: HomeViewModel = hiltViewModel(),
     navController: NavController? = null
 ) {
     val context = LocalContext.current
@@ -124,6 +125,11 @@ fun HomeScreen(
                         },
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
+                }
+            } else if (viewModel.isLoading) {
+                item {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    HeroShimmerPlaceholder(modifier = Modifier.padding(horizontal = 16.dp))
                 }
             }
 

@@ -1,31 +1,40 @@
 package com.pira.ccloud.data.repository
 
 import com.pira.ccloud.data.model.Country
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import com.pira.ccloud.util.ApiException
+import com.pira.ccloud.util.Result
+import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONArray
-import org.json.JSONObject
+import javax.inject.Inject
+import javax.inject.Named
+import javax.inject.Singleton
 
-class CountryRepository : BaseRepository() {
-    private val BASE_URL = "https://server-hi-speed-iran.info/api/country/all"
-    
-    suspend fun getAllCountries(): List<Country> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val url = "$BASE_URL/$API_KEY/"
-                val jsonData = executeRequest(url) { Request.Builder().url(it).build() }
-                parseCountries(jsonData)
-            } catch (e: Exception) {
-                throw Exception("Error fetching countries: ${e.message}")
-            }
+@Singleton
+class CountryRepository @Inject constructor(
+    client: OkHttpClient,
+    @Named("apiKey") apiKey: String,
+    @Named("apiBaseUrl") apiBaseUrl: String,
+    @Named("fallbackServer1") fallbackServer1: String,
+    @Named("fallbackServer2") fallbackServer2: String
+) : BaseRepository(client, apiKey, apiBaseUrl, fallbackServer1, fallbackServer2), ICountryRepository {
+
+    private val BASE_URL = "$API_BASE_URL/api/country/all"
+
+    override suspend fun getAllCountries(): Result<List<Country>> {
+        return try {
+            val url = "$BASE_URL/$API_KEY/"
+            val jsonData = executeRequest(url) { Request.Builder().url(it).build() }
+            Result.success(parseCountries(jsonData))
+        } catch (e: Exception) {
+            Result.error(ApiException.fromException(e))
         }
     }
-    
+
     private fun parseCountries(jsonData: String): List<Country> {
         val jsonArray = JSONArray(jsonData)
         val countries = mutableListOf<Country>()
-        
+
         for (i in 0 until jsonArray.length()) {
             try {
                 val countryObj = jsonArray.getJSONObject(i)
@@ -41,7 +50,7 @@ class CountryRepository : BaseRepository() {
                 continue
             }
         }
-        
+
         return countries
     }
 }

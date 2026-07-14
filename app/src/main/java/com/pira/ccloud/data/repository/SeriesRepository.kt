@@ -4,31 +4,39 @@ import com.pira.ccloud.data.model.Country
 import com.pira.ccloud.data.model.FilterType
 import com.pira.ccloud.data.model.Genre
 import com.pira.ccloud.data.model.Series
+import com.pira.ccloud.util.ApiException
+import com.pira.ccloud.util.Result
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONArray
 import org.json.JSONObject
-import java.util.concurrent.TimeUnit
+import javax.inject.Inject
+import javax.inject.Named
+import javax.inject.Singleton
 
-class SeriesRepository : BaseRepository() {
-    private val BASE_URL = "https://server-hi-speed-iran.info/api/serie/by/filtres"
-    
-    suspend fun getSeries(page: Int = 0, genreId: Int = 0, filterType: FilterType = FilterType.DEFAULT): List<Series> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val url = buildUrl(BASE_URL, genreId, filterType, page)
-                
-                val jsonData = executeRequest(url) { Request.Builder().url(it).build() }
-                
-                parseSeries(jsonData)
-            } catch (e: Exception) {
-                throw Exception("Error fetching series: ${e.message}")
-            }
+@Singleton
+class SeriesRepository @Inject constructor(
+    client: OkHttpClient,
+    @Named("apiKey") apiKey: String,
+    @Named("apiBaseUrl") apiBaseUrl: String,
+    @Named("fallbackServer1") fallbackServer1: String,
+    @Named("fallbackServer2") fallbackServer2: String
+) : BaseRepository(client, apiKey, apiBaseUrl, fallbackServer1, fallbackServer2), ISeriesRepository {
+
+    private val BASE_URL = "$API_BASE_URL/api/serie/by/filtres"
+
+    override suspend fun getSeries(page: Int, genreId: Int, filterType: FilterType): Result<List<Series>> {
+        return try {
+            val url = buildUrl(BASE_URL, genreId, filterType, page)
+            val jsonData = executeRequest(url) { Request.Builder().url(it).build() }
+            Result.success(parseSeries(jsonData))
+        } catch (e: Exception) {
+            Result.error(ApiException.fromException(e))
         }
     }
-    
+
     private fun buildUrl(baseUrl: String, genreId: Int, filterType: FilterType, page: Int): String {
         return when (filterType) {
             FilterType.DEFAULT -> "$baseUrl/$genreId/created/$page/$API_KEY"
@@ -36,11 +44,11 @@ class SeriesRepository : BaseRepository() {
             FilterType.BY_IMDB -> "$baseUrl/$genreId/imdb/$page/$API_KEY"
         }
     }
-    
+
     private fun parseSeries(jsonData: String): List<Series> {
         val seriesList = mutableListOf<Series>()
         val jsonArray = JSONArray(jsonData)
-        
+
         for (i in 0 until jsonArray.length()) {
             try {
                 val seriesObj = jsonArray.getJSONObject(i)
@@ -51,10 +59,10 @@ class SeriesRepository : BaseRepository() {
                 continue
             }
         }
-        
+
         return seriesList
     }
-    
+
     private fun parseSeriesItem(seriesObj: JSONObject): Series {
         return Series(
             id = seriesObj.optInt("id", 0),
@@ -79,7 +87,7 @@ class SeriesRepository : BaseRepository() {
             }
         )
     }
-    
+
     private fun parseGenres(genresArray: JSONArray): List<Genre> {
         val genres = mutableListOf<Genre>()
         for (i in 0 until genresArray.length()) {
@@ -98,7 +106,7 @@ class SeriesRepository : BaseRepository() {
         }
         return genres
     }
-    
+
     private fun parseCountries(countriesArray: JSONArray): List<Country> {
         val countries = mutableListOf<Country>()
         for (i in 0 until countriesArray.length()) {

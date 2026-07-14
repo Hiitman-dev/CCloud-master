@@ -132,6 +132,7 @@ import com.pira.ccloud.utils.StorageUtils
 import com.pira.ccloud.ui.theme.FontManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -337,6 +338,7 @@ fun VideoPlayerScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val retryScope = rememberCoroutineScope()
 
     // ── Player state ──
     var isPlaying by remember { mutableStateOf(false) }
@@ -500,7 +502,7 @@ fun VideoPlayerScreen(
                 playerError = error.message
                 val retryPos = currentPosition
                 val wasPlaying = isPlaying
-                CoroutineScope(Dispatchers.Main).launch {
+                retryScope.launch {
                     delay(3000)
                     try {
                         exoPlayer?.let { player ->
@@ -647,6 +649,7 @@ fun VideoPlayerScreen(
     // ── Cleanup ──
     DisposableEffect(exoPlayer) {
         onDispose {
+            retryScope.cancel()
             try { exoPlayer?.release() } catch (_: Exception) {}
         }
     }
@@ -847,7 +850,7 @@ fun VideoPlayerScreen(
                         val sign = if (deltaMs >= 0) "+" else ""
                         Icon(
                             imageVector = if (deltaMs >= 0) Icons.Default.Forward else Icons.Default.Replay,
-                            contentDescription = null,
+                            contentDescription = if (deltaMs >= 0) "Forward" else "Rewind",
                             tint = Color.White,
                             modifier = Modifier.size(32.dp)
                         )
@@ -884,7 +887,7 @@ fun VideoPlayerScreen(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(
                             imageVector = Icons.Default.BrightnessMedium,
-                            contentDescription = null,
+                            contentDescription = "Brightness",
                             tint = Color.White,
                             modifier = Modifier.size(28.dp)
                         )
@@ -926,7 +929,7 @@ fun VideoPlayerScreen(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(
                             imageVector = Icons.Default.VolumeUp,
-                            contentDescription = null,
+                            contentDescription = "Volume",
                             tint = Color.White,
                             modifier = Modifier.size(28.dp)
                         )
@@ -971,7 +974,7 @@ fun VideoPlayerScreen(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(
                             imageVector = if (doubleTapSide < 0) Icons.Default.Replay else Icons.Default.Forward,
-                            contentDescription = null,
+                            contentDescription = if (doubleTapSide < 0) "Rewind 10 seconds" else "Forward 10 seconds",
                             tint = Color.White,
                             modifier = Modifier.size(36.dp)
                         )
