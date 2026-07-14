@@ -1,7 +1,10 @@
 package com.pira.ccloud.screens.settings
 
 import androidx.compose.animation.AnimatedVisibility
+<<<<<<< HEAD
 import androidx.compose.foundation.background
+=======
+>>>>>>> a37c0900691c5ad89e3d5dcbc9802401ce00f760
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Column

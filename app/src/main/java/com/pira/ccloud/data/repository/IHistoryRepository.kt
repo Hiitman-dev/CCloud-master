@@ -3,7 +3,10 @@ package com.pira.ccloud.data.repository
 import com.pira.ccloud.data.model.FavoriteItem
 import com.pira.ccloud.data.model.WatchedEpisode
 import com.pira.ccloud.utils.ViewHistoryManager
+<<<<<<< HEAD
 import com.pira.ccloud.utils.WatchStats
+=======
+>>>>>>> a37c0900691c5ad89e3d5dcbc9802401ce00f760
 
 interface IHistoryRepository {
     // View history (Continue Watching)
@@ -35,7 +38,11 @@ interface IHistoryRepository {
     suspend fun getFinished(): List<ViewHistoryManager.ViewEntry>
     suspend fun getTopGenres(limit: Int = 5): List<Pair<String, Int>>
     suspend fun getTotalWatchTime(): Long
+<<<<<<< HEAD
     suspend fun getStats(): WatchStats
+=======
+    suspend fun getStats(): ViewHistoryManager.WatchStats
+>>>>>>> a37c0900691c5ad89e3d5dcbc9802401ce00f760
     suspend fun clearHistory()
 
     // Watched episodes (series tracking)

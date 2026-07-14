@@ -36,7 +36,11 @@ class FavoritesRepository @Inject constructor(
 
     // ── Favorite Items ──────────────────────────────────────
 
+<<<<<<< HEAD
     override suspend fun saveFavorite(favorite: FavoriteItem): Unit = withContext(Dispatchers.IO) {
+=======
+    override suspend fun saveFavorite(favorite: FavoriteItem) = withContext(Dispatchers.IO) {
+>>>>>>> a37c0900691c5ad89e3d5dcbc9802401ce00f760
         favoritesMutex.withLock {
             try {
                 val favorites = (cachedFavorites ?: loadFavoritesFromDisk()).toMutableList()
@@ -51,7 +55,11 @@ class FavoritesRepository @Inject constructor(
         }
     }
 
+<<<<<<< HEAD
     override suspend fun removeFavorite(id: Int, type: String): Unit = withContext(Dispatchers.IO) {
+=======
+    override suspend fun removeFavorite(id: Int, type: String) = withContext(Dispatchers.IO) {
+>>>>>>> a37c0900691c5ad89e3d5dcbc9802401ce00f760
         favoritesMutex.withLock {
             try {
                 val favorites = (cachedFavorites ?: loadFavoritesFromDisk()).toMutableList()
@@ -65,7 +73,11 @@ class FavoritesRepository @Inject constructor(
         }
     }
 
+<<<<<<< HEAD
     override suspend fun clearAllFavorites(): Unit = withContext(Dispatchers.IO) {
+=======
+    override suspend fun clearAllFavorites() = withContext(Dispatchers.IO) {
+>>>>>>> a37c0900691c5ad89e3d5dcbc9802401ce00f760
         favoritesMutex.withLock {
             try {
                 val file = File(context.filesDir, FAVORITES_FILE)
@@ -89,7 +101,11 @@ class FavoritesRepository @Inject constructor(
         }
     }
 
+<<<<<<< HEAD
     override suspend fun saveFavoriteToDatabase(favorite: FavoriteItem): Unit = withContext(Dispatchers.IO) {
+=======
+    override suspend fun saveFavoriteToDatabase(favorite: FavoriteItem) = withContext(Dispatchers.IO) {
+>>>>>>> a37c0900691c5ad89e3d5dcbc9802401ce00f760
         try {
             when (favorite.type) {
                 "movie" -> {
@@ -122,7 +138,11 @@ class FavoritesRepository @Inject constructor(
 
     // ── Favorite Groups ─────────────────────────────────────
 
+<<<<<<< HEAD
     override suspend fun saveFavoriteGroup(group: FavoriteGroup): Unit = withContext(Dispatchers.IO) {
+=======
+    override suspend fun saveFavoriteGroup(group: FavoriteGroup) = withContext(Dispatchers.IO) {
+>>>>>>> a37c0900691c5ad89e3d5dcbc9802401ce00f760
         groupsMutex.withLock {
             try {
                 val groups = (cachedGroups ?: loadGroupsFromDisk()).toMutableList()
@@ -137,7 +157,11 @@ class FavoritesRepository @Inject constructor(
         }
     }
 
+<<<<<<< HEAD
     override suspend fun removeFavoriteGroup(groupId: String): Unit = withContext(Dispatchers.IO) {
+=======
+    override suspend fun removeFavoriteGroup(groupId: String) = withContext(Dispatchers.IO) {
+>>>>>>> a37c0900691c5ad89e3d5dcbc9802401ce00f760
         groupsMutex.withLock {
             try {
                 val groups = (cachedGroups ?: loadGroupsFromDisk()).toMutableList()
@@ -163,7 +187,11 @@ class FavoritesRepository @Inject constructor(
             ?: FavoriteGroup(id = "default", name = " Favorites", isDefault = true)
     }
 
+<<<<<<< HEAD
     override suspend fun addFavoriteToGroup(groupId: String, favoriteId: Int, type: String): Unit =
+=======
+    override suspend fun addFavoriteToGroup(groupId: String, favoriteId: Int, type: String) =
+>>>>>>> a37c0900691c5ad89e3d5dcbc9802401ce00f760
         withContext(Dispatchers.IO) {
             groupsMutex.withLock {
                 try {
@@ -182,7 +210,11 @@ class FavoritesRepository @Inject constructor(
             }
         }
 
+<<<<<<< HEAD
     override suspend fun removeFavoriteFromGroup(groupId: String, favoriteId: Int, type: String): Unit =
+=======
+    override suspend fun removeFavoriteFromGroup(groupId: String, favoriteId: Int, type: String) =
+>>>>>>> a37c0900691c5ad89e3d5dcbc9802401ce00f760
         withContext(Dispatchers.IO) {
             groupsMutex.withLock {
                 try {

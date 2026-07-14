@@ -18,7 +18,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+<<<<<<< HEAD
 import androidx.compose.runtime.remember
+=======
+>>>>>>> a37c0900691c5ad89e3d5dcbc9802401ce00f760
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester

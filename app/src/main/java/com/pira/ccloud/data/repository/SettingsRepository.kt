@@ -35,7 +35,11 @@ class SettingsRepository @Inject constructor(
 
     // ── Subtitle Settings ───────────────────────────────────
 
+<<<<<<< HEAD
     override suspend fun saveSubtitleSettings(settings: SubtitleSettings): Unit = withContext(Dispatchers.IO) {
+=======
+    override suspend fun saveSubtitleSettings(settings: SubtitleSettings) = withContext(Dispatchers.IO) {
+>>>>>>> a37c0900691c5ad89e3d5dcbc9802401ce00f760
         try {
             val jsonString = Json.encodeToString(settings)
             File(context.filesDir, SUBTITLE_FILE).writeText(jsonString)
@@ -62,7 +66,11 @@ class SettingsRepository @Inject constructor(
 
     // ── Video Player Settings ───────────────────────────────
 
+<<<<<<< HEAD
     override suspend fun saveVideoPlayerSettings(settings: VideoPlayerSettings): Unit = withContext(Dispatchers.IO) {
+=======
+    override suspend fun saveVideoPlayerSettings(settings: VideoPlayerSettings) = withContext(Dispatchers.IO) {
+>>>>>>> a37c0900691c5ad89e3d5dcbc9802401ce00f760
         try {
             val jsonString = Json.encodeToString(settings)
             File(context.filesDir, VIDEO_PLAYER_FILE).writeText(jsonString)
@@ -89,7 +97,11 @@ class SettingsRepository @Inject constructor(
 
     // ── Font Settings ───────────────────────────────────────
 
+<<<<<<< HEAD
     override suspend fun saveFontSettings(settings: FontSettings): Unit = withContext(Dispatchers.IO) {
+=======
+    override suspend fun saveFontSettings(settings: FontSettings) = withContext(Dispatchers.IO) {
+>>>>>>> a37c0900691c5ad89e3d5dcbc9802401ce00f760
         try {
             val jsonString = Json.encodeToString(settings)
             File(context.filesDir, FONT_FILE).writeText(jsonString)
@@ -116,7 +128,11 @@ class SettingsRepository @Inject constructor(
 
     // ── Welcome State ───────────────────────────────────────
 
+<<<<<<< HEAD
     override suspend fun saveWelcomeCompleted(): Unit = withContext(Dispatchers.IO) {
+=======
+    override suspend fun saveWelcomeCompleted() = withContext(Dispatchers.IO) {
+>>>>>>> a37c0900691c5ad89e3d5dcbc9802401ce00f760
         try {
             File(context.filesDir, WELCOME_FILE).writeText("completed")
             cachedWelcomeCompleted = true

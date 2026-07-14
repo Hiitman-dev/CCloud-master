@@ -29,7 +29,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+<<<<<<< HEAD
 import androidx.compose.ui.draw.clip
+=======
+>>>>>>> a37c0900691c5ad89e3d5dcbc9802401ce00f760
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester

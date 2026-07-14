@@ -5,7 +5,10 @@ import android.util.Log
 import com.pira.ccloud.data.model.FavoriteItem
 import com.pira.ccloud.data.model.WatchedEpisode
 import com.pira.ccloud.utils.ViewHistoryManager
+<<<<<<< HEAD
 import com.pira.ccloud.utils.WatchStats
+=======
+>>>>>>> a37c0900691c5ad89e3d5dcbc9802401ce00f760
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -91,7 +94,11 @@ class HistoryRepository @Inject constructor(
         return ViewHistoryManager.getTotalWatchTime(context)
     }
 
+<<<<<<< HEAD
     override suspend fun getStats(): WatchStats {
+=======
+    override suspend fun getStats(): ViewHistoryManager.WatchStats {
+>>>>>>> a37c0900691c5ad89e3d5dcbc9802401ce00f760
         return ViewHistoryManager.getStats(context)
     }
 
@@ -101,7 +108,11 @@ class HistoryRepository @Inject constructor(
 
     // ── Watched Episodes ────────────────────────────────────
 
+<<<<<<< HEAD
     override suspend fun saveWatchedEpisode(watchedEpisode: WatchedEpisode): Unit = withContext(Dispatchers.IO) {
+=======
+    override suspend fun saveWatchedEpisode(watchedEpisode: WatchedEpisode) = withContext(Dispatchers.IO) {
+>>>>>>> a37c0900691c5ad89e3d5dcbc9802401ce00f760
         try {
             val episodes = (cachedWatchedEpisodes ?: loadWatchedEpisodesFromDisk()).toMutableList()
             episodes.removeAll {
@@ -118,7 +129,11 @@ class HistoryRepository @Inject constructor(
         }
     }
 
+<<<<<<< HEAD
     override suspend fun removeWatchedEpisode(seriesId: Int, seasonId: Int, episodeId: Int): Unit = withContext(Dispatchers.IO) {
+=======
+    override suspend fun removeWatchedEpisode(seriesId: Int, seasonId: Int, episodeId: Int) = withContext(Dispatchers.IO) {
+>>>>>>> a37c0900691c5ad89e3d5dcbc9802401ce00f760
         try {
             val episodes = (cachedWatchedEpisodes ?: loadWatchedEpisodesFromDisk()).toMutableList()
             episodes.removeAll { it.seriesId == seriesId && it.seasonId == seasonId && it.episodeId == episodeId }
@@ -139,7 +154,11 @@ class HistoryRepository @Inject constructor(
         return cachedWatchedEpisodes ?: loadWatchedEpisodesFromDisk().also { cachedWatchedEpisodes = it }
     }
 
+<<<<<<< HEAD
     override suspend fun clearAllWatchedEpisodes(): Unit = withContext(Dispatchers.IO) {
+=======
+    override suspend fun clearAllWatchedEpisodes() = withContext(Dispatchers.IO) {
+>>>>>>> a37c0900691c5ad89e3d5dcbc9802401ce00f760
         try {
             val file = File(context.filesDir, WATCHED_EPISODES_FILE)
             if (file.exists()) file.delete()
@@ -152,7 +171,11 @@ class HistoryRepository @Inject constructor(
 
     // ── Recently Viewed ─────────────────────────────────────
 
+<<<<<<< HEAD
     override suspend fun saveRecentlyViewed(item: FavoriteItem): Unit = withContext(Dispatchers.IO) {
+=======
+    override suspend fun saveRecentlyViewed(item: FavoriteItem) = withContext(Dispatchers.IO) {
+>>>>>>> a37c0900691c5ad89e3d5dcbc9802401ce00f760
         try {
             val items = (cachedRecentlyViewed ?: loadRecentlyViewedFromDisk()).toMutableList()
             items.removeAll { it.id == item.id && it.type == item.type }

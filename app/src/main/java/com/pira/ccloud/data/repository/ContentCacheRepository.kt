@@ -28,7 +28,11 @@ class ContentCacheRepository @Inject constructor(
 
     // ── Movie Caching ───────────────────────────────────────
 
+<<<<<<< HEAD
     override suspend fun saveMovie(movie: Movie): Unit = withContext(Dispatchers.IO) {
+=======
+    override suspend fun saveMovie(movie: Movie) = withContext(Dispatchers.IO) {
+>>>>>>> a37c0900691c5ad89e3d5dcbc9802401ce00f760
         try {
             val jsonString = Json.encodeToString(movie)
             File(context.filesDir, "movie_${movie.id}.json").writeText(jsonString)
@@ -57,7 +61,11 @@ class ContentCacheRepository @Inject constructor(
         }
     }
 
+<<<<<<< HEAD
     override suspend fun clearAllMovies(): Unit = withContext(Dispatchers.IO) {
+=======
+    override suspend fun clearAllMovies() = withContext(Dispatchers.IO) {
+>>>>>>> a37c0900691c5ad89e3d5dcbc9802401ce00f760
         try {
             val filesDir = context.filesDir
             val movieFiles = filesDir.listFiles { file ->
@@ -75,7 +83,11 @@ class ContentCacheRepository @Inject constructor(
 
     // ── Series Caching ──────────────────────────────────────
 
+<<<<<<< HEAD
     override suspend fun saveSeries(series: Series): Unit = withContext(Dispatchers.IO) {
+=======
+    override suspend fun saveSeries(series: Series) = withContext(Dispatchers.IO) {
+>>>>>>> a37c0900691c5ad89e3d5dcbc9802401ce00f760
         try {
             val jsonString = Json.encodeToString(series)
             File(context.filesDir, "series_${series.id}.json").writeText(jsonString)
@@ -104,7 +116,11 @@ class ContentCacheRepository @Inject constructor(
         }
     }
 
+<<<<<<< HEAD
     override suspend fun clearAllSeries(): Unit = withContext(Dispatchers.IO) {
+=======
+    override suspend fun clearAllSeries() = withContext(Dispatchers.IO) {
+>>>>>>> a37c0900691c5ad89e3d5dcbc9802401ce00f760
         try {
             val filesDir = context.filesDir
             val seriesFiles = filesDir.listFiles { file ->
