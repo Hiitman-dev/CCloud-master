@@ -132,14 +132,6 @@ android {
     }
     
     // Add support for different screen sizes including TV
-    sourceSets {
-        getByName("main") {
-            res {
-                srcDirs("src/main/res", "src/main/res/values-television")
-            }
-        }
-    }
-    
     // Lint configuration to handle missing default resource issue
     lint {
         // Use baseline to ignore existing lint errors
