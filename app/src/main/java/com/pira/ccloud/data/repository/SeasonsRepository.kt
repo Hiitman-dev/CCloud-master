@@ -3,35 +3,41 @@ package com.pira.ccloud.data.repository
 import com.pira.ccloud.data.model.Episode
 import com.pira.ccloud.data.model.Season
 import com.pira.ccloud.data.model.Source
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import com.pira.ccloud.util.ApiException
+import com.pira.ccloud.util.Result
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONArray
 import org.json.JSONObject
-import java.util.concurrent.TimeUnit
+import javax.inject.Inject
+import javax.inject.Named
+import javax.inject.Singleton
 
-class SeasonsRepository : BaseRepository() {
-    private val BASE_URL = "https://server-hi-speed-iran.info/api/season/by/serie"
-    
-    suspend fun getSeasons(seriesId: Int): List<Season> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val url = "$BASE_URL/$seriesId/$API_KEY/"
-                
-                val jsonData = executeRequest(url) { Request.Builder().url(it).build() }
-                
-                parseSeasons(jsonData)
-            } catch (e: Exception) {
-                throw Exception("Error fetching seasons: ${e.message}")
-            }
+@Singleton
+class SeasonsRepository @Inject constructor(
+    client: OkHttpClient,
+    @Named("apiKey") apiKey: String,
+    @Named("apiBaseUrl") apiBaseUrl: String,
+    @Named("fallbackServer1") fallbackServer1: String,
+    @Named("fallbackServer2") fallbackServer2: String
+) : BaseRepository(client, apiKey, apiBaseUrl, fallbackServer1, fallbackServer2), ISeasonsRepository {
+
+    private val BASE_URL = "$API_BASE_URL/api/season/by/serie"
+
+    override suspend fun getSeasons(seriesId: Int): Result<List<Season>> {
+        return try {
+            val url = "$BASE_URL/$seriesId/$API_KEY/"
+            val jsonData = executeRequest(url) { Request.Builder().url(it).build() }
+            Result.success(parseSeasons(jsonData))
+        } catch (e: Exception) {
+            Result.error(ApiException.fromException(e))
         }
     }
-    
+
     private fun parseSeasons(jsonData: String): List<Season> {
         val seasons = mutableListOf<Season>()
         val jsonArray = JSONArray(jsonData)
-        
+
         for (i in 0 until jsonArray.length()) {
             try {
                 val seasonObj = jsonArray.getJSONObject(i)
@@ -42,10 +48,10 @@ class SeasonsRepository : BaseRepository() {
                 continue
             }
         }
-        
+
         return seasons
     }
-    
+
     private fun parseSeason(seasonObj: JSONObject): Season {
         return Season(
             id = seasonObj.optInt("id", 0),
@@ -57,7 +63,7 @@ class SeasonsRepository : BaseRepository() {
             }
         )
     }
-    
+
     private fun parseEpisodes(episodesArray: JSONArray): List<Episode> {
         val episodes = mutableListOf<Episode>()
         for (i in 0 until episodesArray.length()) {
@@ -84,7 +90,7 @@ class SeasonsRepository : BaseRepository() {
         }
         return episodes
     }
-    
+
     private fun parseSources(sourcesArray: JSONArray): List<Source> {
         val sources = mutableListOf<Source>()
         for (i in 0 until sourcesArray.length()) {

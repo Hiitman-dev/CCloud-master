@@ -7,7 +7,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -40,11 +40,11 @@ fun AppNavigation(
     onThemeSettingsChanged: (ThemeSettings) -> Unit = {},
     onFontSettingsChanged: (FontSettings) -> Unit = {}
 ) {
-    val homeViewModel = viewModel<HomeViewModel>()
-    val moviesViewModel = viewModel<MoviesViewModel>()
-    val seriesViewModel = viewModel<SeriesViewModel>()
-    val searchViewModel = viewModel<SearchViewModel>()
-    val countryViewModel = viewModel<CountryViewModel>()
+    val homeViewModel: HomeViewModel = hiltViewModel()
+    val moviesViewModel: MoviesViewModel = hiltViewModel()
+    val seriesViewModel: SeriesViewModel = hiltViewModel()
+    val searchViewModel: SearchViewModel = hiltViewModel()
+    val countryViewModel: CountryViewModel = hiltViewModel()
 
     NavHost(
         navController = navController,

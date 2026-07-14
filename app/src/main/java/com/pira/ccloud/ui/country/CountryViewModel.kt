@@ -7,42 +7,46 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pira.ccloud.data.model.FilterType
 import com.pira.ccloud.data.model.Poster
-import com.pira.ccloud.data.repository.CountryPostersRepository
-import com.pira.ccloud.data.repository.CountryRepository
+import com.pira.ccloud.data.repository.ICountryPostersRepository
+import com.pira.ccloud.data.repository.ICountryRepository
 import com.pira.ccloud.utils.LanguageUtils
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class CountryViewModel : ViewModel() {
-    private val postersRepository = CountryPostersRepository()
-    private val countryRepository = CountryRepository()
-    
+@HiltViewModel
+class CountryViewModel @Inject constructor(
+    private val postersRepository: ICountryPostersRepository,
+    private val countryRepository: ICountryRepository
+) : ViewModel() {
+
     var posters by mutableStateOf<List<Poster>>(emptyList())
         private set
-    
+
     var countryName by mutableStateOf<String>("")
         private set
-    
+
     var isLoading by mutableStateOf(false)
         private set
-    
+
     var isLoadingMore by mutableStateOf(false)
         private set
-    
+
     var errorMessage by mutableStateOf<String?>(null)
         private set
-    
+
     var currentPage by mutableStateOf(0)
         private set
-    
+
     var canLoadMore by mutableStateOf(true)
         private set
-    
+
     var countryId by mutableStateOf<Int?>(null)
         private set
-    
+
     var selectedFilterType by mutableStateOf(FilterType.DEFAULT)
         private set
-    
+
     fun setCountryId(id: Int) {
         if (countryId != id) {
             countryId = id
@@ -50,74 +54,66 @@ class CountryViewModel : ViewModel() {
             refresh()
         }
     }
-    
+
     fun selectFilterType(filterType: FilterType) {
         if (selectedFilterType != filterType) {
             selectedFilterType = filterType
             refresh()
         }
     }
-    
+
     private fun loadCountryName() {
         viewModelScope.launch {
-            try {
-                val countries = countryRepository.getAllCountries()
-                val country = countries.find { it.id == countryId }
-                countryName = country?.title ?: "Country"
-            } catch (e: Exception) {
-                countryName = "Country"
+            countryRepository.getAllCountries().let { result ->
+                if (result.isSuccess) {
+                    val countries = result.getOrNull() ?: emptyList()
+                    val country = countries.find { it.id == countryId }
+                    countryName = country?.title ?: "Country"
+                } else {
+                    countryName = "Country"
+                }
             }
         }
     }
-    
+
     fun loadPosters(page: Int = 0) {
         val currentCountryId = countryId ?: return
-        
+
         viewModelScope.launch {
-            try {
-                if (page == 0) {
-                    isLoading = true
+            if (page == 0) isLoading = true else isLoadingMore = true
+            errorMessage = null
+
+            postersRepository.getPostersByCountry(currentCountryId, page, selectedFilterType).let { result ->
+                if (result.isSuccess) {
+                    val newPosters = result.getOrNull() ?: emptyList()
+                    val filteredPosters = newPosters.filter { LanguageUtils.shouldDisplayTitle(it.title) }
+                    canLoadMore = filteredPosters.isNotEmpty()
+                    if (page == 0) {
+                        posters = filteredPosters
+                    } else {
+                        posters = posters + filteredPosters
+                    }
+                    currentPage = page
                 } else {
-                    isLoadingMore = true
+                    errorMessage = result.exceptionOrNull()?.message
                 }
-                errorMessage = null
-                
-                val newPosters = postersRepository.getPostersByCountry(currentCountryId, page, selectedFilterType)
-                
-                // Filter out posters with Farsi titles
-                val filteredPosters = newPosters.filter { poster ->
-                    LanguageUtils.shouldDisplayTitle(poster.title)
-                }
-                
-                // If we get fewer posters than expected, we've reached the end
-                canLoadMore = filteredPosters.isNotEmpty()
-                
-                if (page == 0) {
-                    posters = filteredPosters
-                } else {
-                    posters = posters + filteredPosters
-                }
-                
-                currentPage = page
-            } catch (e: Exception) {
-                errorMessage = e.message
-            } finally {
-                isLoading = false
-                isLoadingMore = false
             }
+
+            isLoading = false
+            isLoadingMore = false
         }
     }
-    
+
     fun loadMorePosters() {
         if (!isLoading && !isLoadingMore && canLoadMore) {
             loadPosters(currentPage + 1)
         }
     }
-    
+
     fun retry() {
         loadPosters(currentPage)
     }
-    
+
     fun refresh() {
         loadPosters(0)
     }

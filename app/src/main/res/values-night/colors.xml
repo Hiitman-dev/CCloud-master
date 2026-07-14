@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Matches ColorSchemeBuilder's dark "Tier 0" page background, so the
+         native window background (visible for an instant before Compose's
+         first frame draws, and as a fallback if the system is in dark mode)
+         doesn't flash a mismatched light background. -->
+    <color name="window_background">#101011</color>
+</resources>

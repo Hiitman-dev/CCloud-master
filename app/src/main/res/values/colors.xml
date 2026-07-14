@@ -2,4 +2,8 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <!-- Matches ColorSchemeBuilder's light "Tier 0" page background, so the
+         native window background (visible for an instant before Compose's
+         first frame draws) doesn't flash a mismatched generic white/gray. -->
+    <color name="window_background">#F7F6F4</color>
 </resources>

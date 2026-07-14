@@ -179,7 +179,7 @@ private fun StatsOverviewCard(
                 )
                 .border(
                     width = 0.5.dp,
-                    color = Color.White.copy(alpha = if (isDark) 0.1f else 0.3f),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = if (isDark) 0.8f else 0.9f),
                     shape = RoundedCornerShape(20.dp)
                 )
                 .padding(20.dp)

@@ -4,22 +4,19 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import java.util.concurrent.TimeUnit
+import javax.inject.Inject
+import javax.inject.Named
 
-open class BaseRepository {
-    protected val client = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .build()
-    
-    protected val API_KEY = "4F5A9C3D9A86FA54EACEDDD635185"
-    
-    // Helper servers array
-    protected val helperServers = arrayOf(
-        "https://hostinnegar.com",
-        "https://windowsdiba.info"
-    )
-    
+open class BaseRepository @Inject constructor(
+    protected val client: OkHttpClient,
+    @Named("apiKey") protected val API_KEY: String,
+    @Named("apiBaseUrl") protected val API_BASE_URL: String,
+    @Named("fallbackServer1") private val fallbackServer1: String,
+    @Named("fallbackServer2") private val fallbackServer2: String
+) {
+    // Helper servers array (fallback when primary server fails)
+    protected val helperServers = arrayOf(fallbackServer1, fallbackServer2)
+
     protected suspend fun executeRequest(
         primaryUrl: String,
         requestBuilder: (String) -> Request
@@ -39,6 +36,7 @@ open class BaseRepository {
             } catch (primaryException: Exception) {
                 // If primary server fails, try helper servers
                 for (helperServer in helperServers) {
+                    if (helperServer.isEmpty()) continue
                     try {
                         // Replace the host in the URL with the helper server
                         val helperUrl = primaryUrl.replace(Regex("^https?://[^/]+"), helperServer)
@@ -54,7 +52,7 @@ open class BaseRepository {
                         continue
                     }
                 }
-                
+
                 // If all servers fail, throw the original exception
                 throw primaryException
             }

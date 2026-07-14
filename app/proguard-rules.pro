@@ -1,28 +1,49 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# ─────────────────────────────────────────────────────────────
+# CCloud ProGuard Rules
+# ─────────────────────────────────────────────────────────────
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# ── Preserve line numbers for crash stack traces ─────────────
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
-
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
-
-# ExoPlayer specific rules
+# ── ExoPlayer / Media3 ───────────────────────────────────────
 -keep class androidx.media3.** { *; }
 -dontwarn androidx.media3.**
 
-# Kotlin serialization
+# ── Kotlinx Serialization ────────────────────────────────────
+-keepattributes *Annotation*, InnerClasses
+-dontnote kotlinx.serialization.AnnotationsKt
+
+-keepclassmembers @kotlinx.serialization.Serializable class ** {
+    *** Companion;
+}
+-keepclasseswithmembers class **$$serializer {
+    *** INSTANCE;
+}
+
+# Keep all serializable model classes
 -keep class com.pira.ccloud.data.model.** { *; }
+-keep class com.pira.ccloud.data.remote.response.** { *; }
+
+# ── OkHttp ───────────────────────────────────────────────────
+-dontwarn okhttp3.**
+-dontwarn okio.**
+-keepnames class okhttp3.internal.publicsuffix.PublicSuffixDatabase
+
+# ── Hilt / Dependency Injection (preparation for Phase 2) ────
+-keep class dagger.hilt.** { *; }
+-keep class javax.inject.** { *; }
+-keep class * extends dagger.hilt.android.internal.managers.ViewComponentManager$FragmentContextWrapper { *; }
+
+# ── Compose ──────────────────────────────────────────────────
+-dontwarn androidx.compose.**
+
+# ── Coroutines ───────────────────────────────────────────────
+-keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
+-keepnames class kotlinx.coroutines.CoroutineExceptionHandler {}
+-keepclassmembers class kotlinx.coroutines.** {
+    volatile <fields>;
+}
+
+# ── Keep BuildConfig for API key access ──────────────────────
+-keep class com.pira.ccloud.BuildConfig { *; }

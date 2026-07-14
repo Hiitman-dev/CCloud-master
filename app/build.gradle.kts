@@ -6,6 +6,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.hilt)
 }
 
 android {
@@ -22,9 +24,41 @@ android {
         versionName = "2.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        
+
         // Add memory management options
         multiDexEnabled = true
+
+        // ── Secrets (loaded from local.properties, never committed) ──
+        // To set up: add these lines to your local.properties file:
+        //   CLOUD_API_KEY=your_api_key_here
+        //   CLOUD_API_BASE_URL=https://your-api-server.com
+        //   CLOUD_FALLBACK_SERVER_1=https://fallback1.com
+        //   CLOUD_FALLBACK_SERVER_2=https://fallback2.com
+        val localProps = java.util.Properties()
+        val localPropsFile = rootProject.file("local.properties")
+        if (localPropsFile.exists()) {
+            localProps.load(localPropsFile.inputStream())
+        }
+        buildConfigField(
+            "String",
+            "API_KEY",
+            "\"${localProps.getProperty("CLOUD_API_KEY", "")}\""
+        )
+        buildConfigField(
+            "String",
+            "API_BASE_URL",
+            "\"${localProps.getProperty("CLOUD_API_BASE_URL", "https://server-hi-speed-iran.info")}\""
+        )
+        buildConfigField(
+            "String",
+            "FALLBACK_SERVER_1",
+            "\"${localProps.getProperty("CLOUD_FALLBACK_SERVER_1", "https://hostinnegar.com")}\""
+        )
+        buildConfigField(
+            "String",
+            "FALLBACK_SERVER_2",
+            "\"${localProps.getProperty("CLOUD_FALLBACK_SERVER_2", "https://windowsdiba.info")}\""
+        )
     }
     
     buildFeatures {
@@ -129,7 +163,6 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.material.icons.core)
     implementation(libs.androidx.material.icons.extended)
-    implementation(libs.accompanist.systemuicontroller)
     implementation(libs.coil.compose)
     
     // ExoPlayer for video playback
@@ -144,9 +177,19 @@ dependencies {
     // Networking
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
-    
+
     // ViewModel
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
+
+    // Hilt Dependency Injection
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+    implementation(libs.hilt.navigation.compose)
+
+    // Retrofit (prepared for Phase 4 data layer migration)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.serialization)
+    implementation(libs.retrofit.logging)
     
     // Leanback for TV support
     implementation(libs.androidx.leanback)
@@ -159,4 +202,18 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    // Testing
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    testImplementation("org.mockito:mockito-core:5.8.0")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
+    androidTestImplementation("androidx.test:runner:1.5.2")
+    androidTestImplementation("androidx.test:rules:1.5.0")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    androidTestImplementation("androidx.test.espresso:espresso-intents:3.5.1")
+    androidTestImplementation("com.google.dagger:hilt-android-testing:2.51.1")
+    androidTestImplementation("com.google.dagger:hilt-compiler:2.51.1")
+    androidTestImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
 }

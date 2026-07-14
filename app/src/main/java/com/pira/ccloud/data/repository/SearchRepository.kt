@@ -5,6 +5,8 @@ import com.pira.ccloud.data.model.Genre
 import com.pira.ccloud.data.model.Poster
 import com.pira.ccloud.data.model.SearchResult
 import com.pira.ccloud.data.model.Source
+import com.pira.ccloud.util.ApiException
+import com.pira.ccloud.util.Result
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -13,37 +15,42 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
-import java.util.concurrent.TimeUnit
+import javax.inject.Inject
+import javax.inject.Named
+import javax.inject.Singleton
 
-class SearchRepository : BaseRepository() {
-    private val BASE_URL = "https://server-hi-speed-iran.info/api/search"
-    
-    suspend fun search(query: String): SearchResult {
-        return withContext(Dispatchers.IO) {
-            try {
-                // Properly encode the query for URL paths
-                val encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8.toString()).replace("+", "%20")
-                val url = "$BASE_URL/$encodedQuery/$API_KEY/"
-                
-                val jsonData = executeRequest(url) { Request.Builder().url(it).build() }
-                
-                parseSearchResult(jsonData)
-            } catch (e: Exception) {
-                throw Exception("Error searching: ${e.message}")
-            }
+@Singleton
+class SearchRepository @Inject constructor(
+    client: OkHttpClient,
+    @Named("apiKey") apiKey: String,
+    @Named("apiBaseUrl") apiBaseUrl: String,
+    @Named("fallbackServer1") fallbackServer1: String,
+    @Named("fallbackServer2") fallbackServer2: String
+) : BaseRepository(client, apiKey, apiBaseUrl, fallbackServer1, fallbackServer2), ISearchRepository {
+
+    private val BASE_URL = "$API_BASE_URL/api/search"
+
+    override suspend fun search(query: String): Result<SearchResult> {
+        return try {
+            val encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8.toString()).replace("+", "%20")
+            val url = "$BASE_URL/$encodedQuery/$API_KEY/"
+            val jsonData = executeRequest(url) { Request.Builder().url(it).build() }
+            Result.success(parseSearchResult(jsonData))
+        } catch (e: Exception) {
+            Result.error(ApiException.fromException(e))
         }
     }
-    
+
     private fun parseSearchResult(jsonData: String): SearchResult {
         val jsonObject = JSONObject(jsonData)
         val postersArray = jsonObject.getJSONArray("posters")
         val posters = parsePosters(postersArray)
-        
+
         return SearchResult(
             posters = posters
         )
     }
-    
+
     private fun parsePosters(postersArray: JSONArray): List<Poster> {
         val posters = mutableListOf<Poster>()
         for (i in 0 until postersArray.length()) {
@@ -57,7 +64,7 @@ class SearchRepository : BaseRepository() {
         }
         return posters
     }
-    
+
     private fun parsePoster(posterObj: JSONObject): Poster {
         return Poster(
             id = posterObj.optInt("id", 0),
@@ -87,7 +94,7 @@ class SearchRepository : BaseRepository() {
             }
         )
     }
-    
+
     private fun parseGenres(genresArray: JSONArray): List<Genre> {
         val genres = mutableListOf<Genre>()
         for (i in 0 until genresArray.length()) {
@@ -106,7 +113,7 @@ class SearchRepository : BaseRepository() {
         }
         return genres
     }
-    
+
     private fun parseSources(sourcesArray: JSONArray): List<Source> {
         val sources = mutableListOf<Source>()
         for (i in 0 until sourcesArray.length()) {
@@ -127,7 +134,7 @@ class SearchRepository : BaseRepository() {
         }
         return sources
     }
-    
+
     private fun parseCountries(countriesArray: JSONArray): List<Country> {
         val countries = mutableListOf<Country>()
         for (i in 0 until countriesArray.length()) {

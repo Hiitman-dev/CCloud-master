@@ -5,31 +5,39 @@ import com.pira.ccloud.data.model.FilterType
 import com.pira.ccloud.data.model.Genre
 import com.pira.ccloud.data.model.Movie
 import com.pira.ccloud.data.model.Source
+import com.pira.ccloud.util.ApiException
+import com.pira.ccloud.util.Result
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONArray
 import org.json.JSONObject
-import java.util.concurrent.TimeUnit
+import javax.inject.Inject
+import javax.inject.Named
+import javax.inject.Singleton
 
-class MovieRepository : BaseRepository() {
-    private val BASE_URL = "https://server-hi-speed-iran.info/api/movie/by/filtres"
-    
-    suspend fun getMovies(page: Int = 0, genreId: Int = 0, filterType: FilterType = FilterType.DEFAULT): List<Movie> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val url = buildUrl(BASE_URL, genreId, filterType, page)
-                
-                val jsonData = executeRequest(url) { Request.Builder().url(it).build() }
-                
-                parseMovies(jsonData)
-            } catch (e: Exception) {
-                throw Exception("Error fetching movies: ${e.message}")
-            }
+@Singleton
+class MovieRepository @Inject constructor(
+    client: OkHttpClient,
+    @Named("apiKey") apiKey: String,
+    @Named("apiBaseUrl") apiBaseUrl: String,
+    @Named("fallbackServer1") fallbackServer1: String,
+    @Named("fallbackServer2") fallbackServer2: String
+) : BaseRepository(client, apiKey, apiBaseUrl, fallbackServer1, fallbackServer2), IMovieRepository {
+
+    private val BASE_URL = "$API_BASE_URL/api/movie/by/filtres"
+
+    override suspend fun getMovies(page: Int, genreId: Int, filterType: FilterType): Result<List<Movie>> {
+        return try {
+            val url = buildUrl(BASE_URL, genreId, filterType, page)
+            val jsonData = executeRequest(url) { Request.Builder().url(it).build() }
+            Result.success(parseMovies(jsonData))
+        } catch (e: Exception) {
+            Result.error(ApiException.fromException(e))
         }
     }
-    
+
     private fun buildUrl(baseUrl: String, genreId: Int, filterType: FilterType, page: Int): String {
         return when (filterType) {
             FilterType.DEFAULT -> "$baseUrl/$genreId/created/$page/$API_KEY"
@@ -37,11 +45,11 @@ class MovieRepository : BaseRepository() {
             FilterType.BY_IMDB -> "$baseUrl/$genreId/imdb/$page/$API_KEY"
         }
     }
-    
+
     private fun parseMovies(jsonData: String): List<Movie> {
         val movies = mutableListOf<Movie>()
         val jsonArray = JSONArray(jsonData)
-        
+
         for (i in 0 until jsonArray.length()) {
             try {
                 val movieObj = jsonArray.getJSONObject(i)
@@ -52,10 +60,10 @@ class MovieRepository : BaseRepository() {
                 continue
             }
         }
-        
+
         return movies
     }
-    
+
     private fun parseMovie(movieObj: JSONObject): Movie {
         return Movie(
             id = movieObj.optInt("id", 0),
@@ -85,7 +93,7 @@ class MovieRepository : BaseRepository() {
             }
         )
     }
-    
+
     private fun parseGenres(genresArray: JSONArray): List<Genre> {
         val genres = mutableListOf<Genre>()
         for (i in 0 until genresArray.length()) {
@@ -104,7 +112,7 @@ class MovieRepository : BaseRepository() {
         }
         return genres
     }
-    
+
     private fun parseSources(sourcesArray: JSONArray): List<Source> {
         val sources = mutableListOf<Source>()
         for (i in 0 until sourcesArray.length()) {
@@ -125,7 +133,7 @@ class MovieRepository : BaseRepository() {
         }
         return sources
     }
-    
+
     private fun parseCountries(countriesArray: JSONArray): List<Country> {
         val countries = mutableListOf<Country>()
         for (i in 0 until countriesArray.length()) {

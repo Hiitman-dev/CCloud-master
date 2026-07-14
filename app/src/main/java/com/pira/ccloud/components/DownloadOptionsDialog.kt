@@ -98,7 +98,7 @@ fun DownloadOptionsDialog(
                 )
                 .border(
                     width = 0.5.dp,
-                    color = Color.White.copy(alpha = if (isDark) 0.1f else 0.3f),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = if (isDark) 0.8f else 0.9f),
                     shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
                 )
                 .padding(horizontal = 24.dp)
@@ -324,7 +324,7 @@ fun CopySelectedLinksDialog(
                 )
                 .border(
                     width = 0.5.dp,
-                    color = Color.White.copy(alpha = if (isDark) 0.1f else 0.3f),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = if (isDark) 0.8f else 0.9f),
                     shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
                 )
                 .padding(horizontal = 24.dp)
@@ -466,7 +466,7 @@ fun CopySeasonLinksButton(
                     )
                     .border(
                         width = 0.5.dp,
-                        color = Color.White.copy(alpha = if (isDark) 0.1f else 0.3f),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = if (isDark) 0.8f else 0.9f),
                         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
                     )
                     .padding(horizontal = 24.dp)

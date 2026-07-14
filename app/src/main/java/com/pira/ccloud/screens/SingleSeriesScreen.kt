@@ -78,6 +78,7 @@ import com.pira.ccloud.data.model.Series
 import com.pira.ccloud.data.model.Source
 import com.pira.ccloud.data.model.WatchedEpisode
 import androidx.compose.material.icons.filled.Check
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.pira.ccloud.ui.series.SeasonsViewModel
 import com.pira.ccloud.utils.DownloadUtils
 import com.pira.ccloud.utils.StorageUtils
@@ -90,7 +91,7 @@ fun SingleSeriesScreen(
 ) {
     var series by remember { mutableStateOf<Series?>(null) }
     val context = LocalContext.current
-    val seasonsViewModel: SeasonsViewModel = viewModel()
+    val seasonsViewModel: SeasonsViewModel = hiltViewModel()
     var selectedEpisode by remember { mutableStateOf<Episode?>(null) }
     var showSourceDialog by remember { mutableStateOf(false) }
     var showDownloadMenu by remember { mutableStateOf(false) }

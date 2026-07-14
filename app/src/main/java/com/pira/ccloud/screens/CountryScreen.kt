@@ -68,7 +68,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
@@ -81,7 +81,7 @@ import com.pira.ccloud.utils.StorageUtils
 @Composable
 fun CountryScreen(
     countryId: Int,
-    viewModel: CountryViewModel = viewModel(),
+    viewModel: CountryViewModel = hiltViewModel(),
     navController: NavController? = null
 ) {
     // Set the country ID when the screen is first loaded

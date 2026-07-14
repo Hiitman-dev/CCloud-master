@@ -1,27 +1,33 @@
 package com.pira.ccloud.ui.home
 
-import android.app.Application
+import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pira.ccloud.data.model.FavoriteItem
 import com.pira.ccloud.data.model.FilterType
 import com.pira.ccloud.data.model.Genre
 import com.pira.ccloud.data.model.Movie
 import com.pira.ccloud.data.model.Series
-import com.pira.ccloud.data.repository.GenreRepository
-import com.pira.ccloud.data.repository.MovieRepository
-import com.pira.ccloud.data.repository.SeriesRepository
+import com.pira.ccloud.data.repository.IGenreRepository
+import com.pira.ccloud.data.repository.IMovieRepository
+import com.pira.ccloud.data.repository.ISeriesRepository
 import com.pira.ccloud.utils.LanguageUtils
 import com.pira.ccloud.utils.StorageUtils
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class HomeViewModel(application: Application) : AndroidViewModel(application) {
-    private val movieRepository = MovieRepository()
-    private val seriesRepository = SeriesRepository()
-    private val genreRepository = GenreRepository()
+@HiltViewModel
+class HomeViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val movieRepository: IMovieRepository,
+    private val seriesRepository: ISeriesRepository,
+    private val genreRepository: IGenreRepository
+) : ViewModel() {
 
     // Continue Watching
     var recentlyViewed by mutableStateOf<List<FavoriteItem>>(emptyList())
@@ -77,10 +83,11 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun loadGenres() {
         viewModelScope.launch {
-            try {
-                genres = genreRepository.getGenres()
-            } catch (_: Exception) {
-                // Non-critical
+            genreRepository.getGenres().let { result ->
+                if (result.isSuccess) {
+                    genres = result.getOrNull() ?: emptyList()
+                }
+                // Non-critical - silently ignore genre load failures
             }
         }
     }
@@ -102,57 +109,53 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun loadRecentlyViewed() {
-        val context = getApplication<Application>()
         recentlyViewed = StorageUtils.loadRecentlyViewed(context)
     }
 
     private suspend fun loadTodayUpdates() {
-        try {
-            val fetchedMovies = movieRepository.getMovies(0, 0, FilterType.DEFAULT)
-            todayMovies = fetchedMovies.filter { LanguageUtils.shouldDisplayTitle(it.title) }.take(20)
-        } catch (_: Exception) {
-            todayMovies = emptyList()
+        movieRepository.getMovies(0, 0, FilterType.DEFAULT).let { result ->
+            todayMovies = if (result.isSuccess) {
+                (result.getOrNull() ?: emptyList()).filter { LanguageUtils.shouldDisplayTitle(it.title) }.take(20)
+            } else emptyList()
         }
-        try {
-            val fetchedSeries = seriesRepository.getSeries(0, 0, FilterType.DEFAULT)
-            todaySeries = fetchedSeries.filter { LanguageUtils.shouldDisplayTitle(it.title) }.take(20)
-        } catch (_: Exception) {
-            todaySeries = emptyList()
+        seriesRepository.getSeries(0, 0, FilterType.DEFAULT).let { result ->
+            todaySeries = if (result.isSuccess) {
+                (result.getOrNull() ?: emptyList()).filter { LanguageUtils.shouldDisplayTitle(it.title) }.take(20)
+            } else emptyList()
         }
     }
 
     private suspend fun loadNewReleases() {
-        try {
-            val fetchedMovies = movieRepository.getMovies(0, 0, FilterType.BY_YEAR)
-            newReleases = fetchedMovies.filter { LanguageUtils.shouldDisplayTitle(it.title) }.take(20)
-        } catch (_: Exception) {
-            newReleases = emptyList()
+        movieRepository.getMovies(0, 0, FilterType.BY_YEAR).let { result ->
+            newReleases = if (result.isSuccess) {
+                (result.getOrNull() ?: emptyList()).filter { LanguageUtils.shouldDisplayTitle(it.title) }.take(20)
+            } else emptyList()
         }
     }
 
     fun loadMovies(page: Int = 0) {
         viewModelScope.launch {
-            try {
-                if (page == 0) isLoading = true else isLoadingMore = true
-                errorMessage = null
+            if (page == 0) isLoading = true else isLoadingMore = true
+            errorMessage = null
 
-                val newMovies = movieRepository.getMovies(page, selectedGenreId, selectedFilterType)
-                val filtered = newMovies.filter { LanguageUtils.shouldDisplayTitle(it.title) }
-                canLoadMoreMovies = filtered.isNotEmpty()
-
-                if (page == 0) {
-                    movies = filtered
+            movieRepository.getMovies(page, selectedGenreId, selectedFilterType).let { result ->
+                if (result.isSuccess) {
+                    val newMovies = result.getOrNull() ?: emptyList()
+                    val filtered = newMovies.filter { LanguageUtils.shouldDisplayTitle(it.title) }
+                    canLoadMoreMovies = filtered.isNotEmpty()
+                    if (page == 0) {
+                        movies = filtered
+                    } else {
+                        movies = movies + filtered
+                    }
+                    currentMoviePage = page
                 } else {
-                    val currentMovies = movies
-                    movies = currentMovies + filtered
+                    errorMessage = result.exceptionOrNull()?.message
                 }
-                currentMoviePage = page
-            } catch (e: Exception) {
-                errorMessage = e.message
-            } finally {
-                isLoading = false
-                isLoadingMore = false
             }
+
+            isLoading = false
+            isLoadingMore = false
         }
     }
 
@@ -165,27 +168,27 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     fun loadSeries(page: Int = 0) {
         viewModelScope.launch {
-            try {
-                if (page == 0) isLoading = true else isLoadingMore = true
-                errorMessage = null
+            if (page == 0) isLoading = true else isLoadingMore = true
+            errorMessage = null
 
-                val newSeries = seriesRepository.getSeries(page, selectedGenreId, selectedFilterType)
-                val filtered = newSeries.filter { LanguageUtils.shouldDisplayTitle(it.title) }
-                canLoadMoreSeries = filtered.isNotEmpty()
-
-                if (page == 0) {
-                    series = filtered
+            seriesRepository.getSeries(page, selectedGenreId, selectedFilterType).let { result ->
+                if (result.isSuccess) {
+                    val newSeries = result.getOrNull() ?: emptyList()
+                    val filtered = newSeries.filter { LanguageUtils.shouldDisplayTitle(it.title) }
+                    canLoadMoreSeries = filtered.isNotEmpty()
+                    if (page == 0) {
+                        series = filtered
+                    } else {
+                        series = series + filtered
+                    }
+                    currentSeriesPage = page
                 } else {
-                    val currentSeries = series
-                    series = currentSeries + filtered
+                    errorMessage = result.exceptionOrNull()?.message
                 }
-                currentSeriesPage = page
-            } catch (e: Exception) {
-                errorMessage = e.message
-            } finally {
-                isLoading = false
-                isLoadingMore = false
             }
+
+            isLoading = false
+            isLoadingMore = false
         }
     }
 
